@@ -11,6 +11,6 @@ class ServicesController extends Controller
     {
         $services = Service::all();
 
-        return Inertia::render('Servicios/Index', ['services' => $services]);
+        return Inertia::render('servicios', ['services' => $services]);
     }
 }
