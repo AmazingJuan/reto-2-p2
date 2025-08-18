@@ -9,9 +9,17 @@ class ServicesController extends Controller
 {
     public function index()
     {
-        $servicesType = ['Consultoría', 'Auditoría', 'Formación'];
+        /*$servicesType = ['Consultoría', 'Auditoría', 'Formación'];
 
-        return Inertia::render('services/index', ['servicesType' => $servicesType]);
+        return Inertia::render('services/index', ['servicesType' => $servicesType]);*/
+
+        return Inertia::render('services/index', [
+            'services' => [
+                ['name' => 'Auditoría', 'slug' => 'auditoria'],
+                ['name' => 'Consultoría', 'slug' => 'consultoria'],
+                ['name' => 'Formación', 'slug' => 'formacion'],
+            ],
+        ]);
     }
 
     public function show($type)

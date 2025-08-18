@@ -49,7 +49,7 @@ export default function Layout({ children, heroContent }: LayoutProps) {
         {heroContent ? (
           heroContent
         ) : (
-          <h1 className="text-3xl font-bold">tuki</h1>
+          <h1 className="text-3xl font-bold"></h1>
         )}
       </section>
 
