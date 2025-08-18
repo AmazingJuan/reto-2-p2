@@ -1,12 +1,7 @@
 <?php
 
-use App\Http\Controllers\ServicesController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get('/', 'App\Http\Controllers\ServicesController@index')->name('home');
+Route::get('/portafolio', 'App\Http\Controllers\ServicesController@index')->name('services.index');
 
-
-Route::get('/servicios', function () {
-    return Inertia::render('Servicios'); // aquí el nombre del componente TSX
-});
+Route::get('/portafolio/{type}', 'App\Http\Controllers\ServicesController@show')->name('services.show');
