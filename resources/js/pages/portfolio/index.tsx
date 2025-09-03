@@ -1,4 +1,5 @@
 import Layout from "../../layouts/Layout";
+import QuotationButton from "../../components/QuotationButton";
 import { Link } from "@inertiajs/react";
 import React from "react";
 
@@ -32,6 +33,7 @@ export default function PortfolioIndex({ services }: PortfolioIndexProps) {
           ))}
         </div>
       </div>
+      <QuotationButton />
     </Layout>
   );
 }

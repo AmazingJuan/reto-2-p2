@@ -15,7 +15,6 @@ class ServicesController extends Controller
         $serviceType = ServiceType::findOrFail($serviceTypeId);
         $services = $serviceType->services;
         $conditionResolvedValues = $conditionResolverService->getConditionsWithValues($serviceType);
-        return json_encode($conditionResolvedValues);
-        return Inertia::render('services/index', ['serviceType' => $serviceType, 'services' => $services, 'conditions' => $conditionResolvedValues]);
+    return Inertia::render('services/index', ['serviceType' => $serviceType, 'services' => $services, 'conditions' => $conditionResolvedValues]);
     }
 }

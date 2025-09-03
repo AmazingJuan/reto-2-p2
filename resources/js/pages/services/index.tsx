@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import { Service } from "../../types/service";
 import { ServiceCard } from "../../components/ServiceCard";
 import Layout from "../../layouts/Layout";
+import QuotationButton from "../../components/QuotationButton";
 import ServiceShow from "./show";
 
 export default function Servicios({ services }: Props) {
@@ -44,6 +45,7 @@ export default function Servicios({ services }: Props) {
           </div>
         )}
       </div>
+      <QuotationButton />
     </Layout>
   );
 }
