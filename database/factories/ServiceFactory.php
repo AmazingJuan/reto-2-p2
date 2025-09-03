@@ -19,7 +19,7 @@ class ServiceFactory extends Factory
         return [
             'name' => $this->faker->unique()->word,
             'description' => $this->faker->sentence,
-            'type' => $this->faker->randomElement(['type1', 'type2', 'type3']),
+            'type' => $this->faker->randomElement(['Auditoría', 'Consultoría', 'Formación']),
             'gestion_line' => $this->faker->word,
             'created_at' => now(),
         ];

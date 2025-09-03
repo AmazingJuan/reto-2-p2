@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('services', function (Blueprint $table) {
+        Schema::create('conditions', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
-            $table->text('description')->nullable();
-            $table->foreignId('service_type_id')->constrained('service_types')->onDelete('cascade');
-            $table->string('gestion_line', 50);
+            $table->boolean('is_fixed')->default(true);
+            $table->boolean('allows_other_value')->default(false);
+            $table->boolean('allows_multiple_values')->default(false);
             $table->timestamps();
         });
     }
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('services');
+        Schema::dropIfExists('conditions');
     }
 };
