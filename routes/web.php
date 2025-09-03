@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/portafolio', 'App\Http\Controllers\ServicesController@index')->name('services.index');
+use App\Http\Controllers\Portfolio\PortfolioController;
+use App\Http\Controllers\Portfolio\Services\ServicesController;
 
-Route::get('/portafolio/{type}', 'App\Http\Controllers\ServicesController@show')->name('services.show');
+Route::get('/portafolio', [PortfolioController::class, 'index'])->name('portfolio.index');
+Route::get('/portafolio/{serviceTypeId}', [ServicesController::class, 'index'])->name('services.index');

@@ -1,41 +1,48 @@
+interface Props extends PageProps {
+  services: Service[];
+}
+
+import React, { useState } from "react";
+import { Service } from "../../types/service";
+import { ServiceCard } from "../../components/ServiceCard";
 import Layout from "../../layouts/Layout";
-import { Link } from "@inertiajs/react";
-import React, { PropsWithChildren, ReactNode } from "react";
+import ServiceShow from "./show";
 
-interface Service {
-  name: string;
-  slug: string;
-}
+export default function Servicios({ services }: Props) {
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
 
-interface ServicesIndexProps {
-  services: Service[]; // vendrá de Laravel
-}
-
-interface LayoutProps extends PropsWithChildren {
-  heroContent?: ReactNode;
-}
-
-export default function ServicesIndex({ services }: ServicesIndexProps) {
   return (
     <Layout
       heroContent={
         <div>
-          <h1 className="text-4xl font-bold">Portafolio de servicios</h1>
+          <h1 className="text-4xl font-bold">Servicios</h1>
+          <p className="mt-2 text-lg">
+            Conoce todos los servicios que ofrecemos para ti
+          </p>
         </div>
       }
     >
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {services.map((service) => (
-            <Link
-              key={service.slug}
-              href={`/portafolio/${service.slug}`}
-              className="block p-6 h-48 w-full border-2 border-gray-300 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-center text-2xl font-bold text-gray-700 hover:bg-gray-50"
-            >
-              {service.name}
-            </Link>
-          ))}
+      <div className="flex h-[calc(100vh-12rem)]">
+        {/* Lista de servicios a la derecha */}
+        <div className="flex-1 p-6 overflow-y-auto">
+          <h2 className="text-2xl font-bold mb-4">Lista de Servicios</h2>
+          <ul className="space-y-2">
+            {services.map((service) => (
+              <ServiceCard
+                key={service.id}
+                service={service}
+                onSelect={() => setSelectedService(service)}
+              />
+            ))}
+          </ul>
         </div>
+
+        {/* Panel de detalles a la izquierda */}
+        {selectedService && (
+          <div className="w-1/3 border-l bg-white shadow-lg">
+            <ServiceShow service={selectedService} />
+          </div>
+        )}
       </div>
     </Layout>
   );
