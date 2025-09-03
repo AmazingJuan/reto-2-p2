@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('condition_service_types', function (Blueprint $table) {
             $table->id();
             $table->foreignId('condition_id')
-                    ->constrained('conditions')
-                    ->onDelete('cascade');
+                ->constrained('conditions')
+                ->onDelete('cascade');
             $table->foreignId('service_type_id')
-                    ->constrained('service_types')
-                    ->onDelete('cascade');
+                ->constrained('service_types')
+                ->onDelete('cascade');
             $table->timestamps();
         });
     }

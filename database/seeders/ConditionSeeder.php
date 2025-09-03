@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use App\Models\Condition;
 use Illuminate\Database\Seeder;
 
@@ -18,7 +17,24 @@ class ConditionSeeder extends Seeder
         ]);
 
         Condition::create([
-            'name' => 'Viaticos',
+            'name' => 'Modalidad',
+        ]);
+
+        Condition::create([
+            'name' => 'Sede',
+        ]);
+
+        Condition::create([
+            'name' => 'Tipo de Auditoría',
+        ]);
+
+        Condition::create([
+            'name' => 'La actividad laboral entra en ARL 5?',
+            'is_boolean' => true,
+        ]);
+
+        Condition::create([
+            'name' => 'Tiempo necesario',
         ]);
     }
 }
