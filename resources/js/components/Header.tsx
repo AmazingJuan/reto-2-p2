@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+
 // import { Link } from 'react-router-dom';
 import { Menu, X, Search, ChevronDown } from 'lucide-react';
 import { FaFacebook, FaLinkedin } from 'react-icons/fa';
@@ -7,7 +8,20 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // Mostrar input al hacer click en la lupa
+  const handleShowSearch = () => {
+    setShowSearch(true);
+    setTimeout(() => searchInputRef.current?.focus(), 100);
+  };
+  // Cerrar barra de búsqueda
+  const handleCloseSearch = () => {
+    setShowSearch(false);
+    setSearchTerm("");
+  };
   return (
     <>
       {/* Barrita de Encima con información Training */}
@@ -88,9 +102,31 @@ const Header = () => {
               <a href="#" className="font-medium text-gray-900 hover:text-blue-600 transition-colors">Cursos y Formaciones</a>
               <a href="#" className="font-medium text-gray-900 hover:text-blue-600 transition-colors">Contacto</a>
               
-              <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                <Search className="h-5 w-5 text-gray-600" />
-              </button>
+              {!showSearch ? (
+                <button className="p-2 hover:bg-gray-100 rounded-full transition-colors" onClick={handleShowSearch}>
+                  <Search className="h-5 w-5 text-gray-600" />
+                </button>
+              ) : (
+                <div className="relative">
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    className="border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring w-64"
+                    placeholder="Buscar servicios..."
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                  />
+                  <button onClick={handleCloseSearch} className="absolute right-1 top-1 text-gray-400 hover:text-gray-700">
+                    <X className="h-5 w-5" />
+                  </button>
+                  {/* Resultados de búsqueda */}
+                  {searchTerm && (
+                    <div className="absolute left-0 mt-2 w-full bg-white border border-gray-200 rounded shadow-lg z-50 max-h-60 overflow-y-auto">
+                      <div className="p-4 text-center text-gray-400">Sin resultados</div>
+                    </div>
+                  )}
+                </div>
+              )}
             </nav>
 
             <button
