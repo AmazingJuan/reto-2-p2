@@ -39,7 +39,6 @@ export default function Layout({ children, heroContent }: LayoutProps) {
               placeholder="Buscar..."
               className="px-2 py-1 outline-none"
             />
-            <span className="text-gray-600">🔍</span>
           </div>
         </div>
       </header>
