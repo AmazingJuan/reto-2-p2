@@ -56,13 +56,18 @@ export default function Layout({ children, heroContent }: LayoutProps) {
       <main className="flex-1 max-w-7xl mx-auto px-6 py-8">{children}</main>
 
       {/* FOOTER */}
-      <footer className="bg-[#151528] text-white text-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <span className="text-gray-300">
-            Training Corporation - 2025
-          </span>
-        </div>
-      </footer>
+          <footer className="bg-[#151528] text-white text-sm">
+      <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col items-center space-y-3">
+        {/* Botón Cotización (centrado) */}
+        <Link
+          href="/cotizacion"
+          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded transition"
+        >
+          Comenzar Cotización
+        </Link>
+        <span className="text-gray-300">Training Corporation - 2025 ©</span>
+      </div>
+    </footer>
     </div>
   );
 }
