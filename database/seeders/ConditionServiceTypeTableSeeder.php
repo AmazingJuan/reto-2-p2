@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Condition;
+use App\Models\ServiceType;
 use Illuminate\Database\Seeder;
 
 class ConditionServiceTypeTableSeeder extends Seeder
@@ -11,29 +12,25 @@ class ConditionServiceTypeTableSeeder extends Seeder
     {
         $viaticos = Condition::where('name', 'Viaticos')->first();
         $modalidad = Condition::where('name', 'Modalidad')->first();
+        $tiempo = Condition::where('name', 'Tiempo necesario')->first();
 
-        if (! $viaticos || ! $modalidad) {
-            throw new \Exception('Faltan condiciones: Viaticos o Modalidad');
+        if (! $viaticos || ! $modalidad || ! $tiempo) {
+            throw new \Exception('Faltan condiciones: Viaticos, Modalidad o Tiempo necesario');
         }
 
-        // IDs de service_types que ya existen como string
+        // IDs o slugs de los tipos de servicio
         $serviceTypeIds = ['auditoria', 'consultoria', 'formacion'];
 
-        // Insertar manualmente en la tabla pivote
-        foreach ($serviceTypeIds as $typeId) {
-            \DB::table('condition_service_type')->insert([
-                'condition_id' => $viaticos->id,
-                'service_type_id' => $typeId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+        // Obtener modelos de ServiceType por su 'id' o 'slug'
+        $serviceTypes = ServiceType::whereIn('id', $serviceTypeIds)->get();
 
-            \DB::table('condition_service_type')->insert([
-                'condition_id' => $modalidad->id,
-                'service_type_id' => $typeId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+        if ($serviceTypes->count() !== count($serviceTypeIds)) {
+            throw new \Exception('Faltan algunos ServiceTypes en la base de datos.');
         }
+
+        // Asociar usando la relación Eloquent
+        $viaticos->serviceTypes()->syncWithoutDetaching($serviceTypes->pluck('id'));
+        $modalidad->serviceTypes()->syncWithoutDetaching($serviceTypes->pluck('id'));
+        $tiempo->serviceTypes()->syncWithoutDetaching($serviceTypes->pluck('id'));
     }
 }

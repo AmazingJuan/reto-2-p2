@@ -99,7 +99,7 @@ class Condition extends Model
     // Allows Other Value
     public function allowsOtherValue(): bool
     {
-        return (bool) $this->attributes['allows_other_value'];
+        return (bool) $this->attributes['allows_other_values'];
     }
 
     public function setAllowsOtherValue(bool $value): void

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name')->unique();
             $table->string('type')->default('text');
             $table->boolean('is_fixed')->default(true);
-            $table->boolean('allows_other_value')->default(false);
+            $table->boolean('allows_other_values')->default(false);
             $table->boolean('allows_multiple_values')->default(false);
             $table->boolean('is_boolean')->default(false);
             $table->timestamps();

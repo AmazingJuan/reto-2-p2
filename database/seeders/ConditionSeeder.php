@@ -14,6 +14,8 @@ class ConditionSeeder extends Seeder
     {
         Condition::create([
             'name' => 'Viaticos',
+            'allows_multiple_values' => true,
+            'allows_other_values' => true,
         ]);
 
         Condition::create([
@@ -35,6 +37,7 @@ class ConditionSeeder extends Seeder
 
         Condition::create([
             'name' => 'Tiempo necesario',
+            'type' => 'time',
         ]);
     }
 }

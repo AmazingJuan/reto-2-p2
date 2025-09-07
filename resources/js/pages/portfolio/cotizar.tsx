@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Layout from "../../layouts/Layout";
 
 type Flags = {
-  allows_other_value: boolean;
+  allows_other_values: boolean;
   allows_multiple_values: boolean;
   is_time: boolean;
 };
@@ -179,7 +179,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
                   ))}
                   
                   {/* Botón "Otro" para modalidad */}
-                  {effectiveFlags.allows_other_value && (
+                  {effectiveFlags.allows_other_values && (
                     <div className="flex flex-col">
                       <button
                         onClick={() => toggleOtherInput(sectionName)}
