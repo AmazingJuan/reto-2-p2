@@ -128,4 +128,10 @@ class Condition extends Model
     {
         $this->attributes['is_boolean'] = $value;
     }
+
+    public function isTime(): bool
+    {
+        return $this->attributes['type'] === 'time';
+    }
+
 }

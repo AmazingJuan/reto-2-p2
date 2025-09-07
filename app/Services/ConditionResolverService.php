@@ -14,7 +14,7 @@ class ConditionResolverService
      */
     public function resolveConditionValues($condition)
     {
-        if ($condition->is_boolean) {
+        if ($condition->isBoolean()) {
             return ['Si', 'No'];
         }
 
@@ -34,9 +34,13 @@ class ConditionResolverService
         // Obtiene las condiciones asociadas al tipo de servicio
         $conditions = $serviceType->conditions;
         foreach ($conditions as $condition) {
-
+            $conditionFlags = [
+                'allows_other_value' => $condition->allowsOtherValue(),
+                'allows_multiple_values' => $condition->allowsMultipleValues(),
+                'is_time' => $condition->isTime(),
+            ];
             $conditionResolvedValues = $this->resolveConditionValues($condition);
-            $finalResult[] = [$condition->name => $conditionResolvedValues];
+            $finalResult[] = [$condition->name => ["flags" => $conditionFlags, "items" => $conditionResolvedValues]];
         }
 
         return $finalResult;
