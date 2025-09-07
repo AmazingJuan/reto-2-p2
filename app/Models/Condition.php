@@ -9,7 +9,7 @@ class Condition extends Model
 {
     /**
      * Attributes:
-     * 
+     *
      * $this->attributes['id'] - int - Primary key identifier
      * $this->attributes['name'] - string - Unique name of the condition
      * $this->attributes['type'] - string - Input type (default: "text")

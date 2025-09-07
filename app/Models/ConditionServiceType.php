@@ -8,7 +8,7 @@ class ConditionServiceType extends Model
 {
     /**
      * Attributes:
-     * 
+     *
      * $this->attributes['id'] - int - Primary key identifier
      * $this->attributes['condition_id'] - int - Foreign key referencing conditions.id
      * $this->attributes['service_type_id'] - string - Foreign key referencing service_types.id (string PK)

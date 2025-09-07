@@ -6,19 +6,21 @@ use App\Data\QuotationParams;
 use App\Http\Controllers\Controller;
 use App\Models\ServiceType;
 use App\Services\ConditionResolverService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class QuotationController extends Controller
 {
-    public function index(Request $request, ConditionResolverService $conditionResolverService)
+    public function index() : RedirectResponse
     {
-        $params = QuotationParams::fromRequest($request);
-        $serviceTypeId = $params->getType();
-        if (!$serviceTypeId) {
-            return inertia('Quotation/SelectType'); // seria ideal definir una ruta central donde el usuario pueda seleccionar el tipo de servicio
-        }
+        return redirect()->route('portfolio.index', ['base_path' => 'quotation.show']);
+    }
 
-        $serviceType = ServiceType::findOrFail($serviceTypeId);
+    public function show(string $serviceTypeId, ConditionResolverService $conditionResolverService, Request $request)
+    {
+        $serviceId = $request->query('serviceId', null);
+
+        $serviceType = ServiceType::find($serviceTypeId);
         if (! $serviceType) {
             return redirect()
                 ->route('quotation.index')
@@ -26,12 +28,13 @@ class QuotationController extends Controller
         }
 
         $viewData = [
-            'serviceType' => $params->getType(),
-            'serviceId' => $params->getServiceId(),
+            'serviceType' => $serviceTypeId,
+            'serviceId' => $serviceId,
             'conditions' => $conditionResolverService->getConditionsWithValues($serviceType),
         ];
 
-        $viewData['conditions']['services'] = $serviceType->services->pluck('name', 'id');
+        $viewData['conditions']['services'] = $serviceType->services->pluck('name', 'id')->all();
+
         return inertia('portfolio/cotizar', [
             'viewData' => $viewData,
         ]);

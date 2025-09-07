@@ -15,4 +15,5 @@ Route::prefix('portafolio')->group(function () {
 
 Route::prefix('cotizar')->group(function () {
     Route::get('/', [QuotationController::class, 'index'])->name('quotation.index');
+    Route::get('/{serviceTypeId}', [QuotationController::class, 'show'])->name('quotation.show');
 });

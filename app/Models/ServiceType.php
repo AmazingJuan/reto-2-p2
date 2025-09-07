@@ -21,6 +21,7 @@ class ServiceType extends Model
      * Primary key is a string, not auto-incrementing.
      */
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     /**

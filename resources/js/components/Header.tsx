@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-
+import { route } from 'ziggy-js';
 // import { Link } from 'react-router-dom';
 import { Menu, X, Search, ChevronDown } from 'lucide-react';
 import { FaFacebook, FaLinkedin } from 'react-icons/fa';
@@ -55,7 +55,7 @@ const Header = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-20">
             {/* Logo Training*/}
-            <a href="/" className="flex-shrink-0">
+            <a href={route('home')} className="flex-shrink-0">
               <img 
                 src="https://www.trainingcorporation.com.co/wp-content/uploads/thegem-logos/logo_2ca397275eaaf1aa60bbe0bda23053dc_1x.png" 
                 alt="Training Corporation" 
@@ -65,7 +65,7 @@ const Header = () => {
 
             {/* Navegación */}
             <nav className="hidden lg:flex items-center space-x-8">
-              <a href="/" className="font-medium text-gray-900 hover:text-blue-600 transition-colors">
+              <a href={route('home')} className="font-medium text-gray-900 hover:text-blue-600 transition-colors">
                 Inicio
               </a>
               
@@ -84,15 +84,15 @@ const Header = () => {
               </div>
 
               <div className="relative group">
-                <a href="/portafolio" className="flex items-center font-medium text-gray-900 hover:text-blue-600 transition-colors">
+                <a href={route('portfolio.index')} className="flex items-center font-medium text-gray-900 hover:text-blue-600 transition-colors">
                   Portafolio de servicios
                   <ChevronDown className="ml-1 h-4 w-4" />
                 </a>
                 <div className="absolute top-full left-0 mt-1 w-64 bg-white shadow-lg rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <div className="py-2">
-                    <a href="/portafolio/auditoria" className="block px-4 py-2 text-gray-700 hover:bg-gray-50">Auditoría</a>
-                    <a href="/portafolio/formacion" className="block px-4 py-2 text-gray-700 hover:bg-gray-50">Formación</a>
-                    <a href="/portafolio/consultoria" className="block px-4 py-2 text-gray-700 hover:bg-gray-50">Consultoría</a>
+                    <a href={route('services.index', { serviceTypeId: 'auditoria' })} className="block px-4 py-2 text-gray-700 hover:bg-gray-50">Auditoría</a>
+                    <a href={route('services.index', { serviceTypeId: 'formacion' })} className="block px-4 py-2 text-gray-700 hover:bg-gray-50">Formación</a>
+                    <a href={route('services.index', { serviceTypeId: 'consultoria' })} className="block px-4 py-2 text-gray-700 hover:bg-gray-50">Consultoría</a>
                   </div>
                 </div>
               </div>
@@ -140,7 +140,7 @@ const Header = () => {
           {isMenuOpen && (
             <div className="lg:hidden border-t border-gray-200 py-4">
               <div className="space-y-4">
-                <a href="/" className="block font-medium text-gray-900 hover:text-blue-600 transition-colors">
+                <a href={route('home')} className="block font-medium text-gray-900 hover:text-blue-600 transition-colors">
                   Inicio
                 </a>
                 
@@ -166,16 +166,16 @@ const Header = () => {
                     onClick={() => setIsServicesDropdownOpen(!isServicesDropdownOpen)}
                     className="flex items-center w-full font-medium text-gray-900 hover:text-blue-600 transition-colors"
                   >
-                    <a href="/portafolio" className="flex items-center">
+                    <a href={route('portfolio.index')} className="flex items-center">
                       Portafolio de servicios
                       <ChevronDown className={`ml-1 h-4 w-4 transform transition-transform ${isServicesDropdownOpen ? 'rotate-180' : ''}`} />
                     </a>
                   </button>
                   {isServicesDropdownOpen && (
                     <div className="mt-2 pl-4 space-y-2">
-                      <a href="/portafolio/auditoria" className="block text-gray-700 hover:text-blue-600 transition-colors">Auditoría</a>
-                      <a href="/portafolio/formacion" className="block text-gray-700 hover:text-blue-600 transition-colors">Formación</a>
-                      <a href="/portafolio/consultoria" className="block text-gray-700 hover:text-blue-600 transition-colors">Consultoría</a>
+                      <a href={route('services.index', { serviceTypeId: 'auditoria' })} className="block text-gray-700 hover:text-blue-600 transition-colors">Auditoría</a>
+                      <a href={route('services.index', { serviceTypeId: 'formacion' })} className="block text-gray-700 hover:text-blue-600 transition-colors">Formación</a>
+                      <a href={route('services.index', { serviceTypeId: 'consultoria' })} className="block text-gray-700 hover:text-blue-600 transition-colors">Consultoría</a>
                     </div>
                   )}
                 </div>
