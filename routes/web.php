@@ -1,14 +1,18 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
-
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Portfolio\PortfolioController;
 use App\Http\Controllers\Portfolio\Services\ServicesController;
-use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Quotation\QuotationController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/portafolio', [PortfolioController::class, 'index'])->name('portfolio.index');
-Route::get('/portafolio/cotizar', function () { return Inertia::render('portfolio/cotizar');})->name('portfolio.cotizar');
-Route::get('/portafolio/{serviceTypeId}', [ServicesController::class, 'index'])->name('services.index');
 
+Route::prefix('portafolio')->group(function () {
+    Route::get('/', [PortfolioController::class, 'index'])->name('portfolio.index');
+    Route::get('/{serviceTypeId}', [ServicesController::class, 'index'])->name('services.index');
+});
+
+Route::prefix('cotizar')->group(function () {
+    Route::get('/', [QuotationController::class, 'index'])->name('quotation.index');
+});

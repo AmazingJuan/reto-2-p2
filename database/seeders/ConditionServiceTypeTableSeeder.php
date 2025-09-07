@@ -12,8 +12,8 @@ class ConditionServiceTypeTableSeeder extends Seeder
         $viaticos = Condition::where('name', 'Viaticos')->first();
         $modalidad = Condition::where('name', 'Modalidad')->first();
 
-        if (!$viaticos || !$modalidad) {
-            throw new \Exception("Faltan condiciones: Viaticos o Modalidad");
+        if (! $viaticos || ! $modalidad) {
+            throw new \Exception('Faltan condiciones: Viaticos o Modalidad');
         }
 
         // IDs de service_types que ya existen como string

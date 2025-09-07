@@ -4,17 +4,15 @@ namespace App\Http\Controllers\Portfolio\Services;
 
 use App\Http\Controllers\Controller;
 use App\Models\ServiceType;
-use App\Services\ConditionResolverService;
 use Inertia\Inertia;
 
 class ServicesController extends Controller
 {
-    public function index($serviceTypeId, ConditionResolverService $conditionResolverService)
-    {   
-
+    public function index($serviceTypeId)
+    {
         $serviceType = ServiceType::findOrFail($serviceTypeId);
         $services = $serviceType->services;
-        $conditionResolvedValues = $conditionResolverService->getConditionsWithValues($serviceType);
-    return Inertia::render('services/index', ['serviceType' => $serviceType, 'services' => $services, 'conditions' => $conditionResolvedValues]);
+
+        return Inertia::render('services/index', ['serviceType' => $serviceType, 'services' => $services]);
     }
 }

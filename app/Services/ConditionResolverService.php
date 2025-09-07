@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Condition;
 use App\Models\ServiceType;
 
 class ConditionResolverService
@@ -18,6 +17,7 @@ class ConditionResolverService
         if ($condition->is_boolean) {
             return ['Si', 'No'];
         }
+
         // Si no es booleano, busca los valores asociados
         return $condition->conditionValues()->pluck('value')->toArray();
     }

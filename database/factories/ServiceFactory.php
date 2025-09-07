@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\ServiceType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -19,6 +18,7 @@ class ServiceFactory extends Factory
     {
         // Only use valid seeded service_type_id values
         $validServiceTypeIds = ['auditoria', 'consultoria', 'formacion'];
+
         return [
             'name' => $this->faker->unique()->word,
             'description' => $this->faker->sentence,
