@@ -32,7 +32,7 @@ class QuotationController extends Controller
         ];
 
         $viewData['conditions']['services'] = $serviceType->services->pluck('name', 'id');
-        return inertia('Quotation/Index', [
+        return inertia('portfolio/cotizar', [
             'viewData' => $viewData,
         ]);
     }
