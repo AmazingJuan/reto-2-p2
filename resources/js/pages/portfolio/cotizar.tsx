@@ -163,7 +163,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
 
     try {
       // 1. Inicializar CSRF cookie (necesario con Sanctum en dominios distintos)
-      await axios.get("http://127.0.0.1:8000/sanctum/csrf-cookie", {
+      await axios.get("/sanctum/csrf-cookie", {
         withCredentials: true,
       });
 
