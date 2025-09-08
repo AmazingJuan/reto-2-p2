@@ -131,7 +131,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
     setErrorMsg(null);
     return true;
   };
-
+  
   const addToQuotationList = async () => {
     const { services: selectedServices, ...otherResponses } = responses;
 
@@ -173,13 +173,13 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
         {
           services: servicesArr,
           options,
+          serviceType: viewData.serviceType, // <-- Aquí se agrega el tipo de servicio
         },
-        { withCredentials: true } // importante para enviar la cookie de sesión
+        { withCredentials: true }
       );
 
       alert("Cotización añadida a tu lista correctamente");
 
-      // 3. Limpiar inputs si lo necesitas
       setResponses({});
       setOtherInputs({});
       setDynamicSedes({});
