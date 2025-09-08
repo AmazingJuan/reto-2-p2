@@ -295,23 +295,63 @@ const Header = () => {
           </div>
 
           <div className="p-6 overflow-y-auto h-[calc(100%-120px)]">
-            {isLoading ? (
-              <div className="flex justify-center items-center h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              </div>
-            ) : quotationData.length > 0 ? (
-              <ul className="space-y-4">
-                {quotationData.map((item) => (
-                  <li key={item.id} className="p-4 border rounded shadow-sm bg-gray-50">
-                    <strong>ID:</strong> {item.id} <br />
-                    <strong>Servicios:</strong> {item.services} <br />
-                    <strong>Opciones:</strong> {item.options}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500">No hay elementos en la lista.</p>
-            )}
+                {isLoading ? (
+  <div className="flex justify-center items-center h-32">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+  </div>
+) : quotationData.length > 0 ? (
+  <ul className="space-y-4">
+    {quotationData.map((item) => (
+      <li key={item.id} className="p-4 border rounded shadow-sm bg-gray-50">
+        
+        {/* Type como título */}
+        {item.type && (
+          <h4 className="text-lg font-semibold text-blue-600 mb-2">
+            {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+          </h4>
+        )}
+
+        {/* Servicios */}
+        <div>
+          <strong>Servicios:</strong>
+          <ul className="list-disc list-inside ml-4">
+            {item.services?.map((service) => (
+              <li key={service.id}>{service.name}</li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Opciones */}
+        <div className="mt-2">
+          <strong>Opciones:</strong>
+          <ul className="list-disc list-inside ml-4">
+            {item.options &&
+              Object.entries(item.options).map(([key, value]) => (
+                <li key={key}>
+                  <strong>{key}:</strong>{" "}
+                  {Array.isArray(value) ? (
+                    value.join(", ")
+                  ) : typeof value === "object" && value !== null ? (
+                    Object.keys(value).length === 1 ? (
+                      Object.values(value)[0]
+                    ) : (
+                      JSON.stringify(value)
+                    )
+                  ) : (
+                    value
+                  )}
+                </li>
+              ))}
+          </ul>
+        </div>
+      </li>
+    ))}
+  </ul>
+) : (
+  <p className="text-gray-500">No hay elementos en la lista.</p>
+)}
+
+
           </div>
         </div>
       </div>
