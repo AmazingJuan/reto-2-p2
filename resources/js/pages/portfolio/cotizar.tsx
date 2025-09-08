@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import Layout from "../../layouts/Layout";
 import { route } from 'ziggy-js';
+
 type Flags = {
   allows_other_values: boolean;
   allows_multiple_values: boolean;
@@ -27,6 +28,8 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
   const [responses, setResponses] = useState<{ [key: string]: any }>({});
   const [otherInputs, setOtherInputs] = useState<{ [key: string]: boolean }>({});
   const [dynamicSedes, setDynamicSedes] = useState<{ [key: string]: string[] }>({});
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Mapeo de id a nombre para los servicios
   const serviceIdNameMap = Object.entries(viewData.conditions.services || {}).reduce(
@@ -34,7 +37,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
     {} as Record<string, string>
   );
 
-  const handleSelect = (section: string, value: string, flags: Flags) => {
+  const handleSelect = useCallback((section: string, value: string, flags: Flags) => {
     setResponses((prev) => {
       if (flags.allows_multiple_values) {
         const prevArray: string[] = prev[section] || [];
@@ -47,91 +50,102 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
         return { ...prev, [section]: value };
       }
     });
-  };
+  }, []);
 
-  const handleOther = (section: string, value: string) => {
+  const handleOther = useCallback((section: string, value: string) => {
     setResponses((prev) => ({
       ...prev,
       [section]: { ...(prev[section] || {}), other: value },
     }));
-  };
+  }, []);
 
-  const handleTime = (section: string, value: string) => {
+  const handleTime = useCallback((section: string, value: string) => {
     setResponses((prev) => ({
       ...prev,
       [section]: { ...(prev[section] || {}), time: value },
     }));
-  };
+  }, []);
 
-  const toggleOtherInput = (section: string) => {
-    setOtherInputs((prev) => ({ ...prev, [section]: !prev[section] }));
+  const toggleOtherInput = useCallback((section: string) => {
+    setOtherInputs((prev) => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
     if (!otherInputs[section]) {
       setResponses((prev) => ({
         ...prev,
         [section]: { ...(prev[section] || {}), isOther: true },
       }));
     }
-  };
+  }, [otherInputs]);
 
-  const isSelected = (section: string, value: string, flags: Flags): boolean => {
+  const isSelected = useCallback((section: string, value: string, flags: Flags): boolean => {
     if (!responses[section]) return false;
     if (flags.allows_multiple_values) {
       return Array.isArray(responses[section]) && responses[section].includes(value);
     } else {
       return responses[section] === value || (responses[section] && responses[section].isOther);
     }
-  };
+  }, [responses]);
 
   // Sedes dinámicas por sección
-  const addSedeField = (sectionName: string) => {
-    setDynamicSedes((prev) => ({
+  const addSedeField = useCallback((sectionName: string) => {
+    setDynamicSedes(prev => ({
       ...prev,
-      [sectionName]: [...(prev[sectionName] || [""]), ""],
+      [sectionName]: [...(prev[sectionName] || [""]), ""]
     }));
-  };
+  }, []);
 
-  const removeSedeField = (sectionName: string, index: number) => {
-    setDynamicSedes((prev) => {
+  const removeSedeField = useCallback((sectionName: string, index: number) => {
+    setDynamicSedes(prev => {
       const newSedes = (prev[sectionName] || [""]).filter((_, i) => i !== index);
+      setResponses((prevResp) => ({
+        ...prevResp,
+        [sectionName]: newSedes.filter((sede) => sede.trim() !== ""),
+      }));
       return { ...prev, [sectionName]: newSedes.length ? newSedes : [""] };
     });
-    setResponses((prev) => ({
-      ...prev,
-      [sectionName]: (dynamicSedes[sectionName] || [""])
-        .filter((_, i) => i !== index)
-        .filter((sede) => sede.trim() !== ""),
-    }));
-  };
+  }, []);
 
-  const updateSedeField = (sectionName: string, index: number, value: string) => {
-    setDynamicSedes((prev) => {
-      const newSedes = (prev[sectionName] || [""]).map((sede, i) => (i === index ? value : sede));
+  const updateSedeField = useCallback((sectionName: string, index: number, value: string) => {
+    setDynamicSedes(prev => {
+      const newSedes = (prev[sectionName] || [""]).map((sede, i) => i === index ? value : sede);
+      setResponses((prevResp) => ({
+        ...prevResp,
+        [sectionName]: newSedes.filter((sede) => sede.trim() !== ""),
+      }));
       return { ...prev, [sectionName]: newSedes };
     });
-    setResponses((prev) => ({
-      ...prev,
-      [sectionName]: (dynamicSedes[sectionName] || [""])
-        .map((sede, i) => (i === index ? value : sede))
-        .filter((sede) => sede.trim() !== ""),
-    }));
-  };
+  }, []);
 
   // Separa servicios del resto de condiciones
   const { services, ...otherConditions } = viewData.conditions;
 
+  // Validación de datos antes de enviar
+  const validate = (servicesArr: { id: string; name: string }[]) => {
+    if (!servicesArr.length) {
+      setErrorMsg('Debes seleccionar al menos un servicio.');
+      return false;
+    }
+    setErrorMsg(null);
+    return true;
+  };
+
   const addToQuotationList = async () => {
+    // Separa servicios del resto
     const { services: selectedServices, ...otherResponses } = responses;
 
-  const options: Record<string, any> = {};
+    // Prepara el objeto options (sin importar el nombre de la condición)
+    const options: Record<string, any> = {};
     Object.entries(otherResponses).forEach(([key, value]) => {
       options[key] = value;
     });
 
+    // Prepara el arreglo de servicios como [{id, name}]
     let servicesArr: { id: string; name: string }[] = [];
     if (Array.isArray(selectedServices)) {
       servicesArr = selectedServices
         .map((name: string) => {
-          // Buscar el id por el nombre
           const id = Object.keys(serviceIdNameMap).find(
             (serviceId) => serviceIdNameMap[serviceId] === name
           );
@@ -145,11 +159,9 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
       if (id) servicesArr = [{ id, name: selectedServices }];
     }
 
-    const payload = {
-      services: servicesArr,
-      options,
-    };
+    if (!validate(servicesArr)) return;
 
+    setLoading(true);
     try {
       const response = await fetch(route('list.add'), {
         method: 'POST',
@@ -158,105 +170,98 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
           'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
           'X-Requested-With': 'XMLHttpRequest',
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          services: servicesArr,
+          options,
+        }),
       });
 
       if (response.ok) {
         alert('Cotización añadida a tu lista correctamente');
+        setResponses({});
+        setOtherInputs({});
+        setDynamicSedes({});
       } else {
-        alert('Error al añadir a la lista');
+        const data = await response.json().catch(() => ({}));
+        setErrorMsg(data.message || 'Error al añadir a la lista');
       }
     } catch (error) {
-      alert('Error de red al añadir a la lista');
+      setErrorMsg('Error de red al añadir a la lista');
     }
+    setLoading(false);
   };
 
   return (
     <Layout>
-      <form onSubmit={handleSubmit}>
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b border-gray-200">
-              Detalles de la cotización
-            </h2>
-
-            {/* Servicios - Selección múltiple */}
-            {services && (
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
-                  <span className="bg-blue-100 text-blue-600 p-2 rounded-full mr-2">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                      />
-                    </svg>
-                  </span>
-                  Servicios requeridos (seleccione uno o más)
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {Object.entries(services).map(([id, name]) => (
-                    <button
-                      key={id}
-                      onClick={() =>
-                        handleSelect("services", name as string, {
-                          allows_multiple_values: true,
-                          allows_other_values: false,
-                          is_time: false,
-                          is_fixed: true,
-                        })
-                      }
-                      type="button"
-                      className={`p-4 rounded-lg border transition-all flex items-center justify-center ${
-                        isSelected("services", name as string, {
-                          allows_multiple_values: true,
-                          allows_other_values: false,
-                          is_time: false,
-                          is_fixed: true,
-                        })
-                          ? "bg-blue-50 border-blue-500 text-blue-700 font-medium shadow-sm"
-                          : "border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50"
-                      }`}
-                    >
-                      {name as string}
-                      {isSelected("services", name as string, {
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b border-gray-200">
+            Detalles de la cotización
+          </h2>
+          {errorMsg && (
+            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{errorMsg}</div>
+          )}
+          {/* Servicios - Selección múltiple */}
+          {services && (
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                <span className="bg-blue-100 text-blue-600 p-2 rounded-full mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </span>
+                Servicios requeridos (seleccione uno o más)
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {Object.entries(services).map(([id, name]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    aria-pressed={isSelected("services", name as string, {
+                      allows_multiple_values: true,
+                      allows_other_values: false,
+                      is_time: false,
+                      is_fixed: true,
+                    })}
+                    onClick={() => handleSelect("services", name as string, {
+                      allows_multiple_values: true,
+                      allows_other_values: false,
+                      is_time: false,
+                      is_fixed: true,
+                    })}
+                    className={`p-4 rounded-lg border transition-all flex items-center justify-center ${
+                      isSelected("services", name as string, {
                         allows_multiple_values: true,
                         allows_other_values: false,
                         is_time: false,
                         is_fixed: true,
-                      }) && (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5 ml-2 text-blue-500"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      )}
-                    </button>
-                  ))}
-                </div>
+                      })
+                        ? "bg-blue-50 border-blue-500 text-blue-700 font-medium shadow-sm"
+                        : "border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50"
+                    }`}
+                  >
+                    {name as string}
+                    {isSelected("services", name as string, {
+                      allows_multiple_values: true,
+                      allows_other_values: false,
+                      is_time: false,
+                      is_fixed: true,
+                    }) && (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </button>
+                ))}
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Otras condiciones */}
-            {Object.values(otherConditions).map((conditionBlock) => {
-              const sectionName = Object.keys(conditionBlock)[0];
-              const section: ConditionItem = conditionBlock[sectionName];
-              const effectiveFlags = section.flags;
+          {/* Otras condiciones */}
+          {Object.values(otherConditions).map((conditionBlock, idx) => {
+            const sectionName = Object.keys(conditionBlock)[0];
+            const section: ConditionItem = conditionBlock[sectionName];
+            const effectiveFlags = section.flags;
 
             return (
               <div key={sectionName} className="mb-8">
@@ -274,6 +279,8 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
                   {section.items.map((item) => (
                     <button
                       key={item}
+                      type="button"
+                      aria-pressed={isSelected(sectionName, item, effectiveFlags)}
                       onClick={() => handleSelect(sectionName, item, effectiveFlags)}
                       className={`p-4 rounded-lg border transition-all flex items-center justify-center ${
                         isSelected(sectionName, item, effectiveFlags)
@@ -294,6 +301,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
                   {effectiveFlags.allows_other_values && (
                     <div className="flex flex-col">
                       <button
+                        type="button"
                         onClick={() => toggleOtherInput(sectionName)}
                         className={`p-4 rounded-lg border transition-all flex items-center justify-center mb-2 ${
                           otherInputs[sectionName] || (responses[sectionName] && responses[sectionName].isOther)
@@ -309,8 +317,9 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
                       
                       {(otherInputs[sectionName] || (responses[sectionName] && responses[sectionName].isOther)) && (
                         <div className="md:col-span-2 mt-2">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Especifique otra modalidad</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor={`other-${sectionName}`}>Especifique otra modalidad</label>
                           <input
+                            id={`other-${sectionName}`}
                             type="text"
                             placeholder="Describa su modalidad..."
                             className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
@@ -325,7 +334,9 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
                   {/* Campo de tiempo */}
                   {effectiveFlags.is_time && (
                     <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor={`time-${sectionName}`}>Tiempo</label>
                       <input
+                        id={`time-${sectionName}`}
                         type="text"
                         placeholder="Ej: 2 horas, 3 días, etc."
                         className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
@@ -339,7 +350,9 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
                     <div className="md:col-span-2">
                       {(dynamicSedes[sectionName] || [""]).map((sede, index) => (
                         <div key={index} className="flex items-center gap-2 mb-2">
+                          <label className="sr-only" htmlFor={`sede-${sectionName}-${index}`}>Sede {index + 1}</label>
                           <input
+                            id={`sede-${sectionName}-${index}`}
                             type="text"
                             placeholder={`Nombre sede ${index + 1}`}
                             className="flex-1 border border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
@@ -348,9 +361,9 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
                           />
                           {(dynamicSedes[sectionName]?.length ?? 1) > 1 && (
                             <button
+                              type="button"
                               onClick={() => removeSedeField(sectionName, index)}
                               className="p-3 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition"
-                              type="button"
                               title="Eliminar sede"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -363,9 +376,9 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
                       {/* Botón para añadir más sedes */}
                       <div className="flex justify-end mt-2">
                         <button
+                          type="button"
                           onClick={() => addSedeField(sectionName)}
                           className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all shadow-md"
-                          type="button"
                           title="Añadir otra sede"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -382,13 +395,17 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
           
           <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
             <button
+              type="button"
               onClick={addToQuotationList}
-              className="px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 flex items-center"
+              disabled={loading}
+              className={`px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 flex items-center ${
+                loading ? "opacity-60 cursor-not-allowed" : "hover:bg-gray-700"
+              }`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
               </svg>
-              Añadir a lista de cotización
+              {loading ? "Enviando..." : "Añadir a lista de cotización"}
             </button>
           </div>
         </div>
