@@ -10,18 +10,68 @@ const Header = () => {
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [quotationData, setQuotationData] = useState([]);
+  const [showQuotationModal, setShowQuotationModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const searchInputRef = useRef(null);
 
   // Mostrar input al hacer click en la lupa
   const handleShowSearch = () => {
     setShowSearch(true);
     setTimeout(() => searchInputRef.current?.focus(), 100);
   };
+  
   // Cerrar barra de búsqueda
   const handleCloseSearch = () => {
     setShowSearch(false);
     setSearchTerm("");
   };
+
+  // Función para obtener la lista de cotización
+  const fetchQuotationList = () => {
+    setIsLoading(true);
+    
+    fetch(route('list.index'), {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      credentials: 'include',
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Error en la respuesta del servidor');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log("Respuesta AJAX:", data);
+        setQuotationData(data || []);
+        setShowQuotationModal(true);
+      })
+      .catch(err => {
+        console.error("Error:", err);
+        alert('Error al cargar la lista de cotización');
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+
+  // Función para manejar el clic en Lista cotización
+  const handleQuotationClick = (e) => {
+    e.preventDefault();
+    fetchQuotationList();
+  };
+
+  // Cerrar el sidebar cuando se hace clic fuera de él
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      setShowQuotationModal(false);
+    }
+  };
+
   return (
     <>
       {/* Barrita de Encima con información Training */}
@@ -96,7 +146,15 @@ const Header = () => {
                   </div>
                 </div>
               </div>
-
+              
+              <a
+                href="#"
+                className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
+                onClick={handleQuotationClick}
+              >
+                {isLoading ? 'Cargando...' : 'Lista cotización'}
+              </a>
+              
               <a href="#" className="font-medium text-gray-900 hover:text-blue-600 transition-colors">Actualidad</a>
               <a href="#" className="font-medium text-gray-900 hover:text-blue-600 transition-colors">Clientes</a>
               <a href="#" className="font-medium text-gray-900 hover:text-blue-600 transition-colors">Cursos y Formaciones</a>
@@ -180,6 +238,14 @@ const Header = () => {
                   )}
                 </div>
 
+                <a
+                  href="#"
+                  className="block font-medium text-gray-900 hover:text-blue-600 transition-colors"
+                  onClick={handleQuotationClick}
+                >
+                  {isLoading ? 'Cargando...' : 'Lista cotización'}
+                </a>
+
                 <a href="#" className="block font-medium text-gray-900 hover:text-blue-600 transition-colors">Actualidad</a>
                 <a href="#" className="block font-medium text-gray-900 hover:text-blue-600 transition-colors">Clientes</a>
                 <a href="#" className="block font-medium text-gray-900 hover:text-blue-600 transition-colors">Cursos y Formaciones</a>
@@ -189,6 +255,56 @@ const Header = () => {
           )}
         </div>
       </header>
+
+      {/* Sidebar para mostrar la lista de cotización */}
+      <div
+        className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${
+          showQuotationModal ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={handleBackdropClick}
+      >
+        <div
+          className={`bg-white h-full w-96 shadow-xl transform transition-transform duration-300 ${
+            showQuotationModal ? 'translate-x-0' : 'translate-x-full'
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex justify-between items-center p-6 border-b">
+            <h3 className="text-xl font-semibold text-gray-900">Lista de Cotización</h3>
+            <button
+              onClick={() => setShowQuotationModal(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+
+          {/* Contenido */}
+          <div className="p-6 overflow-y-auto h-[calc(100%-120px)]">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-32">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : quotationData && quotationData.length > 0 ? (
+              <ul className="space-y-4">
+                {quotationData.map((item) => (
+                  <li
+                    key={item.id}
+                    className="p-4 border rounded shadow-sm bg-gray-50"
+                  >
+                    <strong>ID:</strong> {item.id} <br />
+                    <strong>Servicios:</strong> {item.services} <br />
+                    <strong>Opciones:</strong> {item.options}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No hay elementos en la lista.</p>
+            )}
+          </div>
+        </div>
+      </div>
     </>
   );
 };
