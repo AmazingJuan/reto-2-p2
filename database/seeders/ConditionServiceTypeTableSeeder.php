@@ -13,8 +13,9 @@ class ConditionServiceTypeTableSeeder extends Seeder
         $viaticos = Condition::where('name', 'Viaticos')->first();
         $modalidad = Condition::where('name', 'Modalidad')->first();
         $tiempo = Condition::where('name', 'Tiempo necesario')->first();
+        $sedes = Condition::where('name', 'Sedes')->first();
 
-        if (! $viaticos || ! $modalidad || ! $tiempo) {
+        if (! $viaticos || ! $modalidad || ! $tiempo ) {
             throw new \Exception('Faltan condiciones: Viaticos, Modalidad o Tiempo necesario');
         }
 
@@ -32,5 +33,6 @@ class ConditionServiceTypeTableSeeder extends Seeder
         $viaticos->serviceTypes()->syncWithoutDetaching($serviceTypes->pluck('id'));
         $modalidad->serviceTypes()->syncWithoutDetaching($serviceTypes->pluck('id'));
         $tiempo->serviceTypes()->syncWithoutDetaching($serviceTypes->pluck('id'));
+        $sedes->serviceTypes()->syncWithoutDetaching($serviceTypes->pluck('id'));
     }
 }

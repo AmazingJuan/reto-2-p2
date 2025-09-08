@@ -16,7 +16,7 @@ class ConditionValuesTableSeeder extends Seeder
 
         $viaticos_condition_id = Condition::where('name', 'Viaticos')->first()->id;
         $modalidad_condition_id = Condition::where('name', 'Modalidad')->first()->id;
-        $sede_condition_id = Condition::where('name', 'Sede')->first()->id;
+        $sede_condition_id = Condition::where('name', 'Sedes')->first()->id;
         $tipoAuditoria_condition_id = Condition::where('name', 'Tipo de Auditoría')->first()->id;
         $tiempoNecesario_condition_id = Condition::where('name', 'Tiempo necesario')->first()->id;
 

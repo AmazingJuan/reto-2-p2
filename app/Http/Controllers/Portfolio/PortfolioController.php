@@ -13,6 +13,7 @@ class PortfolioController extends Controller
     {
         $serviceTypes = ServiceType::pluck('name', 'id')->all();
         $basePath = $request->query('base_path', 'services.index');
+
         return Inertia::render('portfolio/index', [
             'services' => $serviceTypes,
             'basePath' => $basePath, // "portafolio",

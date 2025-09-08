@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Quotation;
 
-use App\Data\QuotationParams;
 use App\Http\Controllers\Controller;
 use App\Models\ServiceType;
 use App\Services\ConditionResolverService;
@@ -11,7 +10,7 @@ use Illuminate\Http\Request;
 
 class QuotationController extends Controller
 {
-    public function index() : RedirectResponse
+    public function index(): RedirectResponse
     {
         return redirect()->route('portfolio.index', ['base_path' => 'quotation.show']);
     }

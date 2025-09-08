@@ -14,7 +14,7 @@ class Condition extends Model
      * $this->attributes['name'] - string - Unique name of the condition
      * $this->attributes['type'] - string - Input type (default: "text")
      * $this->attributes['is_fixed'] - bool - Whether the condition is fixed and cannot be changed
-     * $this->attributes['allows_other_value'] - bool - Whether the condition allows an "other" value
+     * $this->attributes['allows_other_values'] - bool - Whether the condition allows an "other" value
      * $this->attributes['allows_multiple_values'] - bool - Whether multiple values can be selected
      * $this->attributes['is_boolean'] - bool - Whether the condition is a true/false type
      * $this->attributes['created_at'] - \Illuminate\Support\Carbon - Record creation timestamp
@@ -30,7 +30,7 @@ class Condition extends Model
         'name',
         'type',
         'is_fixed',
-        'allows_other_value',
+        'allows_other_values',
         'allows_multiple_values',
         'is_boolean',
     ];
@@ -133,5 +133,4 @@ class Condition extends Model
     {
         return $this->attributes['type'] === 'time';
     }
-
 }

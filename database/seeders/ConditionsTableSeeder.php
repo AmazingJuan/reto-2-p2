@@ -15,14 +15,26 @@ class ConditionsTableSeeder extends Seeder
 
         Condition::create([
             'name' => 'Viaticos',
+            'allows_other_values' => true,
+            'allows_multiple_values' => true,
+
         ]);
 
+        // pongo esa linea en donde yo quiera que tin siii, pero hay algunas condiciones que no están
+        // pero entonces pon lo de otro de una vez en modalidad no ?
+        // no entiendo nada entonces dejo eso así? noo, este se quita
+        // ya es funcional? pues quitalo no? q estamos esperando jsjsj no entiendo nada miremos si si funciona
+        /*
+hay dos archivos iguales, q tan charro jajaj como pues solo el otro
+        */
         Condition::create([
             'name' => 'Modalidad',
+
         ]);
 
         Condition::create([
-            'name' => 'Sede',
+            'name' => 'Sedes',
+            'is_fixed' => false,
         ]);
 
         Condition::create([

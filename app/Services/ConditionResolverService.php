@@ -35,12 +35,13 @@ class ConditionResolverService
         $conditions = $serviceType->conditions;
         foreach ($conditions as $condition) {
             $conditionFlags = [
-                'allows_other_value' => $condition->allowsOtherValue(),
+                'allows_other_values' => $condition->allowsOtherValue(),
                 'allows_multiple_values' => $condition->allowsMultipleValues(),
                 'is_time' => $condition->isTime(),
+                'is_fixed' => $condition->isFixed(),
             ];
             $conditionResolvedValues = $this->resolveConditionValues($condition);
-            $finalResult[] = [$condition->name => ["flags" => $conditionFlags, "items" => $conditionResolvedValues]];
+            $finalResult[] = [$condition->name => ['flags' => $conditionFlags, 'items' => $conditionResolvedValues]];
         }
 
         return $finalResult;
