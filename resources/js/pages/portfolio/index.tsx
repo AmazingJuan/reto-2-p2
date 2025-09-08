@@ -37,7 +37,6 @@ export default function PortfolioIndex({ services, basePath }: PortfolioIndexPro
           ))}
         </div>
       </div>
-      <QuotationButton />
     </Layout>
   );
 }

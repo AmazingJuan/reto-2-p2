@@ -64,10 +64,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
   };
 
   const toggleOtherInput = (section: string) => {
-    setOtherInputs((prev) => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
+    setOtherInputs((prev) => ({ ...prev, [section]: !prev[section] }));
     if (!otherInputs[section]) {
       setResponses((prev) => ({
         ...prev,
@@ -87,31 +84,35 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
 
   // Sedes dinámicas por sección
   const addSedeField = (sectionName: string) => {
-    setDynamicSedes(prev => ({
+    setDynamicSedes((prev) => ({
       ...prev,
-      [sectionName]: [...(prev[sectionName] || [""]), ""]
+      [sectionName]: [...(prev[sectionName] || [""]), ""],
     }));
   };
 
   const removeSedeField = (sectionName: string, index: number) => {
-    setDynamicSedes(prev => {
+    setDynamicSedes((prev) => {
       const newSedes = (prev[sectionName] || [""]).filter((_, i) => i !== index);
       return { ...prev, [sectionName]: newSedes.length ? newSedes : [""] };
     });
-    setResponses(prev => ({
+    setResponses((prev) => ({
       ...prev,
-      [sectionName]: (dynamicSedes[sectionName] || [""]).filter((_, i) => i !== index).filter(sede => sede.trim() !== "")
+      [sectionName]: (dynamicSedes[sectionName] || [""])
+        .filter((_, i) => i !== index)
+        .filter((sede) => sede.trim() !== ""),
     }));
   };
 
   const updateSedeField = (sectionName: string, index: number, value: string) => {
-    setDynamicSedes(prev => {
-      const newSedes = (prev[sectionName] || [""]).map((sede, i) => i === index ? value : sede);
+    setDynamicSedes((prev) => {
+      const newSedes = (prev[sectionName] || [""]).map((sede, i) => (i === index ? value : sede));
       return { ...prev, [sectionName]: newSedes };
     });
-    setResponses(prev => ({
+    setResponses((prev) => ({
       ...prev,
-      [sectionName]: (dynamicSedes[sectionName] || [""]).map((sede, i) => i === index ? value : sede).filter(sede => sede.trim() !== "")
+      [sectionName]: (dynamicSedes[sectionName] || [""])
+        .map((sede, i) => (i === index ? value : sede))
+        .filter((sede) => sede.trim() !== ""),
     }));
   };
 
@@ -172,66 +173,90 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b border-gray-200">
-            Detalles de la cotización
-          </h2>
-          
-          {/* Servicios - Selección múltiple */}
-          {services && (
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
-                <span className="bg-blue-100 text-blue-600 p-2 rounded-full mr-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                </span>
-                Servicios requeridos (seleccione uno o más)
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {Object.entries(services).map(([id, name]) => (
-                  <button
-                    key={id}
-                    onClick={() => handleSelect("services", name as string, {
-                      allows_multiple_values: true,
-                      allows_other_values: false,
-                      is_time: false,
-                      is_fixed: true,
-                    })}
-                    className={`p-4 rounded-lg border transition-all flex items-center justify-center ${
-                      isSelected("services", name as string, {
+      <form onSubmit={handleSubmit}>
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b border-gray-200">
+              Detalles de la cotización
+            </h2>
+
+            {/* Servicios - Selección múltiple */}
+            {services && (
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                  <span className="bg-blue-100 text-blue-600 p-2 rounded-full mr-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                      />
+                    </svg>
+                  </span>
+                  Servicios requeridos (seleccione uno o más)
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {Object.entries(services).map(([id, name]) => (
+                    <button
+                      key={id}
+                      onClick={() =>
+                        handleSelect("services", name as string, {
+                          allows_multiple_values: true,
+                          allows_other_values: false,
+                          is_time: false,
+                          is_fixed: true,
+                        })
+                      }
+                      type="button"
+                      className={`p-4 rounded-lg border transition-all flex items-center justify-center ${
+                        isSelected("services", name as string, {
+                          allows_multiple_values: true,
+                          allows_other_values: false,
+                          is_time: false,
+                          is_fixed: true,
+                        })
+                          ? "bg-blue-50 border-blue-500 text-blue-700 font-medium shadow-sm"
+                          : "border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50"
+                      }`}
+                    >
+                      {name as string}
+                      {isSelected("services", name as string, {
                         allows_multiple_values: true,
                         allows_other_values: false,
                         is_time: false,
                         is_fixed: true,
-                      })
-                        ? "bg-blue-50 border-blue-500 text-blue-700 font-medium shadow-sm"
-                        : "border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50"
-                    }`}
-                  >
-                    {name as string}
-                    {isSelected("services", name as string, {
-                      allows_multiple_values: true,
-                      allows_other_values: false,
-                      is_time: false,
-                      is_fixed: true,
-                    }) && (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    )}
-                  </button>
-                ))}
+                      }) && (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 ml-2 text-blue-500"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Otras condiciones */}
-          {Object.values(otherConditions).map((conditionBlock, idx) => {
-            const sectionName = Object.keys(conditionBlock)[0];
-            const section: ConditionItem = conditionBlock[sectionName];
-            const effectiveFlags = section.flags;
+            {/* Otras condiciones */}
+            {Object.values(otherConditions).map((conditionBlock) => {
+              const sectionName = Object.keys(conditionBlock)[0];
+              const section: ConditionItem = conditionBlock[sectionName];
+              const effectiveFlags = section.flags;
 
             return (
               <div key={sectionName} className="mb-8">
