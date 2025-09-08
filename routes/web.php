@@ -4,6 +4,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Portfolio\PortfolioController;
 use App\Http\Controllers\Portfolio\Services\ServicesController;
 use App\Http\Controllers\Quotation\QuotationController;
+use App\Http\Controllers\Quotation\QuotationListController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -13,7 +14,16 @@ Route::prefix('portafolio')->group(function () {
     Route::get('/{serviceTypeId}', [ServicesController::class, 'index'])->name('services.index');
 });
 
-Route::prefix('cotizar')->group(function () {
+Route::prefix('cotizacion')->group(function () {
     Route::get('/', [QuotationController::class, 'index'])->name('quotation.index');
     Route::get('/{serviceTypeId}', [QuotationController::class, 'show'])->name('quotation.show');
 });
+
+Route::prefix('lista')->middleware(['ajax'])->group(function () {
+    Route::get('/', [QuotationListController::class, 'index'])->name('list.index');          // ver lista
+    Route::post('/add', [QuotationListController::class, 'add'])->name('list.add');         // agregar item
+    Route::post('/update/{id}', [QuotationListController::class, 'update'])->name('list.update'); // actualizar item
+    Route::delete('/remove/{id}', [QuotationListController::class, 'remove'])->name('list.remove'); // eliminar item
+    Route::get('/{id}', [QuotationListController::class, 'show'])->name('list.show');        // detalle item
+});
+

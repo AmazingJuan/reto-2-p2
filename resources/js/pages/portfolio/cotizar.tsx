@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Layout from "../../layouts/Layout";
-
+import { route } from 'ziggy-js';
 type Flags = {
   allows_other_values: boolean;
   allows_multiple_values: boolean;
@@ -27,6 +27,12 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
   const [responses, setResponses] = useState<{ [key: string]: any }>({});
   const [otherInputs, setOtherInputs] = useState<{ [key: string]: boolean }>({});
   const [dynamicSedes, setDynamicSedes] = useState<{ [key: string]: string[] }>({});
+
+  // Mapeo de id a nombre para los servicios
+  const serviceIdNameMap = Object.entries(viewData.conditions.services || {}).reduce(
+    (acc, [id, name]) => ({ ...acc, [id]: name }),
+    {} as Record<string, string>
+  );
 
   const handleSelect = (section: string, value: string, flags: Flags) => {
     setResponses((prev) => {
@@ -109,61 +115,60 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
     }));
   };
 
-
-
   // Separa servicios del resto de condiciones
   const { services, ...otherConditions } = viewData.conditions;
 
+  const addToQuotationList = async () => {
+    const { services: selectedServices, ...otherResponses } = responses;
 
-  const prepareBackData = () => {
-  const backData: { [key: string]: any } = {};
-  
-  // Procesar cada respuesta
-  Object.entries(responses).forEach(([key, value]) => {
-    if (key === 'services') {
-      backData['servicios'] = Array.isArray(value) ? value : [value];
-    } 
-    else if (key.toLowerCase().includes('tiempo') || key.toLowerCase().includes('time')) {
-      backData['Tiempo'] = value?.time || value;
-    } 
-    else if (key.toLowerCase().includes('sede')) {
-      backData['sedes'] = Array.isArray(value) ? value.filter((sede: string) => sede.trim() !== "") : [value];
-    }
-    else {
-      // Para otras condiciones, mantener el nombre original
-      backData[key] = value;
-    }
-  });
+  const options: Record<string, any> = {};
+    Object.entries(otherResponses).forEach(([key, value]) => {
+      options[key] = value;
+    });
 
-  // Añadir información adicional del servicio
-  backData.serviceType = viewData.serviceType;
-  backData.serviceId = viewData.serviceId;
-
-  return backData;
-};
-
-// Función para enviar datos al backend
-const sendDataToBackend = async (action: 'saveToList' | 'quoteNow') => {
-  try {
-    const backData = prepareBackData();
-    
-    console.log('Datos a enviar al backend:', backData);
-    
-    // Enviar datos a portfolio.index usando el router de Inertia
-    if (action === 'quoteNow') {
-      // Redirigir a portfolio.index con los datos
-      window.location.href = `/portfolio?backData=${encodeURIComponent(JSON.stringify(backData))}`;
-    } else {
-      // Guardar en lista (aquí puedes usar localStorage o enviar a una API)
-      localStorage.setItem('quotationData', JSON.stringify(backData));
-      alert('Cotización añadida a tu lista correctamente');
+    let servicesArr: { id: string; name: string }[] = [];
+    if (Array.isArray(selectedServices)) {
+      servicesArr = selectedServices
+        .map((name: string) => {
+          // Buscar el id por el nombre
+          const id = Object.keys(serviceIdNameMap).find(
+            (serviceId) => serviceIdNameMap[serviceId] === name
+          );
+          return id ? { id, name } : null;
+        })
+        .filter(Boolean) as { id: string; name: string }[];
+    } else if (selectedServices) {
+      const id = Object.keys(serviceIdNameMap).find(
+        (serviceId) => serviceIdNameMap[serviceId] === selectedServices
+      );
+      if (id) servicesArr = [{ id, name: selectedServices }];
     }
 
-  } catch (error) {
-    console.error('Error al enviar los datos:', error);
-    alert('Error al procesar la solicitud. Por favor, intenta nuevamente.');
-  }
-};
+    const payload = {
+      services: servicesArr,
+      options,
+    };
+
+    try {
+      const response = await fetch(route('list.add'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        alert('Cotización añadida a tu lista correctamente');
+      } else {
+        alert('Error al añadir a la lista');
+      }
+    } catch (error) {
+      alert('Error de red al añadir a la lista');
+    }
+  };
 
   return (
     <Layout>
@@ -295,7 +300,6 @@ const sendDataToBackend = async (action: 'saveToList' | 'quoteNow') => {
                   {/* Campo de tiempo */}
                   {effectiveFlags.is_time && (
                     <div className="md:col-span-2">
-                      
                       <input
                         type="text"
                         placeholder="Ej: 2 horas, 3 días, etc."
@@ -353,23 +357,13 @@ const sendDataToBackend = async (action: 'saveToList' | 'quoteNow') => {
           
           <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
             <button
-              onClick={() => console.log("Añadir a lista:", responses)}
+              onClick={addToQuotationList}
               className="px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 flex items-center"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
               </svg>
               Añadir a lista de cotización
-            </button>
-            
-            <button
-              onClick={() => console.log("Cotizar ahora:", responses)}
-              className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              Cotizar ahora
             </button>
           </div>
         </div>

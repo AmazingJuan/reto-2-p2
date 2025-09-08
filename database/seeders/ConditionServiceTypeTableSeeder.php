@@ -15,7 +15,7 @@ class ConditionServiceTypeTableSeeder extends Seeder
         $tiempo = Condition::where('name', 'Tiempo necesario')->first();
         $sedes = Condition::where('name', 'Sedes')->first();
 
-        if (! $viaticos || ! $modalidad || ! $tiempo ) {
+        if (! $viaticos || ! $modalidad || ! $tiempo) {
             throw new \Exception('Faltan condiciones: Viaticos, Modalidad o Tiempo necesario');
         }
 
