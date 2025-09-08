@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import Layout from "../../layouts/Layout";
 import { route } from 'ziggy-js';
+import axios from "axios";
 
 type Flags = {
   allows_other_values: boolean;
@@ -132,16 +133,13 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
   };
 
   const addToQuotationList = async () => {
-    // Separa servicios del resto
     const { services: selectedServices, ...otherResponses } = responses;
 
-    // Prepara el objeto options (sin importar el nombre de la condición)
     const options: Record<string, any> = {};
     Object.entries(otherResponses).forEach(([key, value]) => {
       options[key] = value;
     });
 
-    // Prepara el arreglo de servicios como [{id, name}]
     let servicesArr: { id: string; name: string }[] = [];
     if (Array.isArray(selectedServices)) {
       servicesArr = selectedServices
@@ -162,33 +160,29 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
     if (!validate(servicesArr)) return;
 
     setLoading(true);
+
     try {
-      const response = await fetch(route('list.add'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify({
-          services: servicesArr,
-          options,
-        }),
+      // Llamada a Laravel para añadir a la lista
+      await axios.post(route('list.add'), {
+        services: servicesArr,
+        options,
       });
 
-      if (response.ok) {
-        alert('Cotización añadida a tu lista correctamente');
-        setResponses({});
-        setOtherInputs({});
-        setDynamicSedes({});
+      alert('Cotización añadida a tu lista correctamente');
+
+      // Limpiar inputs si lo necesitas
+      setResponses({});
+      setOtherInputs({});
+      setDynamicSedes({});
+    } catch (error: any) {
+      if (error.response?.data?.message) {
+        setErrorMsg(error.response.data.message);
       } else {
-        const data = await response.json().catch(() => ({}));
-        setErrorMsg(data.message || 'Error al añadir a la lista');
+        setErrorMsg('Error al añadir a la lista');
       }
-    } catch (error) {
-      setErrorMsg('Error de red al añadir a la lista');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
