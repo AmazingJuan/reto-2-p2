@@ -6,9 +6,8 @@ import { createRoot } from 'react-dom/client';
 
 // Configuración global de Axios
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-axios.defaults.headers.common['X-CSRF-TOKEN'] =
-    (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
 axios.defaults.withCredentials = true;
+
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 

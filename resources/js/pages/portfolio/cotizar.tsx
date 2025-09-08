@@ -162,15 +162,24 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
     setLoading(true);
 
     try {
-      // Llamada a Laravel para añadir a la lista
-      await axios.post(route('list.add'), {
-        services: servicesArr,
-        options,
+      // 1. Inicializar CSRF cookie (necesario con Sanctum en dominios distintos)
+      await axios.get("http://127.0.0.1:8000/sanctum/csrf-cookie", {
+        withCredentials: true,
       });
 
-      alert('Cotización añadida a tu lista correctamente');
+      // 2. Enviar el formulario al backend
+      await axios.post(
+        route("list.add"),
+        {
+          services: servicesArr,
+          options,
+        },
+        { withCredentials: true } // importante para enviar la cookie de sesión
+      );
 
-      // Limpiar inputs si lo necesitas
+      alert("Cotización añadida a tu lista correctamente");
+
+      // 3. Limpiar inputs si lo necesitas
       setResponses({});
       setOtherInputs({});
       setDynamicSedes({});
@@ -178,7 +187,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
       if (error.response?.data?.message) {
         setErrorMsg(error.response.data.message);
       } else {
-        setErrorMsg('Error al añadir a la lista');
+        setErrorMsg("Error al añadir a la lista");
       }
     } finally {
       setLoading(false);

@@ -26,4 +26,3 @@ Route::prefix('lista')->middleware(['ajax'])->group(function () {
     Route::delete('/remove/{id}', [QuotationListController::class, 'remove'])->name('list.remove'); // eliminar item
     Route::get('/{id}', [QuotationListController::class, 'show'])->name('list.show');        // detalle item
 });
-
