@@ -199,7 +199,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b border-gray-200">
-            Detalles de la cotización
+            Detalles de la cotización: {viewData.serviceType}
           </h2>
           {errorMsg && (
             <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{errorMsg}</div>
