@@ -8,9 +8,23 @@ import { ServiceCard } from "../../components/ServiceCard";
 import Layout from "../../layouts/Layout";
 import QuotationButton from "../../components/QuotationButton";
 import ServiceShow from "./show";
+import { Search, X } from "lucide-react";
+import { route } from "ziggy-js";
+import { Inertia } from "@inertiajs/inertia";
+
 
 export default function Servicios({ services }: Props) {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!searchTerm.trim()) return;
+
+  // Inertia mantiene la navegación SPA con querystring
+  Inertia.get(route("servicios.index"), { search: searchTerm });
+};
 
   return (
     <Layout
@@ -26,7 +40,41 @@ export default function Servicios({ services }: Props) {
       <div className="flex h-[calc(100vh-12rem)]">
         {/* Lista de servicios a la derecha */}
         <div className="flex-1 p-6 overflow-y-auto">
-          <h2 className="text-2xl font-bold mb-4">Lista de Servicios</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold">Lista de Servicios</h2>
+
+            {/* Botón de búsqueda o input */}
+            {!searchOpen ? (
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <Search className="h-6 w-6 text-gray-600" />
+              </button>
+            ) : (
+              <form
+                onSubmit={handleSearchSubmit}
+                className="flex items-center bg-white border border-gray-300 rounded-full shadow px-3 py-1 w-72 transition-all"
+              >
+                <Search className="h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar servicios..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="ml-2 flex-1 outline-none text-sm text-gray-700"
+                />
+                <button
+                  type="button"
+                  onClick={() => setSearchOpen(false)}
+                  className="ml-2 text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </form>
+            )}
+          </div>
+
           <ul className="space-y-2">
             {services.map((service) => (
               <ServiceCard
@@ -45,6 +93,7 @@ export default function Servicios({ services }: Props) {
           </div>
         )}
       </div>
+
       <QuotationButton />
     </Layout>
   );
