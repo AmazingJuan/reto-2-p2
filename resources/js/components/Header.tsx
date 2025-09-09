@@ -42,14 +42,7 @@ const Header = () => {
   const fetchQuotationList = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(route('list.index'), {
-        withCredentials: true,
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await axios.get(route('list.index'));
       setQuotationData(response.data || []);
       setShowQuotationModal(true);
       console.log('Respuesta AJAX:', response.data);
@@ -460,7 +453,7 @@ const Header = () => {
 
               {/* Aquí sigues con tu contenido: Type, Services, Opciones, etc */}
               <h4 className="text-lg font-bold text-blue-600 mb-3 text-center uppercase tracking-wide">
-                {item.type}
+                {item.serviceType}
               </h4>
 
               {/* Servicios */}

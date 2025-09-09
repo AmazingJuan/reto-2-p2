@@ -24,7 +24,8 @@ class QuotationListController extends Controller
             'id' => uniqid(),
             'services' => $request->services,
             'options' => $request->options,
-            'type' => $request->serviceType,
+            'serviceTypeId' => $request->serviceTypeId,
+            'serviceType' => $request->serviceType,
         ];
 
         $quotationList[] = $listItem;

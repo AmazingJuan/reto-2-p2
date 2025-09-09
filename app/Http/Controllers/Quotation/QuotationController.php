@@ -27,7 +27,8 @@ class QuotationController extends Controller
         }
 
         $viewData = [
-            'serviceType' => $serviceTypeId,
+            'serviceTypeId' => $serviceTypeId,
+            'serviceType' => $serviceType->getName(),
             'serviceId' => $serviceId,
             'conditions' => $conditionResolverService->getConditionsWithValues($serviceType),
         ];

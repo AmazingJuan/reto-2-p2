@@ -8,30 +8,31 @@ import { Search, X } from "lucide-react";
 import { route } from "ziggy-js";
 import { Inertia } from "@inertiajs/inertia";
 
-
-interface Props {
+interface ViewData {
   services: Service[];
+  serviceType: string;
   serviceTypeId: number;
   searchQuery?: string;
 }
 
-export default function Servicios({ services, serviceTypeId, searchQuery }: Props) {
+interface Props {
+  viewData: ViewData;
+}
+
+export default function Servicios({ viewData }: Props) {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState(searchQuery || "");
+  const [searchTerm, setSearchTerm] = useState(viewData.searchQuery || "");
 
   const handleSearchSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
-
-  if (!searchTerm.trim()) {
-    // Si la barra está vacía, vuelve a cargar todos los servicios
-    Inertia.get(route("services.index", { serviceTypeId }));
-    return;
-  }
-
-  // Si hay texto, aplica el filtro
-  Inertia.get(route("services.index", { serviceTypeId, search: searchTerm }));
-};
+    e.preventDefault();
+    if (!searchTerm.trim()) {
+      // Si el campo está vacío, redirige sin el parámetro ?search
+      window.location.href = route("services.index", { serviceTypeId: viewData.serviceTypeId });
+      return;
+    }
+    window.location.href = route("services.index", { serviceTypeId: viewData.serviceTypeId, search: searchTerm });
+  };
 
   return (
     <Layout
@@ -47,7 +48,7 @@ export default function Servicios({ services, serviceTypeId, searchQuery }: Prop
       <div className="flex h-[calc(100vh-12rem)]">
         <div className="flex-1 p-6 overflow-y-auto">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Lista de Servicios {viewData.serviceType}</h2>
+            <h2 className="text-2xl font-bold">Lista de Servicios - {viewData.serviceType}</h2>
             {!searchOpen ? (
               <button
                 onClick={() => setSearchOpen(true)}
@@ -80,19 +81,13 @@ export default function Servicios({ services, serviceTypeId, searchQuery }: Prop
           </div>
 
           <ul className="space-y-2">
-            {services.length > 0 ? (
-              services.map((service) => (
-                <ServiceCard
-                  key={service.id}
-                  service={service}
-                  onSelect={() => setSelectedService(service)}
-                />
-              ))
-            ) : (
-              <p className="text-gray-500 italic text-center mt-10">
-                No se han encontrado servicios. Intente de nuevo con otra búsqueda
-              </p>
-            )}
+            {viewData.services.map((service) => (
+              <ServiceCard
+                key={service.id}
+                service={service}
+                onSelect={() => setSelectedService(service)}
+              />
+            ))}
           </ul>
         </div>
 

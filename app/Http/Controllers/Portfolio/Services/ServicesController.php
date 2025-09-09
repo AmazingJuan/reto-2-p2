@@ -19,15 +19,17 @@ class ServicesController extends Controller
 
     public function index(Request $request, $serviceTypeId)
     {
-        $search = $request->query('search');
+        $viewData = [];
+
+
+
+        $searchQuery = $request->query('search');
+        $viewData['searchQuery'] = $searchQuery;
         $serviceType = ServiceType::findOrFail($serviceTypeId);
-
-        $services = $this->serviceRepo->getByServiceTypeAndSearch($serviceTypeId, $search)->toArray();
-
-        return Inertia::render('services/index', [
-            'services' => $services,
-            'serviceTypeId' => $serviceType->id,
-            'searchQuery' => $search,
-        ]);
+        $viewData['serviceType'] = $serviceType->getName();
+        $viewData['serviceTypeId'] = $serviceType->id;
+        $services = $this->serviceRepo->getByServiceTypeAndSearch($serviceTypeId, $searchQuery)->toArray();
+        $viewData['services'] = $services;
+        return Inertia::render('services/index', ['viewData' => $viewData]);
     }
 }
