@@ -88,7 +88,7 @@ class Condition extends Model
     // Is Fixed
     public function isFixed(): bool
     {
-        return (bool) $this->attributes['is_fixed'];
+        return (bool) ($this->attributes['is_fixed'] ?? true);
     }
 
     public function setIsFixed(bool $value): void
@@ -99,7 +99,7 @@ class Condition extends Model
     // Allows Other Value
     public function allowsOtherValue(): bool
     {
-        return (bool) $this->attributes['allows_other_values'];
+        return (bool) ($this->attributes['allows_other_values'] ?? false);
     }
 
     public function setAllowsOtherValue(bool $value): void
@@ -110,7 +110,7 @@ class Condition extends Model
     // Allows Multiple Values
     public function allowsMultipleValues(): bool
     {
-        return (bool) $this->attributes['allows_multiple_values'];
+        return (bool) ($this->attributes['allows_multiple_values'] ?? false);
     }
 
     public function setAllowsMultipleValues(bool $value): void
@@ -121,7 +121,7 @@ class Condition extends Model
     // Is Boolean
     public function isBoolean(): bool
     {
-        return (bool) $this->attributes['is_boolean'];
+        return (bool) ($this->attributes['is_boolean'] ?? false);
     }
 
     public function setIsBoolean(bool $value): void

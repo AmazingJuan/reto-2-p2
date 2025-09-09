@@ -25,6 +25,7 @@ class ConditionValue extends Model
     protected $fillable = [
         'condition_id',
         'value',
+        'service_type',
     ];
 
     /*

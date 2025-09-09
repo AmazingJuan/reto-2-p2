@@ -9,6 +9,7 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
+
     public function up(): void
     {
         Schema::create('condition_values', function (Blueprint $table) {
@@ -17,6 +18,7 @@ return new class extends Migration
                 ->constrained('conditions')
                 ->onDelete('cascade');
             $table->string('value', 100);
+            $table->string('service_type', 30)->nullable();
             $table->timestamps();
         });
     }
@@ -24,6 +26,7 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
+
     public function down(): void
     {
         Schema::dropIfExists('condition_values');
