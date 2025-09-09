@@ -81,14 +81,25 @@ export default function Servicios({ viewData }: Props) {
           </div>
 
           <ul className="space-y-2">
-            {viewData.services.map((service) => (
-              <ServiceCard
-                key={service.id}
-                service={service}
-                onSelect={() => setSelectedService(service)}
-              />
-            ))}
-          </ul>
+  {viewData.services.length > 0 ? (
+    viewData.services.map((service) => (
+      <ServiceCard
+        key={service.id}
+        service={service}
+        onSelect={() => setSelectedService(service)}
+      />
+    ))
+  ) : (
+    <div className="text-center text-gray-500 mt-10">
+      <p className="text-lg font-medium">No se han encontrado servicios</p>
+      {searchTerm && (
+        <p className="text-sm text-gray-400 mt-2">
+          Intenta con otra búsqueda. 
+        </p>
+      )}
+    </div>
+  )}
+</ul>
         </div>
 
         {selectedService && (
