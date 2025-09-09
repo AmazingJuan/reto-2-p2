@@ -5,6 +5,7 @@ import { Menu, X, Search, ChevronDown } from 'lucide-react';
 import { FaFacebook, FaLinkedin } from 'react-icons/fa';
 import { ClipboardList } from "lucide-react";
 
+
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -68,6 +69,17 @@ const Header = () => {
       setShowQuotationModal(false);
     }
   };
+
+  const handleDeleteService = async (id) => {
+  try {
+    await axios.delete(route("list.destroy", id));
+    // Refrescar cotizaciones luego de eliminar
+    setQuotationData((prev) => prev.filter((item) => item.id !== id));
+  } catch (error) {
+    console.error("Error eliminando servicio:", error);
+  }
+};
+
 
   return (
     <>
@@ -340,18 +352,6 @@ const Header = () => {
                   )}
                 </div>
 
-                <button
-                    onClick={handleQuotationClick}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                    title="Lista cotización"
-                  >
-                    {isLoading ? (
-                      <span className="text-sm text-gray-500">...</span>
-                    ) : (
-                      <ClipboardList className="h-6 w-6 text-gray-600" />
-                    )}
-                  </button>
-
                 <a
                   href="#"
                   className="block font-medium text-gray-900 hover:text-blue-600 transition-colors"
@@ -377,34 +377,17 @@ const Header = () => {
                   Contacto
                 </a>
 
-                {/* Search inside mobile menu */}
-                <div className="pt-2">
-                  {!showSearch ? (
-                    <button
-                      className="p-2 hover:bg-gray-100 rounded transition-colors"
-                      onClick={handleShowSearch}
-                    >
-                      <Search className="h-5 w-5 text-gray-600" />
-                    </button>
-                  ) : (
-                    <div className="relative">
-                      <input
-                        ref={searchInputRef}
-                        type="text"
-                        className="border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring w-full"
-                        placeholder="Buscar servicios..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                      <button
-                        onClick={handleCloseSearch}
-                        className="absolute right-1 top-1 text-gray-400 hover:text-gray-700"
-                      >
-                        <X className="h-5 w-5" />
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <button
+                    onClick={handleQuotationClick}
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    title="Lista cotización"
+                  >
+                    {isLoading ? (
+                      <span className="text-sm text-gray-500">...</span>
+                    ) : (
+                      <ClipboardList className="h-6 w-6 text-gray-600" />
+                    )}
+                  </button>
               </div>
             </div>
           )}
@@ -445,50 +428,58 @@ const Header = () => {
               <ul className="space-y-6">
                 {quotationData.map((item) => (
                   <li
-                    key={item.id}
-                    className="p-5 bg-white rounded-xl shadow-md border hover:shadow-lg transition-shadow"
-                  >
-                    {/* Type como título */}
-                    {item.type && (
-                      <h4 className="text-lg font-bold text-blue-600 mb-3 text-center uppercase tracking-wide">
-                        {item.type}
-                      </h4>
-                    )}
+  key={item.id}
+  className="relative p-4 border rounded shadow-sm bg-gray-50"
+>
+  {/* Botón eliminar */}
+  <button
+    onClick={() => handleDeleteService(item.id)}
+    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+    title="Eliminar servicio"
+  >
+    <X className="h-5 w-5" />
+  </button>
 
-                    {/* Servicios */}
-                    <div className="mb-3">
-                      <strong className="block text-gray-700 mb-1">Servicios:</strong>
-                      <ul className="list-disc list-inside ml-4 text-gray-600 space-y-1">
-                        {item.services?.map((service) => (
-                          <li key={service.id}>{service.name}</li>
-                        ))}
-                      </ul>
-                    </div>
+  {/* Aquí sigues con tu contenido: Type, Services, Opciones, etc */}
+  <h4 className="text-lg font-bold text-blue-600 mb-3 text-center uppercase tracking-wide">
+    {item.type}
+  </h4>
 
-                    {/* Opciones */}
-                    <div>
-                      <strong className="block text-gray-700 mb-1">Opciones:</strong>
-                      <ul className="list-disc list-inside ml-4 text-gray-600 space-y-1">
-                        {item.options &&
-                          Object.entries(item.options).map(([key, value]) => (
-                            <li key={key}>
-                              <span className="font-medium text-gray-800">{key}:</span>{' '}
-                              {Array.isArray(value) ? (
-                                value.join(', ')
-                              ) : typeof value === 'object' && value !== null ? (
-                                Object.keys(value).length === 1 ? (
-                                  Object.values(value)[0]
-                                ) : (
-                                  JSON.stringify(value)
-                                )
-                              ) : (
-                                value
-                              )}
-                            </li>
-                          ))}
-                      </ul>
-                    </div>
-                  </li>
+  {/* Servicios */}
+  <div>
+    <strong>Servicios:</strong>
+    <ul className="list-disc list-inside ml-4">
+      {item.services?.map((service) => (
+        <li key={service.id}>{service.name}</li>
+      ))}
+    </ul>
+  </div>
+
+  {/* Opciones */}
+  <div className="mt-2">
+    <strong>Opciones:</strong>
+    <ul className="list-disc list-inside ml-4">
+      {item.options &&
+        Object.entries(item.options).map(([key, value]) => (
+          <li key={key}>
+            <strong>{key}:</strong>{" "}
+            {Array.isArray(value) ? (
+              value.join(", ")
+            ) : typeof value === "object" && value !== null ? (
+              Object.keys(value).length === 1 ? (
+                Object.values(value)[0]
+              ) : (
+                JSON.stringify(value)
+              )
+            ) : (
+              value
+            )}
+          </li>
+        ))}
+    </ul>
+  </div>
+</li>
+
                 ))}
               </ul>
             ) : (
