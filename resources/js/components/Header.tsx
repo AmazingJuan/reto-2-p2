@@ -6,6 +6,7 @@ import { FaFacebook, FaLinkedin } from 'react-icons/fa';
 import { ClipboardList } from "lucide-react";
 
 
+
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -21,6 +22,9 @@ const Header = () => {
   const [quotationData, setQuotationData] = useState([]);
   const [showQuotationModal, setShowQuotationModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  //Confirmación mensaje 
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Mostrar input al hacer click en la lupa
   const handleShowSearch = () => {
@@ -71,12 +75,19 @@ const Header = () => {
   };
 
   const handleDeleteService = async (id) => {
+  const confirmDelete = window.confirm("¿Seguro que deseas eliminar este servicio?");
+  if (!confirmDelete) return;
+
   try {
     await axios.delete(route("list.destroy", id));
-    // Refrescar cotizaciones luego de eliminar
     setQuotationData((prev) => prev.filter((item) => item.id !== id));
+
+    // Mostrar mensaje de éxito
+    setSuccessMessage("Cotización borrada exitosamente");
+    setTimeout(() => setSuccessMessage(""), 5000); // Se borra en 5s
   } catch (error) {
     console.error("Error eliminando servicio:", error);
+    alert("Error al eliminar el servicio");
   }
 };
 
@@ -395,99 +406,106 @@ const Header = () => {
       </header>
 
       {/* Sidebar/modal cotización */}
-      <div
-        className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${
-          showQuotationModal ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={handleBackdropClick}
-      >
-        <div
-          className={`bg-white h-full w-[28rem] shadow-2xl rounded-l-2xl transform transition-transform duration-300 ${
-            showQuotationModal ? 'translate-x-0' : 'translate-x-full'
-          }`}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header del sidebar */}
-          <div className="flex justify-between items-center p-6 border-b rounded-tl-2xl bg-white">
-            <h3 className="text-xl font-semibold text-gray-900">Lista de Cotización</h3>
-            <button
-              onClick={() => setShowQuotationModal(false)}
-              className="text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
-
-          {/* Contenido scrollable */}
-          <div className="p-6 overflow-y-auto h-[calc(100%-120px)] bg-gray-50">
-            {isLoading ? (
-              <div className="flex justify-center items-center h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              </div>
-            ) : quotationData.length > 0 ? (
-              <ul className="space-y-6">
-                {quotationData.map((item) => (
-                  <li
-  key={item.id}
-  className="relative p-4 border rounded shadow-sm bg-gray-50"
+<div
+  className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${
+    showQuotationModal ? 'opacity-100' : 'opacity-0 pointer-events-none'
+  }`}
+  onClick={handleBackdropClick}
 >
-  {/* Botón eliminar */}
-  <button
-    onClick={() => handleDeleteService(item.id)}
-    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-    title="Eliminar servicio"
+  <div
+    className={`bg-white h-full w-[28rem] shadow-2xl rounded-l-2xl transform transition-transform duration-300 ${
+      showQuotationModal ? 'translate-x-0' : 'translate-x-full'
+    }`}
+    onClick={(e) => e.stopPropagation()}
   >
-    <X className="h-5 w-5" />
-  </button>
+    {/* Header del sidebar */}
+    <div className="flex justify-between items-center p-6 border-b rounded-tl-2xl bg-white">
+      <h3 className="text-xl font-semibold text-gray-900">Lista de Cotización</h3>
+      <button
+        onClick={() => setShowQuotationModal(false)}
+        className="text-gray-500 hover:text-gray-700 transition-colors"
+      >
+        <X className="h-6 w-6" />
+      </button>
+    </div>
 
-  {/* Aquí sigues con tu contenido: Type, Services, Opciones, etc */}
-  <h4 className="text-lg font-bold text-blue-600 mb-3 text-center uppercase tracking-wide">
-    {item.type}
-  </h4>
-
-  {/* Servicios */}
-  <div>
-    <strong>Servicios:</strong>
-    <ul className="list-disc list-inside ml-4">
-      {item.services?.map((service) => (
-        <li key={service.id}>{service.name}</li>
-      ))}
-    </ul>
-  </div>
-
-  {/* Opciones */}
-  <div className="mt-2">
-    <strong>Opciones:</strong>
-    <ul className="list-disc list-inside ml-4">
-      {item.options &&
-        Object.entries(item.options).map(([key, value]) => (
-          <li key={key}>
-            <strong>{key}:</strong>{" "}
-            {Array.isArray(value) ? (
-              value.join(", ")
-            ) : typeof value === "object" && value !== null ? (
-              Object.keys(value).length === 1 ? (
-                Object.values(value)[0]
-              ) : (
-                JSON.stringify(value)
-              )
-            ) : (
-              value
-            )}
-          </li>
-        ))}
-    </ul>
-  </div>
-</li>
-
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500 text-center">No hay elementos en la lista.</p>
-            )}
-          </div>
-        </div>
+    {/* Mensaje de éxito */}
+    {successMessage && (
+      <div className="mx-6 mt-4 bg-green-100 text-green-700 px-4 py-2 rounded shadow-md">
+        {successMessage}
       </div>
+    )}
+
+    {/* Contenido scrollable */}
+    <div className="p-6 overflow-y-auto h-[calc(100%-120px)] bg-gray-50">
+      {isLoading ? (
+        <div className="flex justify-center items-center h-32">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      ) : quotationData.length > 0 ? (
+        <ul className="space-y-6">
+          {quotationData.map((item) => (
+            <li
+              key={item.id}
+              className="relative p-4 border rounded shadow-sm bg-gray-50"
+            >
+              {/* Botón eliminar */}
+              <button
+                onClick={() => handleDeleteService(item.id)}
+                className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                title="Eliminar servicio"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              {/* Aquí sigues con tu contenido: Type, Services, Opciones, etc */}
+              <h4 className="text-lg font-bold text-blue-600 mb-3 text-center uppercase tracking-wide">
+                {item.type}
+              </h4>
+
+              {/* Servicios */}
+              <div>
+                <strong>Servicios:</strong>
+                <ul className="list-disc list-inside ml-4">
+                  {item.services?.map((service) => (
+                    <li key={service.id}>{service.name}</li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Opciones */}
+              <div className="mt-2">
+                <strong>Opciones:</strong>
+                <ul className="list-disc list-inside ml-4">
+                  {item.options &&
+                    Object.entries(item.options).map(([key, value]) => (
+                      <li key={key}>
+                        <strong>{key}:</strong>{" "}
+                        {Array.isArray(value) ? (
+                          value.join(", ")
+                        ) : typeof value === "object" && value !== null ? (
+                          Object.keys(value).length === 1 ? (
+                            Object.values(value)[0]
+                          ) : (
+                            JSON.stringify(value)
+                          )
+                        ) : (
+                          value
+                        )}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-gray-500 text-center">No hay elementos en la lista.</p>
+      )}
+    </div>
+  </div>
+</div>
+
     </>
   );
 };
