@@ -22,7 +22,6 @@ Route::prefix('cotizacion')->group(function () {
 Route::prefix('lista')->middleware(['ajax'])->group(function () {
     Route::get('/', [QuotationListController::class, 'index'])->name('list.index');          // ver lista
     Route::post('/add', [QuotationListController::class, 'add'])->name('list.add');         // agregar item
-    Route::post('/update/{id}', [QuotationListController::class, 'update'])->name('list.update'); // actualizar item
-    Route::delete('/remove/{id}', [QuotationListController::class, 'remove'])->name('list.remove'); // eliminar item
-    Route::get('/{id}', [QuotationListController::class, 'show'])->name('list.show');        // detalle item
+    Route::put('/{id}', [QuotationListController::class, 'update'])->name('list.update'); // actualizar item
+    Route::delete('/{id}', [QuotationListController::class, 'destroy'])->name('list.destroy'); // eliminar item
 });

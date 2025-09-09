@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Quotation;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Database\Eloquent\Casts\Json;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -16,7 +17,7 @@ class QuotationListController extends Controller
 
     }
 
-    public function add(Request $request)
+    public function add(Request $request) : JsonResponse
     {
         $quotationList = session()->get('quotation_list', []);
 
@@ -33,7 +34,7 @@ class QuotationListController extends Controller
         return response()->json(['quotation_list' => $quotationList]);
     }
 
-    public function remove($id)
+    public function destroy($id) : JsonResponse
     {
         $quotationList = session()->get('quotation_list', []);
         $quotationList = array_filter($quotationList, fn ($item) => $item['id'] != $id);
