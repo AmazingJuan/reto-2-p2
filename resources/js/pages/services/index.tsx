@@ -93,7 +93,7 @@ export default function Servicios({ viewData }: Props) {
 
         {selectedService && (
           <div className="w-1/3 border-l bg-white shadow-lg">
-            <ServiceShow service={selectedService} />
+            <ServiceShow service={selectedService} onClose={() => setSelectedService(null)} />
           </div>
         )}
       </div>

@@ -4,8 +4,9 @@ import { Service } from "../../types/service";
 
 interface Props {
   service: Service;
+  onClose: () => void;
 }
 
-export default function ServiceShow({ service }: Props) {
-  return <ServiceDetails service={service} onClose={() => {}} />;
+export default function ServiceShow({ service, onClose }: Props) {
+  return <ServiceDetails service={service} onClose={onClose} />;
 }
