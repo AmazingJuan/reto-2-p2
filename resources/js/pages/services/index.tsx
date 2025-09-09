@@ -1,7 +1,3 @@
-interface Props extends PageProps {
-  services: Service[];
-}
-
 import React, { useState } from "react";
 import { Service } from "../../types/service";
 import { ServiceCard } from "../../components/ServiceCard";
@@ -10,21 +6,24 @@ import QuotationButton from "../../components/QuotationButton";
 import ServiceShow from "./show";
 import { Search, X } from "lucide-react";
 import { route } from "ziggy-js";
-import { Inertia } from "@inertiajs/inertia";
 
 
-export default function Servicios({ services }: Props) {
+interface Props {
+  services: Service[];
+  serviceTypeId: number;
+  searchQuery?: string;
+}
+
+export default function Servicios({ services, serviceTypeId, searchQuery }: Props) {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(searchQuery || "");
 
   const handleSearchSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!searchTerm.trim()) return;
-
-  // Inertia mantiene la navegación SPA con querystring
-  Inertia.get(route("servicios.index"), { search: searchTerm });
-};
+    e.preventDefault();
+    if (!searchTerm.trim()) return;
+  window.location.href = route("services.index", { serviceTypeId, search: searchTerm });
+  };
 
   return (
     <Layout
@@ -38,12 +37,9 @@ export default function Servicios({ services }: Props) {
       }
     >
       <div className="flex h-[calc(100vh-12rem)]">
-        {/* Lista de servicios a la derecha */}
         <div className="flex-1 p-6 overflow-y-auto">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">Lista de Servicios</h2>
-
-            {/* Botón de búsqueda o input */}
             {!searchOpen ? (
               <button
                 onClick={() => setSearchOpen(true)}
@@ -86,7 +82,6 @@ export default function Servicios({ services }: Props) {
           </ul>
         </div>
 
-        {/* Panel de detalles a la izquierda */}
         {selectedService && (
           <div className="w-1/3 border-l bg-white shadow-lg">
             <ServiceShow service={selectedService} />

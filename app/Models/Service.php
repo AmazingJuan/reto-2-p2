@@ -103,4 +103,13 @@ class Service extends Model
     {
         $this->attributes['gestion_line'] = $value;
     }
+
+    public function scopeSearchByName($query, ?string $term)
+    {
+        if ($term) {
+            return $query->where('name', 'like', "%{$term}%");
+        }
+
+        return $query;
+    }
 }
