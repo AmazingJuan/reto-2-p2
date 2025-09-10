@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "@inertiajs/react";
 import { route } from 'ziggy-js';
 
-// Botón para la cotización
+// Button for quotation
 const QuotationButton = () => (
   <div className="w-full flex justify-center my-12">
     <Link

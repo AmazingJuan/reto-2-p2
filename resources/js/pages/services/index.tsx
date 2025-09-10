@@ -1,3 +1,5 @@
+// Main page for listing, searching, and viewing service details
+
 import React, { useState } from "react";
 import { Service } from "../../types/service";
 import { ServiceCard } from "../../components/ServiceCard";
@@ -8,6 +10,7 @@ import { Search, X } from "lucide-react";
 import { route } from "ziggy-js";
 import { Inertia } from "@inertiajs/inertia";
 
+// ViewData: Data received from backend for the view
 interface ViewData {
   services: Service[];
   serviceType: string;
@@ -15,19 +18,24 @@ interface ViewData {
   searchQuery?: string;
 }
 
+// Props for Servicios component
 interface Props {
   viewData: ViewData;
 }
 
 export default function Servicios({ viewData }: Props) {
+  // State for selected service (for modal/sidebar)
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  // State for search bar visibility
   const [searchOpen, setSearchOpen] = useState(false);
+  // State for search term
   const [searchTerm, setSearchTerm] = useState(viewData.searchQuery || "");
 
+  // Handles search form submission and redirects to service index with search param
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchTerm.trim()) {
-      // Si el campo está vacío, redirige sin el parámetro ?search
+      // If field is empty, redirect without ?search param
       window.location.href = route("services.index", { serviceTypeId: viewData.serviceTypeId });
       return;
     }
@@ -36,6 +44,7 @@ export default function Servicios({ viewData }: Props) {
 
   return (
     <Layout
+      // Hero section at the top of the page
       heroContent={
         <div>
           <h1 className="text-4xl font-bold">Servicios</h1>
@@ -46,9 +55,11 @@ export default function Servicios({ viewData }: Props) {
       }
     >
       <div className="flex h-[calc(100vh-12rem)]">
+        {/* Main service list section */}
         <div className="flex-1 p-6 overflow-y-auto">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">Lista de Servicios - {viewData.serviceType}</h2>
+            {/* Search bar toggle and form */}
             {!searchOpen ? (
               <button
                 onClick={() => setSearchOpen(true)}
@@ -80,28 +91,30 @@ export default function Servicios({ viewData }: Props) {
             )}
           </div>
 
+          {/* Service cards list */}
           <ul className="space-y-2">
-  {viewData.services.length > 0 ? (
-    viewData.services.map((service) => (
-      <ServiceCard
-        key={service.id}
-        service={service}
-        onSelect={() => setSelectedService(service)}
-      />
-    ))
-  ) : (
-    <div className="text-center text-gray-500 mt-10">
-      <p className="text-lg font-medium">No se han encontrado servicios</p>
-      {searchTerm && (
-        <p className="text-sm text-gray-400 mt-2">
-          Intenta con otra búsqueda. 
-        </p>
-      )}
-    </div>
-  )}
-</ul>
+            {viewData.services.length > 0 ? (
+              viewData.services.map((service) => (
+                <ServiceCard
+                  key={service.id}
+                  service={service}
+                  onSelect={() => setSelectedService(service)}
+                />
+              ))
+            ) : (
+              <div className="text-center text-gray-500 mt-10">
+                <p className="text-lg font-medium">No se han encontrado servicios</p>
+                {searchTerm && (
+                  <p className="text-sm text-gray-400 mt-2">
+                    Intenta con otra búsqueda. 
+                  </p>
+                )}
+              </div>
+            )}
+          </ul>
         </div>
 
+        {/* Service details modal/sidebar */}
         {selectedService && (
           <div className="w-1/3 border-l bg-white shadow-lg">
             <ServiceShow service={selectedService} onClose={() => setSelectedService(null)} />
@@ -109,6 +122,7 @@ export default function Servicios({ viewData }: Props) {
         )}
       </div>
 
+      {/* Quotation button at the bottom */}
       <QuotationButton />
     </Layout>
   );

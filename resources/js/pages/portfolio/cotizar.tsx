@@ -33,7 +33,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Mapeo de id a nombre para los servicios
+  // Id to name mapping for services
   const serviceIdNameMap = Object.entries(viewData.conditions.services || {}).reduce(
     (acc, [id, name]) => ({ ...acc, [id]: name }),
     {} as Record<string, string>
@@ -90,7 +90,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
     }
   }, [responses]);
 
-  // Sedes dinámicas por sección
+  // Dinamyc sedes per section
   const addSedeField = useCallback((sectionName: string) => {
     setDynamicSedes(prev => ({
       ...prev,
@@ -120,10 +120,10 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
     });
   }, []);
 
-  // Separa servicios del resto de condiciones
+  // Splits services from the rest of the conditions
   const { services, ...otherConditions } = viewData.conditions;
 
-  // Validación de datos antes de enviar
+  // Data validation
   const validate = (servicesArr: { id: string; name: string }[]) => {
     if (!servicesArr.length) {
       setErrorMsg('Debes seleccionar al menos un servicio.');
@@ -163,12 +163,12 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
     setLoading(true);
 
     try {
-      // 1. Inicializar CSRF cookie (necesario con Sanctum en dominios distintos)
+      // 1. Initialize CSRF cookie (necessary with Sanctum in different domains)
       await axios.get("/sanctum/csrf-cookie", {
         withCredentials: true,
       });
 
-      // 2. Enviar el formulario al backend
+      // 2. Send form to backend
       await axios.post(
         route("list.add"),
         {
@@ -206,7 +206,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
           {errorMsg && (
             <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{errorMsg}</div>
           )}
-          {/* Servicios - Selección múltiple */}
+          {/* Services - Multiple choice*/}
           {services && (
             <div className="mb-8">
               <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
@@ -262,7 +262,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
             </div>
           )}
 
-          {/* Otras condiciones */}
+          {/* Other conditions */}
           {Object.values(otherConditions).map((conditionBlock, idx) => {
             const sectionName = Object.keys(conditionBlock)[0];
             const section: ConditionItem = conditionBlock[sectionName];
@@ -302,7 +302,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
                     </button>
                   ))}
                   
-                  {/* Botón "Otro" para modalidad */}
+                  {/* Button 'Other' for mode */}
                   {effectiveFlags.allows_other_values && (
                     <div className="flex flex-col">
                       <button
@@ -336,7 +336,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
                     </div>
                   )}
                   
-                  {/* Campo de tiempo */}
+                  {/* Time space */}
                   {effectiveFlags.is_time && (
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor={`time-${sectionName}`}>Tiempo</label>
@@ -350,7 +350,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
                       />
                     </div>
                   )}
-                  {/* Sedes dinámicas */}
+                  {/* Dynamic Sedes */}
                   {!(effectiveFlags.is_fixed) && (
                     <div className="md:col-span-2">
                       {(dynamicSedes[sectionName] || [""]).map((sede, index) => (
@@ -378,7 +378,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
                           )}
                         </div>
                       ))}
-                      {/* Botón para añadir más sedes */}
+                      {/* Button to add more venues */}
                       <div className="flex justify-end mt-2">
                         <button
                           type="button"

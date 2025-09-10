@@ -17,7 +17,7 @@ const Footer = () => {
             />
           </div>
 
-          {/* Contactos*/}
+          {/* Contacts*/}
           <div>
             <h3 className="text-lg font-bold mb-6">Contacto</h3>
             <div className="space-y-4">
@@ -48,7 +48,7 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Actualidad */}
+          {/* Currently */}
           <div>
             <h3 className="text-lg font-bold mb-6">Actualidad</h3>
             <ul className="space-y-3">
@@ -70,7 +70,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Convenios */}
+          {/* Agreements */}
           <div>
             <h3 className="text-lg font-bold mb-6">Convenios</h3>
             <img
@@ -100,7 +100,7 @@ const Footer = () => {
         </div>
 
 
-        {/* Abajito del footer */}
+        {/* Bottom part of the footer */}
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="text-gray-400 text-sm mb-4 md:mb-0">
             Training Corporation - 2025

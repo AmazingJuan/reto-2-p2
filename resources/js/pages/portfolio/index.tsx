@@ -1,21 +1,30 @@
+// PortfolioIndex page for listing service types in the portfolio
+
 import Layout from "../../layouts/Layout";
 import QuotationButton from "../../components/QuotationButton";
 import { Link } from "@inertiajs/react";
 import { route } from 'ziggy-js';
 import React from "react";
 
+// ServicesObject: maps service type slug to display name
 interface ServicesObject {
   [slug: string]: string;
 }
 
+// Props for PortfolioIndex component
 interface PortfolioIndexProps {
   services: ServicesObject;
   basePath?: string;
 }
 
+/**
+ * PortfolioIndex
+ * Lists all service types in the portfolio as cards/links
+ */
 export default function PortfolioIndex({ services, basePath }: PortfolioIndexProps) {
   return (
     <Layout
+      // Hero section at the top of the page
       heroContent={
         <div>
           <h1 className="text-4xl font-bold">Portafolio de servicios</h1>
@@ -24,6 +33,7 @@ export default function PortfolioIndex({ services, basePath }: PortfolioIndexPro
     >
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Render a card for each service type */}
           {Object.entries(services).map(([slug, name]) => (
             basePath ? (
               <Link

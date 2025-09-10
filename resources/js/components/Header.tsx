@@ -18,27 +18,15 @@ const Header = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const searchInputRef = useRef(null);
 
-  // Cotización
+  // Quotation
   const [quotationData, setQuotationData] = useState([]);
   const [showQuotationModal, setShowQuotationModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  //Confirmación mensaje 
+  //Message confirmation 
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Mostrar input al hacer click en la lupa
-  const handleShowSearch = () => {
-    setShowSearch(true);
-    setTimeout(() => searchInputRef.current?.focus(), 100);
-  };
-
-  // Cerrar barra de búsqueda
-  const handleCloseSearch = () => {
-    setShowSearch(false);
-    setSearchTerm('');
-  };
-
-  // Fetch de cotizaciones (solo una definición)
+  // Fetch Quotation (just a definition)
   const fetchQuotationList = async () => {
     setIsLoading(true);
     try {
@@ -75,9 +63,9 @@ const Header = () => {
     await axios.delete(route("list.destroy", id));
     setQuotationData((prev) => prev.filter((item) => item.id !== id));
 
-    // Mostrar mensaje de éxito
+    // Show successful message 
     setSuccessMessage("Cotización borrada exitosamente");
-    setTimeout(() => setSuccessMessage(""), 5000); // Se borra en 5s
+    setTimeout(() => setSuccessMessage(""), 5000); // Erases itself at 5s
   } catch (error) {
     console.error("Error eliminando servicio:", error);
     alert("Error al eliminar el servicio");
@@ -138,126 +126,91 @@ const Header = () => {
             </a>
 
            {/* Desktop Nav */}
-<nav className="hidden lg:flex items-center space-x-8">
-  <a
-    href={route('home')}
-    className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
-  >
-    Inicio
-  </a>
+              <nav className="hidden lg:flex items-center space-x-8">
+                <a
+                  href={route('home')}
+                  className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
+                >
+                  Inicio
+                </a>
 
-  {/* Desktop dropdown: Nuestra empresa (hover) */}
-  <div className="relative group">
-    <button className="flex items-center font-medium text-gray-900 hover:text-blue-600 transition-colors">
-      Nuestra empresa <ChevronDown className="ml-1 h-4 w-4" />
-    </button>
-    <div className="absolute top-full left-0 mt-1 w-64 bg-white shadow-lg rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-      <div className="py-2">
-        <a href="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-50">
-          Nuestro equipo
-        </a>
-        <a href="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-50">
-          Sistema de Gestión Integrado
-        </a>
-        <a href="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-50">
-          Contratistas
-        </a>
-      </div>
-    </div>
-  </div>
+                {/* Desktop dropdown: Our company (hover) */}
+                <div className="relative group">
+                  <button className="flex items-center font-medium text-gray-900 hover:text-blue-600 transition-colors">
+                    Nuestra empresa <ChevronDown className="ml-1 h-4 w-4" />
+                  </button>
+                  <div className="absolute top-full left-0 mt-1 w-64 bg-white shadow-lg rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div className="py-2">
+                      <a href="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-50">
+                        Nuestro equipo
+                      </a>
+                      <a href="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-50">
+                        Sistema de Gestión Integrado
+                      </a>
+                      <a href="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-50">
+                        Contratistas
+                      </a>
+                    </div>
+                  </div>
+                </div>
 
-  {/* Desktop dropdown: Portafolio */}
-  <div className="relative group">
-    <a
-      href={route('portfolio.index')}
-      className="flex items-center font-medium text-gray-900 hover:text-blue-600 transition-colors"
-    >
-      Portafolio de servicios <ChevronDown className="ml-1 h-4 w-4" />
-    </a>
-    <div className="absolute top-full left-0 mt-1 w-64 bg-white shadow-lg rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-      <div className="py-2">
-        <a
-          href={route('services.index', { serviceTypeId: 'auditoria' })}
-          className="block px-4 py-2 text-gray-700 hover:bg-gray-50"
-        >
-          Auditoría
-        </a>
-        <a
-          href={route('services.index', { serviceTypeId: 'formacion' })}
-          className="block px-4 py-2 text-gray-700 hover:bg-gray-50"
-        >
-          Formación
-        </a>
-        <a
-          href={route('services.index', { serviceTypeId: 'consultoria' })}
-          className="block px-4 py-2 text-gray-700 hover:bg-gray-50"
-        >
-          Consultoría
-        </a>
-      </div>
-    </div>
-  </div>
+                {/* Desktop dropdown: Portfolio */}
+                <div className="relative group">
+                  <a
+                    href={route('portfolio.index')}
+                    className="flex items-center font-medium text-gray-900 hover:text-blue-600 transition-colors"
+                  >
+                    Portafolio de servicios <ChevronDown className="ml-1 h-4 w-4" />
+                  </a>
+                  <div className="absolute top-full left-0 mt-1 w-64 bg-white shadow-lg rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div className="py-2">
+                      <a
+                        href={route('services.index', { serviceTypeId: 'auditoria' })}
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-50"
+                      >
+                        Auditoría
+                      </a>
+                      <a
+                        href={route('services.index', { serviceTypeId: 'formacion' })}
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-50"
+                      >
+                        Formación
+                      </a>
+                      <a
+                        href={route('services.index', { serviceTypeId: 'consultoria' })}
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-50"
+                      >
+                        Consultoría
+                      </a>
+                    </div>
+                  </div>
+                </div>
 
-  <a href="#" className="font-medium text-gray-900 hover:text-blue-600 transition-colors">
-    Actualidad
-  </a>
-  <a href="#" className="font-medium text-gray-900 hover:text-blue-600 transition-colors">
-    Clientes
-  </a>
-  <a href="#" className="font-medium text-gray-900 hover:text-blue-600 transition-colors">
-    Cursos y Formaciones
-  </a>
-  <a href="#" className="font-medium text-gray-900 hover:text-blue-600 transition-colors">
-    Contacto
-  </a>
+                <a href="#" className="font-medium text-gray-900 hover:text-blue-600 transition-colors">
+                  Actualidad
+                </a>
+                <a href="#" className="font-medium text-gray-900 hover:text-blue-600 transition-colors">
+                  Clientes
+                </a>
+                <a href="#" className="font-medium text-gray-900 hover:text-blue-600 transition-colors">
+                  Cursos y Formaciones
+                </a>
+                <a href="#" className="font-medium text-gray-900 hover:text-blue-600 transition-colors">
+                  Contacto
+                </a>
 
- <button
-  onClick={handleQuotationClick}
-  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-  title="Lista cotización"
->
-  {isLoading ? (
-    <span className="text-sm text-gray-500">...</span>
-  ) : (
-    <ClipboardList className="h-6 w-6 text-gray-600" />
-  )}
-</button>
-
-  {/* Search 
-  {!showSearch ? (
-    <button
-      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-      onClick={handleShowSearch}
-    >
-      <Search className="h-5 w-5 text-gray-600" />
-    </button>
-  ) : (
-    <div className="relative">
-      <input
-        ref={searchInputRef}
-        type="text"
-        className="border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring w-64"
-        placeholder="Buscar servicios..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-      <button
-        onClick={handleCloseSearch}
-        className="absolute right-1 top-1 text-gray-400 hover:text-gray-700"
-      >
-        <X className="h-5 w-5" />
-      </button>
-
-      {searchTerm && (
-        <div className="absolute left-0 mt-2 w-full bg-white border border-gray-200 rounded shadow-lg z-50 max-h-60 overflow-y-auto">
-          <div className="p-4 text-center text-gray-400">Sin resultados</div>
-        </div>
-      )}
-    </div>
-  )} 
-*/}
-</nav>
-
+              <button
+                onClick={handleQuotationClick}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                title="Lista cotización"
+              >
+                {isLoading ? (
+                  <span className="text-sm text-gray-500">...</span>
+                ) : (
+                  <ClipboardList className="h-6 w-6 text-gray-600" />
+                )}
+              </button>
+              </nav>
 
             {/* Mobile menu button */}
             <button
@@ -280,7 +233,7 @@ const Header = () => {
                   Inicio
                 </a>
 
-                {/* Mobile dropdown: Nuestra empresa */}
+                {/* Mobile dropdown: Our company */}
                 <div>
                   <button
                     onClick={() => setIsDropdownOpenMobile((s) => !s)}
@@ -318,7 +271,7 @@ const Header = () => {
                   )}
                 </div>
 
-                {/* Mobile dropdown: Portafolio */}
+                {/* Mobile dropdown: Portfolio */}
                 <div>
                   <button
                     onClick={() => setIsServicesDropdownOpenMobile((s) => !s)}
@@ -398,7 +351,7 @@ const Header = () => {
         </div>
       </header>
 
-      {/* Sidebar/modal cotización */}
+      {/* Sidebar/modal quotation */}
 <div
   className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${
     showQuotationModal ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -411,7 +364,7 @@ const Header = () => {
     }`}
     onClick={(e) => e.stopPropagation()}
   >
-    {/* Header del sidebar */}
+    {/* Header's sidebar */}
     <div className="flex justify-between items-center p-6 border-b rounded-tl-2xl bg-white">
       <h3 className="text-xl font-semibold text-gray-900">Lista de Cotización</h3>
       <button
@@ -422,14 +375,14 @@ const Header = () => {
       </button>
     </div>
 
-    {/* Mensaje de éxito */}
+    {/* Success message */}
     {successMessage && (
       <div className="mx-6 mt-4 bg-green-100 text-green-700 px-4 py-2 rounded shadow-md">
         {successMessage}
       </div>
     )}
 
-    {/* Contenido scrollable */}
+    {/* Scrollable content */}
     <div className="p-6 overflow-y-auto h-[calc(100%-120px)] bg-gray-50">
       {isLoading ? (
         <div className="flex justify-center items-center h-32">
@@ -442,7 +395,7 @@ const Header = () => {
               key={item.id}
               className="relative p-4 border rounded shadow-sm bg-gray-50"
             >
-              {/* Botón eliminar */}
+              {/* Delete button */}
               <button
                 onClick={() => handleDeleteService(item.id)}
                 className="absolute top-2 right-2 text-red-500 hover:text-red-700"
@@ -451,12 +404,12 @@ const Header = () => {
                 <X className="h-5 w-5" />
               </button>
 
-              {/* Aquí sigues con tu contenido: Type, Services, Opciones, etc */}
+              {/* Service Type */}
               <h4 className="text-lg font-bold text-blue-600 mb-3 text-center uppercase tracking-wide">
                 {item.serviceType}
               </h4>
 
-              {/* Servicios */}
+              {/* Services */}
               <div>
                 <strong>Servicios:</strong>
                 <ul className="list-disc list-inside ml-4">
@@ -466,7 +419,7 @@ const Header = () => {
                 </ul>
               </div>
 
-              {/* Opciones */}
+              {/* Options */}
               <div className="mt-2">
                 <strong>Opciones:</strong>
                 <ul className="list-disc list-inside ml-4">

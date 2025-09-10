@@ -9,7 +9,7 @@ interface ServiceDetailsProps {
 export const ServiceDetails = ({ service, onClose }: ServiceDetailsProps) => {
   return (
     <div className="w-96 border-l bg-white shadow-xl p-6 overflow-y-auto rounded-l-2xl">
-      {/* Encabezado */}
+      {/* Header */}
       <div className="flex justify-between items-center border-b pb-3 mb-5">
         <h2 className="text-lg font-semibold text-gray-800 tracking-wide">
           Detalles del Servicio
@@ -23,12 +23,12 @@ export const ServiceDetails = ({ service, onClose }: ServiceDetailsProps) => {
         </button>
       </div>
 
-      {/* Nombre */}
+      {/* Name */}
 <h3 className="text-2xl font-bold text-gray-900">{service.name}</h3>
 
-{/* Información en tarjetas */}
+{/* Cards information */}
 <div className="mt-6 grid grid-cols-1 gap-4">
-  {/* Descripción */}
+  {/* Description */}
   <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
     <p className="text-xs font-medium text-gray-500 uppercase">
       Descripción
@@ -38,7 +38,7 @@ export const ServiceDetails = ({ service, onClose }: ServiceDetailsProps) => {
     </p>
   </div>
 
-  {/* Línea de gestión */}
+  {/* Management line */}
   <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
     <p className="text-xs font-medium text-gray-500 uppercase">
       Línea de gestión
