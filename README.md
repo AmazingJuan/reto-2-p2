@@ -107,16 +107,6 @@ php artisan route:clear
 
 ---
 
-## 🧪 Tests
-
-Ejecuta las pruebas con:
-
-```bash
-php artisan test
-```
-
----
-
 ## 🛠️ Comandos útiles
 
 - Reiniciar migraciones:
