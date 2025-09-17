@@ -46,7 +46,7 @@ class ConditionResolverService
 
         // Obtiene todas las condiciones (ya no están asociadas directamente al serviceType)
         $conditions = \App\Models\Condition::all();
-        
+
         foreach ($conditions as $condition) {
             $conditionFlags = [
                 'allows_other_values' => $condition->allowsOtherValue(),
@@ -55,9 +55,9 @@ class ConditionResolverService
                 'is_fixed' => $condition->isFixed(),
             ];
             $conditionResolvedValues = $this->resolveConditionValues($condition, $serviceTypeName);
-            
+
             // Solo incluir condiciones que tengan valores para este tipo de servicio
-            if (!empty($conditionResolvedValues)) {
+            if (! empty($conditionResolvedValues)) {
                 $finalResult[] = [$condition->name => ['flags' => $conditionFlags, 'items' => $conditionResolvedValues]];
             }
         }

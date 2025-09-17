@@ -2,94 +2,135 @@
 
 namespace Database\Seeders;
 
-use App\Models\Condition;
+use App\Repositories\ConditionRepository;
+use App\Repositories\ServiceTypeRepository;
+use App\Services\ConditionService;
 use Illuminate\Database\Seeder;
 
 class ConditionsTableSeeder extends Seeder
 {
+    protected ConditionService $conditionService;
+
+    protected ServiceTypeRepository $serviceTypeRepository;
+
+    protected ConditionRepository $conditionRepository;
+
+    /**
+     * Constructor.
+     */
+    public function __construct(
+        ConditionService $conditionService,
+        ServiceTypeRepository $serviceTypeRepository,
+        ConditionRepository $conditionRepository
+    ) {
+        $this->conditionService = $conditionService;
+        $this->serviceTypeRepository = $serviceTypeRepository;
+        $this->conditionRepository = $conditionRepository;
+    }
+
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-/*
-        Condition::create([
-            'name' => 'Viaticos',
-            'allows_other_values' => true,
-            'allows_multiple_values' => true,
+        // Fetch service types
+        $auditoriaServiceType = $this->serviceTypeRepository->find('auditoria');
+        $consultoriaServiceType = $this->serviceTypeRepository->find('consultoria');
+        $formacionServiceType = $this->serviceTypeRepository->find('formacion');
 
-        ]);
+        // -------------------------------
+        // Create conditions for "Auditoria"
+        // -------------------------------
 
-        Condition::create([
-            'name' => 'Modalidad',
-
-        ]);
-
-        Condition::create([
-            'name' => 'Sedes',
-            'is_fixed' => false,
-        ]);
-
-        Condition::create([
-            'name' => 'Tipo de Auditoría',
-        ]);
-
-        Condition::create([
-            'name' => 'La actividad laboral entra en ARL 5?',
-            'is_boolean' => true,
-        ]);
-
-        Condition::create([
-            'name' => 'Tiempo necesario',
+        $tiempoNecesarioAuditoriaCondition = $this->conditionService->create([
+            'name' => 'Tiempo necesario (días)',
             'type' => 'time',
         ]);
-*/
-        Condition::create([
-            'name' => 'Línea de Gestión',
-            'allows_multiple_values' => false,
+
+        $tiempoNecesarioAuditoriaVirCondition = $this->conditionService->create([
+            'name' => 'Tiempo necesario virtual (días)',
+            'type' => 'time',
         ]);
 
-        Condition::create([
-            'name' => 'Tipo de servicio',
-            'allows_multiple_values' => true,
+        $tiempoNecesarioAuditoriaPresCondition = $this->conditionService->create([
+            'name' => 'Tiempo necesario presencial (días)',
+            'type' => 'time',
+            'next_condition_id' => $tiempoNecesarioAuditoriaVirCondition->getId(),
         ]);
 
-        Condition::create([
-        'name' => 'Norma',
-        'allows_multiple_values' => true,
+        $modalidadAuditoriaCondition = $this->conditionService->create(
+            ['name' => 'Modalidad'],
+            [
+                ['value' => 'Presencial', 'next_condition_id' => $tiempoNecesarioAuditoriaCondition->getId()],
+                ['value' => 'Virtual', 'next_condition_id' => $tiempoNecesarioAuditoriaCondition->getId()],
+                ['value' => 'Mixto', 'next_condition_id' => $tiempoNecesarioAuditoriaPresCondition->getId()],
+            ]
+        );
+
+        $tipoServicioAuditoriaCondition = $this->conditionService->create(
+            ['name' => 'Tipo de servicio'],
+            [
+                'Auditoría interna (ISO 9001, 14001, 45001, 37001, 55001)',
+                'Auditoría de segunda parte (proveedores)',
+                'Pre-auditoría (ensayo de certificación)',
+            ]
+        );
+
+        $viaticosAuditoriaCondition = $this->conditionService->create(
+            ['name' => 'Viáticos'],
+            ['Tiquetes', 'Hospedaje', 'Alimentación', 'Transporte local']
+        );
+
+        // Link initial and next conditions for "Auditoria"
+        $this->serviceTypeRepository->update(
+            ['initial_condition_id' => $viaticosAuditoriaCondition->getId()],
+            $auditoriaServiceType
+        );
+
+        $this->conditionRepository->update(
+            ['next_condition_id' => $tipoServicioAuditoriaCondition->getId()],
+            $viaticosAuditoriaCondition
+        );
+
+        $this->conditionRepository->update(
+            ['next_condition_id' => $modalidadAuditoriaCondition->getId()],
+            $tipoServicioAuditoriaCondition
+        );
+
+        $numeroParticipantesCondition = $this->conditionService->create([
+            'name' => 'Número de participantes',
+            'type' => 'number',
         ]);
 
-        Condition::create([
-        'name' => 'Modalidad',
-        'allows_multiple_values' => false,
-        ]);        
+        // -------------------------------
+        // Create conditions for "Consultoria"
+        // -------------------------------
 
-        Condition::create([
-        'name' => 'Duracion',
-        'allows_multiple_values' => false,
+        $tiempoNecesarioConsultoriaCondition = $this->conditionService->create([
+            'name' => 'Tiempo necesario (días)',
+            'type' => 'time',
         ]);
 
-        Condition::create([
-        'name' => 'Viaticos',
-        'allows_multiple_values' => true,
-        'allows_other_values' => true,
+        // -------------------------------
+        // Create conditions for "Formacion"
+        // -------------------------------
+
+        $tiempoNecesarioFormacionCondition = $this->conditionService->create([
+            'name' => 'Tiempo necesario (horas)',
+            'type' => 'time',
         ]);
 
-        Condition::create([
-        'name' => 'Participantes',
-        'allows_multiple_values' => true,
-        'allows_other_values' => true,
-        ]);
+        $normaCondition = $this->conditionService->create(
+            [
+                'name' => 'Norma',
+                'allows_multiple_values' => true,
+            ],
+            ['ISO 9001', 'ISO 14001', 'ISO 45001', 'ISO 37001', 'ISO 55001']
+        );
 
-        Condition::create([
-        'name' => 'Entregables',
-        'allows_multiple_values' => true,
-        ]);
-
-        Condition::create([
-        'name' => 'Seleccion de profesional',
-        'allows_multiple_values' => true,
-        'allows_other_values' => true,
+        $requiereNormaCondition = $this->conditionService->create([
+            'name' => '¿Requiere norma?',
+            'is_boolean' => true,
         ]);
     }
 }

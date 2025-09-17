@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Models\GestionLine;
+use App\Models\ServiceType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,14 +19,15 @@ class ServiceFactory extends Factory
     public function definition(): array
     {
         // Only use valid seeded service_type_id values
-        $validServiceTypeIds = ['auditoria', 'consultoria', 'formacion'];
+
+        $serviceTypes = ServiceType::all();
+        $gestionLines = GestionLine::all();
 
         return [
             'name' => $this->faker->unique()->word,
             'description' => $this->faker->sentence,
-            'service_type_id' => $this->faker->randomElement($validServiceTypeIds),
-            'gestion_line' => $this->faker->word,
-            'created_at' => now(),
+            'service_type_id' => $this->faker->randomElement($serviceTypes)->id,
+            'gestion_line_id' => $this->faker->randomElement($gestionLines)->id,
         ];
     }
 }

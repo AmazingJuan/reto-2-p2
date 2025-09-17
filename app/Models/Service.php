@@ -11,18 +11,6 @@ class Service extends Model
     use HasFactory;
 
     /**
-     * Attributes:
-     *
-     * $this->attributes['id'] - int - Primary key identifier
-     * $this->attributes['name'] - string - Unique name of the service
-     * $this->attributes['description'] - string|null - Optional description of the service
-     * $this->attributes['service_type_id'] - string - Foreign key referencing service_types.id
-     * $this->attributes['gestion_line'] - string - Management line (up to 50 characters)
-     * $this->attributes['created_at'] - \Illuminate\Support\Carbon - Record creation timestamp
-     * $this->attributes['updated_at'] - \Illuminate\Support\Carbon - Record last update timestamp
-     */
-
-    /**
      * Mass assignable attributes.
      *
      * @var array<int, string>
@@ -31,8 +19,10 @@ class Service extends Model
         'name',
         'description',
         'service_type_id',
-        'gestion_line',
+        'gestion_line_id',
     ];
+
+    public $timestamps = false;
 
     /*
     |--------------------------------------------------------------------------
@@ -46,6 +36,36 @@ class Service extends Model
     public function serviceType(): BelongsTo
     {
         return $this->belongsTo(ServiceType::class, 'service_type_id', 'id');
+    }
+
+    /**
+     * A Service belongs to a GestionLine.
+     */
+    public function gestionLine(): BelongsTo
+    {
+        return $this->belongsTo(GestionLine::class, 'gestion_line_id', 'id');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Accessors
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Get the ServiceType name.
+     */
+    public function getServiceTypeNameAttribute(): ?string
+    {
+        return $this->serviceType->name ?? null;
+    }
+
+    /**
+     * Get the GestionLine name.
+     */
+    public function getGestionLineNameAttribute(): ?string
+    {
+        return $this->gestionLine->name ?? null;
     }
 
     /*
@@ -93,23 +113,14 @@ class Service extends Model
         $this->attributes['service_type_id'] = $value;
     }
 
-    // Gestion Line
-    public function getGestionLine(): string
+    // Gestion Line ID
+    public function getGestionLineId(): string
     {
-        return $this->attributes['gestion_line'];
+        return $this->attributes['gestion_line_id'];
     }
 
-    public function setGestionLine(string $value): void
+    public function setGestionLineId(string $value): void
     {
-        $this->attributes['gestion_line'] = $value;
-    }
-
-    public function scopeSearchByName($query, ?string $term)
-    {
-        if ($term) {
-            return $query->where('name', 'like', "%{$term}%");
-        }
-
-        return $query;
+        $this->attributes['gestion_line_id'] = $value;
     }
 }

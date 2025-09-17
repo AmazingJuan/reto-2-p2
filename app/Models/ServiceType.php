@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -13,8 +14,7 @@ class ServiceType extends Model
      *
      * $this->attributes['id'] - string - Primary key identifier (non-incrementing)
      * $this->attributes['name'] - string - Unique name of the service type
-     * $this->attributes['created_at'] - \Illuminate\Support\Carbon - Record creation timestamp
-     * $this->attributes['updated_at'] - \Illuminate\Support\Carbon - Record last update timestamp
+     * $this->attributes['initial_condition_id'] - int|null - Foreign key referencing conditions.id
      */
 
     /**
@@ -32,7 +32,10 @@ class ServiceType extends Model
     protected $fillable = [
         'id',
         'name',
+        'initial_condition_id',
     ];
+
+    public $timestamps = false;
 
     /*
     |--------------------------------------------------------------------------
@@ -54,6 +57,14 @@ class ServiceType extends Model
     public function conditions(): BelongsToMany
     {
         return $this->belongsToMany(Condition::class, 'condition_service_type');
+    }
+
+    /**
+     * A ServiceType may have an initial Condition.
+     */
+    public function initialCondition(): BelongsTo
+    {
+        return $this->belongsTo(Condition::class, 'initial_condition_id');
     }
 
     /*
@@ -82,5 +93,16 @@ class ServiceType extends Model
     public function setName(string $value): void
     {
         $this->attributes['name'] = $value;
+    }
+
+    // Initial Condition ID
+    public function getInitialConditionId(): ?int
+    {
+        return $this->attributes['initial_condition_id'] ?? null;
+    }
+
+    public function setInitialConditionId(?int $value): void
+    {
+        $this->attributes['initial_condition_id'] = $value;
     }
 }

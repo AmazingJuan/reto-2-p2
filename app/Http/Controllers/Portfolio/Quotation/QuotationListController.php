@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Quotation;
+namespace App\Http\Controllers\Portfolio\Quotation;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
@@ -13,7 +13,6 @@ class QuotationListController extends Controller
         $quotationList = session()->get('quotation_list', []);
 
         return response()->json($quotationList);
-
     }
 
     public function add(Request $request): JsonResponse

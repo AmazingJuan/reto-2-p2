@@ -2,9 +2,9 @@
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Portfolio\PortfolioController;
+use App\Http\Controllers\Portfolio\Quotation\QuotationController;
+use App\Http\Controllers\Portfolio\Quotation\QuotationListController;
 use App\Http\Controllers\Portfolio\Services\ServicesController;
-use App\Http\Controllers\Quotation\QuotationController;
-use App\Http\Controllers\Quotation\QuotationListController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
