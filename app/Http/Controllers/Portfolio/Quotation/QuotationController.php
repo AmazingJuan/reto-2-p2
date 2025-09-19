@@ -49,7 +49,6 @@ class QuotationController extends Controller
             'services' => $serviceType->services->pluck('name', 'id')->all(),
             'initialConditionId' => $initialConditionId,
         ];
-        dd($viewData);
 
         return inertia('portfolio/cotizar', [
             'viewData' => $viewData,
