@@ -1,0 +1,67 @@
+/* resources/js/pages/admin/service.css */
+.service-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.service-main {
+  flex: 1;
+  padding: 20px;
+  background: #f5f5f5;
+}
+
+.service-section {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.service-title {
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.service-card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.service-form .form-group {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.service-form label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.service-form input,
+.service-form textarea,
+.service-form select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.service-form textarea {
+  resize: vertical;
+}
+
+.btn-primary {
+  padding: 10px 15px;
+  background: #007bff;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.btn-primary:hover {
+  background: #0056b3;
+}

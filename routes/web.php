@@ -27,7 +27,8 @@ Route::prefix('lista')->middleware(['ajax'])->group(function () {
 });
 
 
-Route::get('/admin/dashboard', function () {
-    return view('admin.dashboard'); // busca resources/views/admin/dashboard.blade.php
-})->name('admin.dashboard');
+Route::get('/admin/{any}', function () {
+    return view('admin.dashboard'); // carga dashboard.blade.php
+})->where('any', '.*');
+
 

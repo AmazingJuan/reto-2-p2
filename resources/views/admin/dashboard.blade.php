@@ -7,7 +7,7 @@
     @viteReactRefresh
     @vite(['resources/js/pages/admin/dashboard.tsx'])
 </head>
-<body class="antialiased">
+<body>
     <div id="app"></div>
 </body>
 </html>
