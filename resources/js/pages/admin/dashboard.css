@@ -1,0 +1,155 @@
+/* General */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6f9;
+  color: #333;
+}
+
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.dashboard-content {
+  display: flex;
+  flex: 1;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  background: #3855a3;
+  color: white;
+  padding: 20px;
+}
+
+.sidebar-title {
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nav-button {
+  background: none;
+  border: none;
+  padding: 10px;
+  text-align: left;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.nav-button:hover {
+  background: #233674;
+}
+
+.nav-button.active {
+  background: #3b82f6;
+  font-weight: bold;
+}
+
+/* Main */
+.main {
+  flex: 1;
+  padding: 30px;
+}
+
+/* Sections */
+.section-title {
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+
+/* Card */
+.card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #607bc5;
+}
+
+/* Form */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-group label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+}
+
+/* List */
+.mt {
+  margin-top: 20px;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+}
+
+.list-item {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.item-name {
+  font-weight: bold;
+  color: #1e3a8a;
+}
+
+.item-category {
+  font-style: italic;
+  color: #555;
+}
+
+.empty {
+  color: #888;
+}
+
+.note {
+  color: #666;
+  font-size: 12px;
+}

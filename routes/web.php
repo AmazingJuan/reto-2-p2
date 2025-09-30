@@ -25,3 +25,9 @@ Route::prefix('lista')->middleware(['ajax'])->group(function () {
     Route::put('/{id}', [QuotationListController::class, 'update'])->name('list.update'); // actualizar item
     Route::delete('/{id}', [QuotationListController::class, 'destroy'])->name('list.destroy'); // eliminar item
 });
+
+
+Route::get('/admin/dashboard', function () {
+    return view('admin.dashboard'); // busca resources/views/admin/dashboard.blade.php
+})->name('admin.dashboard');
+
