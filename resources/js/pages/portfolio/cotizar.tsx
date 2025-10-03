@@ -7,7 +7,7 @@ type Flags = {
   allows_other_values: boolean;
   allows_multiple_values: boolean;
   is_time: boolean;
-  is_fixed: boolean;
+  is_fixed?: boolean; // Opcional para compatibilidad
 };
 
 type ConditionItem = {
@@ -15,11 +15,25 @@ type ConditionItem = {
   items: string[];
 };
 
+type ConditionArrayItem = {
+  name: string;
+  items: { value: string; next_condition_id: number | null }[];
+  next_condition_id: number | null;
+  flags: {
+    allows_other_values: boolean;
+    allows_multiple_values: boolean;
+    is_time: boolean;
+  };
+};
+
 interface ViewData {
   serviceType: string;
   serviceTypeId: string;
   serviceId: string | null;
-  conditions: any;
+  conditions?: Record<string, unknown>; // Mantenemos para compatibilidad hacia atrás
+  conditionsArray?: { [key: number]: ConditionArrayItem };
+  services?: { [key: string]: string };
+  initialConditionId?: number;
 }
 
 interface CotizarProps {
@@ -32,10 +46,18 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
   const [dynamicSedes, setDynamicSedes] = useState<{ [key: string]: string[] }>({});
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  
+  // Estados para navegación del árbol de decisiones
+  const [currentConditionId, setCurrentConditionId] = useState<number | null>(viewData.initialConditionId || null);
+  const [conditionHistory, setConditionHistory] = useState<number[]>([]);
+  const [conditionResponses, setConditionResponses] = useState<{ [conditionId: number]: any }>({});
+  const [showFinalStep, setShowFinalStep] = useState(false);
 
-  // Id to name mapping for services
-  const serviceIdNameMap = Object.entries(viewData.conditions.services || {}).reduce(
-    (acc, [id, name]) => ({ ...acc, [id]: name }),
+  // Id to name mapping for services (compatible con ambas estructuras)
+  const serviceIdNameMap = Object.entries(
+    viewData.services || viewData.conditions?.services || {}
+  ).reduce(
+    (acc, [id, name]) => ({ ...acc, [id]: name as string }),
     {} as Record<string, string>
   );
 
@@ -120,8 +142,104 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
     });
   }, []);
 
-  // Splits services from the rest of the conditions
-  const { services, ...otherConditions } = viewData.conditions;
+  // ===== FUNCIONES DE NAVEGACIÓN DEL ÁRBOL DE DECISIONES =====
+  
+  // Obtiene la condición actual basada en currentConditionId
+  const getCurrentCondition = useCallback(() => {
+    if (!currentConditionId || !viewData.conditionsArray) return null;
+    return viewData.conditionsArray[currentConditionId];
+  }, [currentConditionId, viewData.conditionsArray]);
+
+  // Maneja la selección de una opción en la condición actual
+  const handleConditionSelect = useCallback((value: string, flags: Flags) => {
+    if (!currentConditionId) return;
+
+    setConditionResponses(prev => {
+      if (flags.allows_multiple_values) {
+        const prevArray: string[] = prev[currentConditionId] || [];
+        if (prevArray.includes(value)) {
+          return { ...prev, [currentConditionId]: prevArray.filter((v) => v !== value) };
+        } else {
+          return { ...prev, [currentConditionId]: [...prevArray, value] };
+        }
+      } else {
+        return { ...prev, [currentConditionId]: value };
+      }
+    });
+  }, [currentConditionId]);
+
+  // Navega a la siguiente condición
+  const navigateToNext = useCallback(() => {
+    const currentCondition = getCurrentCondition();
+    if (!currentCondition || !currentConditionId) return;
+
+    // Verificar si hay respuesta seleccionada
+    const currentResponse = conditionResponses[currentConditionId];
+    if (!currentResponse) {
+      setErrorMsg('Por favor selecciona una opción antes de continuar.');
+      return;
+    }
+
+    // Si permite valores múltiples, verificar que hay al menos uno
+    if (currentCondition.flags.allows_multiple_values && (!Array.isArray(currentResponse) || currentResponse.length === 0)) {
+      setErrorMsg('Por favor selecciona al menos una opción.');
+      return;
+    }
+
+    setErrorMsg(null);
+
+    // Buscar el next_condition_id específico para la respuesta seleccionada
+    let nextConditionId = null;
+
+    if (currentCondition.flags.allows_multiple_values) {
+      // Para múltiples valores, usar el next_condition_id general
+      nextConditionId = currentCondition.next_condition_id;
+    } else {
+      // Para un solo valor, buscar en los items si tiene next_condition_id específico
+      const selectedItem = currentCondition.items.find(item => item.value === currentResponse);
+      nextConditionId = selectedItem?.next_condition_id || currentCondition.next_condition_id;
+    }
+
+    // Agregar condición actual al historial
+    setConditionHistory(prev => [...prev, currentConditionId]);
+
+    if (nextConditionId) {
+      // Navegar a la siguiente condición
+      setCurrentConditionId(nextConditionId);
+    } else {
+      // No hay más condiciones, mostrar paso final
+      setShowFinalStep(true);
+      setCurrentConditionId(null);
+    }
+  }, [getCurrentCondition, currentConditionId, conditionResponses]);
+
+  // Navega hacia atrás en el árbol
+  const navigateBack = useCallback(() => {
+    if (conditionHistory.length === 0) return;
+
+    const previousConditionId = conditionHistory[conditionHistory.length - 1];
+    setConditionHistory(prev => prev.slice(0, -1));
+    setCurrentConditionId(previousConditionId);
+    setShowFinalStep(false);
+    setErrorMsg(null);
+  }, [conditionHistory]);
+
+  // Verifica si una opción está seleccionada en la condición actual
+  const isConditionOptionSelected = useCallback((value: string, flags: Flags): boolean => {
+    if (!currentConditionId || !conditionResponses[currentConditionId]) return false;
+    
+    const response = conditionResponses[currentConditionId];
+    if (flags.allows_multiple_values) {
+      return Array.isArray(response) && response.includes(value);
+    } else {
+      return response === value;
+    }
+  }, [currentConditionId, conditionResponses]);
+
+  // ===== FIN FUNCIONES DE NAVEGACIÓN =====
+
+  // Splits services from the rest of the conditions (compatibility with old system)
+  const { services, ...otherConditions } = viewData.conditions || {};
 
   // Data validation
   const validate = (servicesArr: { id: string; name: string }[]) => {
@@ -134,65 +252,156 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
   };
   
   const addToQuotationList = async () => {
-    const { services: selectedServices, ...otherResponses } = responses;
+    // Para el nuevo sistema de árbol de decisiones
+    if (viewData.conditionsArray) {
+      const { services: selectedServices, ...otherResponses } = responses;
 
-    const options: Record<string, any> = {};
-    Object.entries(otherResponses).forEach(([key, value]) => {
-      options[key] = value;
-    });
-
-    let servicesArr: { id: string; name: string }[] = [];
-    if (Array.isArray(selectedServices)) {
-      servicesArr = selectedServices
-        .map((name: string) => {
-          const id = Object.keys(serviceIdNameMap).find(
-            (serviceId) => serviceIdNameMap[serviceId] === name
-          );
-          return id ? { id, name } : null;
-        })
-        .filter(Boolean) as { id: string; name: string }[];
-    } else if (selectedServices) {
-      const id = Object.keys(serviceIdNameMap).find(
-        (serviceId) => serviceIdNameMap[serviceId] === selectedServices
-      );
-      if (id) servicesArr = [{ id, name: selectedServices }];
-    }
-
-    if (!validate(servicesArr)) return;
-
-    setLoading(true);
-
-    try {
-      // 1. Initialize CSRF cookie (necessary with Sanctum in different domains)
-      await axios.get("/sanctum/csrf-cookie", {
-        withCredentials: true,
+      // Compilar las respuestas del árbol de decisiones
+      const options: Record<string, string | number> = {};
+      
+      // Agregar respuestas del árbol de decisiones
+      Object.entries(conditionResponses).forEach(([conditionId, value]) => {
+        const condition = viewData.conditionsArray?.[parseInt(conditionId)];
+        if (condition && condition.name) {
+          options[condition.name] = value;
+        }
       });
 
-      // 2. Send form to backend
-      await axios.post(
-        route("list.add"),
-        {
-          services: servicesArr,
-          options,
-          serviceTypeId: viewData.serviceTypeId,
-          serviceType: viewData.serviceType
-        },
-        { withCredentials: true }
-      );
+      // Agregar cualquier respuesta adicional del sistema anterior (para compatibilidad)
+      Object.entries(otherResponses).forEach(([key, value]) => {
+        options[key] = value;
+      });
 
-      alert("Cotización añadida a tu lista correctamente");
-
-      setResponses({});
-      setOtherInputs({});
-      setDynamicSedes({});
-    } catch (error: any) {
-      if (error.response?.data?.message) {
-        setErrorMsg(error.response.data.message);
-      } else {
-        setErrorMsg("Error al añadir a la lista");
+      let servicesArr: { id: string; name: string }[] = [];
+      if (Array.isArray(selectedServices)) {
+        servicesArr = selectedServices
+          .map((name: string) => {
+            const id = Object.keys(serviceIdNameMap).find(
+              (serviceId) => serviceIdNameMap[serviceId] === name
+            );
+            return id ? { id, name } : null;
+          })
+          .filter(Boolean) as { id: string; name: string }[];
+      } else if (selectedServices) {
+        const id = Object.keys(serviceIdNameMap).find(
+          (serviceId) => serviceIdNameMap[serviceId] === selectedServices
+        );
+        if (id) servicesArr = [{ id, name: selectedServices }];
       }
-    } finally {
-      setLoading(false);
+
+      if (!validate(servicesArr)) return;
+
+      setLoading(true);
+
+      try {
+        // 1. Initialize CSRF cookie (necessary with Sanctum in different domains)
+        await axios.get("/sanctum/csrf-cookie", {
+          withCredentials: true,
+        });
+
+        // 2. Send form to backend
+        await axios.post(
+          route("list.add"),
+          {
+            services: servicesArr,
+            options,
+            serviceTypeId: viewData.serviceTypeId,
+            serviceType: viewData.serviceType
+          },
+          { withCredentials: true }
+        );
+
+        alert("Cotización añadida a tu lista correctamente");
+
+        // Reset del nuevo sistema
+        setResponses({});
+        setConditionResponses({});
+        setCurrentConditionId(viewData.initialConditionId || null);
+        setConditionHistory([]);
+        setShowFinalStep(false);
+        setOtherInputs({});
+        setDynamicSedes({});
+      } catch (error: unknown) {
+        if (error && typeof error === 'object' && 'response' in error) {
+          const axiosError = error as { response?: { data?: { message?: string } } };
+          if (axiosError.response?.data?.message) {
+            setErrorMsg(axiosError.response.data.message);
+          } else {
+            setErrorMsg("Error al añadir a la lista");
+          }
+        } else {
+          setErrorMsg("Error al añadir a la lista");
+        }
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // SISTEMA ANTERIOR (para compatibilidad)
+      const { services: selectedServices, ...otherResponses } = responses;
+
+      const options: Record<string, string | number> = {};
+      Object.entries(otherResponses).forEach(([key, value]) => {
+        options[key] = value;
+      });
+
+      let servicesArr: { id: string; name: string }[] = [];
+      if (Array.isArray(selectedServices)) {
+        servicesArr = selectedServices
+          .map((name: string) => {
+            const id = Object.keys(serviceIdNameMap).find(
+              (serviceId) => serviceIdNameMap[serviceId] === name
+            );
+            return id ? { id, name } : null;
+          })
+          .filter(Boolean) as { id: string; name: string }[];
+      } else if (selectedServices) {
+        const id = Object.keys(serviceIdNameMap).find(
+          (serviceId) => serviceIdNameMap[serviceId] === selectedServices
+        );
+        if (id) servicesArr = [{ id, name: selectedServices }];
+      }
+
+      if (!validate(servicesArr)) return;
+
+      setLoading(true);
+
+      try {
+        // 1. Initialize CSRF cookie (necessary with Sanctum in different domains)
+        await axios.get("/sanctum/csrf-cookie", {
+          withCredentials: true,
+        });
+
+        // 2. Send form to backend
+        await axios.post(
+          route("list.add"),
+          {
+            services: servicesArr,
+            options,
+            serviceTypeId: viewData.serviceTypeId,
+            serviceType: viewData.serviceType
+          },
+          { withCredentials: true }
+        );
+
+        alert("Cotización añadida a tu lista correctamente");
+
+        setResponses({});
+        setOtherInputs({});
+        setDynamicSedes({});
+      } catch (error: unknown) {
+        if (error && typeof error === 'object' && 'response' in error) {
+          const axiosError = error as { response?: { data?: { message?: string } } };
+          if (axiosError.response?.data?.message) {
+            setErrorMsg(axiosError.response.data.message);
+          } else {
+            setErrorMsg("Error al añadir a la lista");
+          }
+        } else {
+          setErrorMsg("Error al añadir a la lista");
+        }
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -206,64 +415,11 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
           {errorMsg && (
             <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{errorMsg}</div>
           )}
-          {/* Services - Multiple choice*/}
-          {services && (
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
-                <span className="bg-blue-100 text-blue-600 p-2 rounded-full mr-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                </span>
-                Servicios requeridos (seleccione uno o más)
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {Object.entries(services).map(([id, name]) => (
-                  <button
-                    key={id}
-                    type="button"
-                    aria-pressed={isSelected("services", name as string, {
-                      allows_multiple_values: true,
-                      allows_other_values: false,
-                      is_time: false,
-                      is_fixed: true,
-                    })}
-                    onClick={() => handleSelect("services", name as string, {
-                      allows_multiple_values: true,
-                      allows_other_values: false,
-                      is_time: false,
-                      is_fixed: true,
-                    })}
-                    className={`p-4 rounded-lg border transition-all flex items-center justify-center ${
-                      isSelected("services", name as string, {
-                        allows_multiple_values: true,
-                        allows_other_values: false,
-                        is_time: false,
-                        is_fixed: true,
-                      })
-                        ? "bg-blue-50 border-blue-500 text-blue-700 font-medium shadow-sm"
-                        : "border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50"
-                    }`}
-                  >
-                    {name as string}
-                    {isSelected("services", name as string, {
-                      allows_multiple_values: true,
-                      allows_other_values: false,
-                      is_time: false,
-                      is_fixed: true,
-                    }) && (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+
+          {/* AQUÍ VAAAN LAS LÍNEAS DE GESTIÓN */}
 
           {/* Other conditions */}
-          {Object.values(otherConditions).map((conditionBlock, idx) => {
+          {Object.values(otherConditions).map((conditionBlock) => {
             const sectionName = Object.keys(conditionBlock)[0];
             const section: ConditionItem = conditionBlock[sectionName];
             const effectiveFlags = section.flags;
@@ -397,6 +553,175 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
               </div>
             );
           })}
+
+          {/* Árbol de decisiones */}
+
+          {viewData.conditionsArray && !showFinalStep && currentConditionId && (
+            <div className="mb-8">
+              {/* Progreso del árbol */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-600">
+                    Paso {conditionHistory.length + 1}
+                  </span>
+                  {conditionHistory.length > 0 && (
+                    <button
+                      onClick={navigateBack}
+                      className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                    >
+                      ← Volver atrás
+                    </button>
+                  )}
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                    style={{ width: `${((conditionHistory.length + 1) / Object.keys(viewData.conditionsArray).length) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+
+              {/* Condición actual */}
+              {(() => {
+                const currentCondition = getCurrentCondition();
+                if (!currentCondition) return null;
+
+                return (
+                  <div className="bg-gray-50 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                      <span className="bg-blue-100 text-blue-600 p-2 rounded-full mr-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                      </span>
+                      {currentCondition.name}
+                      {currentCondition.flags.allows_multiple_values && " (seleccione uno o más)"}
+                    </h3>
+
+                    {/* Condición de tiempo */}
+                    {currentCondition.flags.is_time ? (
+                      <div className="space-y-4">
+                        <input
+                          type="number"
+                          min="1"
+                          placeholder="Ingrese el número de días"
+                          value={conditionResponses[currentConditionId] || ''}
+                          onChange={(e) => setConditionResponses(prev => ({
+                            ...prev,
+                            [currentConditionId]: e.target.value
+                          }))}
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                    ) : (
+                      /* Opciones normales */
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {currentCondition.items.map((item, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            aria-pressed={isConditionOptionSelected(item.value, currentCondition.flags)}
+                            onClick={() => handleConditionSelect(item.value, currentCondition.flags)}
+                            className={`p-4 rounded-lg border transition-all flex items-center justify-center ${
+                              isConditionOptionSelected(item.value, currentCondition.flags)
+                                ? "bg-blue-50 border-blue-500 text-blue-700 font-medium shadow-sm"
+                                : "border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50"
+                            }`}
+                          >
+                            {item.value}
+                            {isConditionOptionSelected(item.value, currentCondition.flags) && (
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Botón para continuar */}
+                    <div className="mt-6 flex justify-end">
+                      <button
+                        onClick={navigateToNext}
+                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                      >
+                        Continuar
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* Paso final - Selección de servicios cuando se termina el árbol */}
+          {showFinalStep && (
+            <div className="mb-8 bg-green-50 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-green-700 mb-4 flex items-center">
+                <span className="bg-green-100 text-green-600 p-2 rounded-full mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </span>
+                ¡Perfecto! Ahora selecciona los servicios que necesitas
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {Object.entries(viewData.services || {}).map(([id, name]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    aria-pressed={isSelected("services", name as string, {
+                      allows_multiple_values: true,
+                      allows_other_values: false,
+                      is_time: false,
+                      is_fixed: true,
+                    })}
+                    onClick={() => handleSelect("services", name as string, {
+                      allows_multiple_values: true,
+                      allows_other_values: false,
+                      is_time: false,
+                      is_fixed: true,
+                    })}
+                    className={`p-4 rounded-lg border transition-all flex items-center justify-center ${
+                      isSelected("services", name as string, {
+                        allows_multiple_values: true,
+                        allows_other_values: false,
+                        is_time: false,
+                        is_fixed: true,
+                      })
+                        ? "bg-green-50 border-green-500 text-green-700 font-medium shadow-sm"
+                        : "border-gray-200 text-gray-700 hover:border-green-300 hover:bg-green-50"
+                    }`}
+                  >
+                    {name as string}
+                    {isSelected("services", name as string, {
+                      allows_multiple_values: true,
+                      allows_other_values: false,
+                      is_time: false,
+                      is_fixed: true,
+                    }) && (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-6 flex justify-between">
+                <button
+                  onClick={navigateBack}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  ← Volver a revisar opciones
+                </button>
+              </div>
+            </div>
+          )}
           
           <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
             <button
@@ -412,8 +737,6 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
               </svg>
               {loading ? "Enviando..." : "Añadir a lista de cotización"}
             </button>
-
-
 
             <button
               type="button"
@@ -447,7 +770,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
             Información importante
           </h3>
           <p className="text-blue-700 text-sm">
-            Una vez que envíe su solicitud, nos contactaremos con usted dentro de las próximas 24 horas para proporcionarle una cotización detallada según sus requerimientos.
+            Una vez que envíe su solicitud, nos contactaremos con usted para proporcionarle una cotización detallada según sus requerimientos.
           </p>
         </div> 
       </div>
