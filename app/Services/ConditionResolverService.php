@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\ServiceType;
+use App\Models\Condition;
 
 class ConditionResolverService
 {
@@ -42,10 +43,9 @@ class ConditionResolverService
         $finalResult = [];
 
         // Determinar el tipo de servicio para el filtrado
-        $serviceTypeName = strtolower($serviceType->name);
+        $serviceTypeName = strtolower($serviceType->getName());
 
-        // Obtiene todas las condiciones (ya no están asociadas directamente al serviceType)
-        $conditions = \App\Models\Condition::all();
+        $conditions = Condition::all();
 
         foreach ($conditions as $condition) {
             $conditionFlags = [
