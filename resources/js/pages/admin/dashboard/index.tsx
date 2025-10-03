@@ -3,7 +3,7 @@ import { Link } from "@inertiajs/react";
 import Header from "../../../components/admin/Header";
 import Footer from "../../../components/admin/Footer";
 import { route } from "ziggy-js";
-import { Users, Wrench, GitBranch, ChevronRight } from "lucide-react";
+import { Users, Wrench, GitBranch, ChevronRight, ScrollText} from "lucide-react";
 
 const Dashboard: React.FC = () => {
   const items = [
@@ -28,6 +28,14 @@ const Dashboard: React.FC = () => {
       icon: GitBranch,
       accent: "amber",
     },
+    {
+      label: "Lista Cotizaciones",
+      name: "admin.dashboard",
+      desc: "Visualiza y gestiona cotizaciones",
+      icon: ScrollText,
+      accent: "indigo",
+
+     },
   ] as const;
 
   const badgeClasses: Record<string, string> = {
