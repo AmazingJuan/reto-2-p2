@@ -415,61 +415,8 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
           {errorMsg && (
             <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{errorMsg}</div>
           )}
-          {/* Services - Multiple choice*/}
-          {(viewData.services || services) && (
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
-                <span className="bg-blue-100 text-blue-600 p-2 rounded-full mr-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                </span>
-                Servicios requeridos (seleccione uno o más)
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {Object.entries(viewData.services || services || {}).map(([id, name]) => (
-                  <button
-                    key={id}
-                    type="button"
-                    aria-pressed={isSelected("services", name as string, {
-                      allows_multiple_values: true,
-                      allows_other_values: false,
-                      is_time: false,
-                      is_fixed: true,
-                    })}
-                    onClick={() => handleSelect("services", name as string, {
-                      allows_multiple_values: true,
-                      allows_other_values: false,
-                      is_time: false,
-                      is_fixed: true,
-                    })}
-                    className={`p-4 rounded-lg border transition-all flex items-center justify-center ${
-                      isSelected("services", name as string, {
-                        allows_multiple_values: true,
-                        allows_other_values: false,
-                        is_time: false,
-                        is_fixed: true,
-                      })
-                        ? "bg-blue-50 border-blue-500 text-blue-700 font-medium shadow-sm"
-                        : "border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50"
-                    }`}
-                  >
-                    {name as string}
-                    {isSelected("services", name as string, {
-                      allows_multiple_values: true,
-                      allows_other_values: false,
-                      is_time: false,
-                      is_fixed: true,
-                    }) && (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+
+          {/* AQUÍ VAAAN LAS LÍNEAS DE GESTIÓN */}
 
           {/* Other conditions */}
           {Object.values(otherConditions).map((conditionBlock) => {
@@ -606,6 +553,8 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
               </div>
             );
           })}
+
+          {/* Árbol de decisiones */}
 
           {viewData.conditionsArray && !showFinalStep && currentConditionId && (
             <div className="mb-8">
