@@ -2,6 +2,7 @@ import { usePage, router } from '@inertiajs/react';
 import Header from '../../../components/admin/Header';
 import Footer from '../../../components/admin/Footer';
 import { route } from 'ziggy-js';
+import { Pencil, Trash2 } from "lucide-react";
 
 interface Service {
   id: number;
@@ -19,9 +20,14 @@ export default function Index() {
   // Acción: borrar servicio
 const handleDelete = (id: number) => {
   if (confirm("¿Seguro que deseas borrar este servicio?")) {
-    router.delete(route("admin.services.delete", id)); 
+    router.delete(route("admin.services.delete", id), {
+      onSuccess: () => {
+        alert("Servicio borrado correctamente.");
+      },
+    });
   }
 };
+
 
   // Acción: ir a editar
   const handleEdit = (id: number) => {
@@ -64,20 +70,29 @@ const handleDelete = (id: number) => {
                 <td className="py-2 px-4 border-b">{service.id}</td>
                 <td className="py-2 px-4 border-b">{service.name}</td>
                 <td className="py-2 px-4 border-b">{service.description}</td>
-                <td className="py-2 px-4 border-b space-x-2">
+                
+
+                <td className="py-2 px-4 border-b">
+                <div className="flex items-center gap-5">
+                  {/* Editar */}
                   <button
                     onClick={() => handleEdit(service.id)}
-                    className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                    className="transition transform hover:scale-110"
+                    title="Editar"
                   >
-                    Editar
+                    <Pencil className="h-6 w-6 text-blue-500 hover:text-blue-600" />
                   </button>
+
+                  {/* Borrar */}
                   <button
                     onClick={() => handleDelete(service.id)}
-                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                    className="transition transform hover:scale-110"
+                    title="Borrar"
                   >
-                    Borrar
+                    <Trash2 className="h-6 w-6 text-red-600 hover:text-red-700" />
                   </button>
-                </td>
+                </div>
+              </td>
               </tr>
             ))}
 

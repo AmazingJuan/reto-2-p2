@@ -2,6 +2,7 @@ import { usePage, router } from "@inertiajs/react";
 import { route } from "ziggy-js"; 
 import Header from "@/components/admin/Header";
 import Footer from "@/components/admin/Footer";
+import { Pencil, Trash2 } from "lucide-react";
 
 interface GestionLine {
   id: number;
@@ -17,10 +18,14 @@ export default function Index() {
 
   // Acción: borrar línea de gestión
   const handleDelete = (id: number) => {
-    if (confirm("¿Seguro que deseas borrar esta línea de gestión?")) {
-      router.delete(route("admin.lines.delete", { id }));
-    }
-  };
+  if (confirm("¿Seguro que deseas borrar esta línea de gestión?")) {
+    router.delete(route("admin.lines.delete", id), {
+      onSuccess: () => {
+        alert("Linea de gestión borrada correctamente.");
+      },
+    });
+  }
+};
 
   // Acción: ir a editar
   const handleEdit = (id: number) => {
@@ -59,20 +64,27 @@ export default function Index() {
               <tr key={line.id} className="hover:bg-gray-50">
                 <td className="py-2 px-4 border-b">{line.id}</td>
                 <td className="py-2 px-4 border-b">{line.name}</td>
-                <td className="py-2 px-4 border-b space-x-2">
+                <td className="py-2 px-4 border-b">
+                <div className="flex items-center gap-5">
+                  {/* Editar */}
                   <button
                     onClick={() => handleEdit(line.id)}
-                    className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                    className="transition transform hover:scale-110"
+                    title="Editar"
                   >
-                    Editar
+                    <Pencil className="h-6 w-6 text-blue-500 hover:text-blue-600" />
                   </button>
+
+                  {/* Borrar */}
                   <button
                     onClick={() => handleDelete(line.id)}
-                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                    className="transition transform hover:scale-110"
+                    title="Borrar"
                   >
-                    Borrar
+                    <Trash2 className="h-6 w-6 text-red-600 hover:text-red-700" />
                   </button>
-                </td>
+                </div>
+              </td>
               </tr>
             ))}
 
