@@ -15,7 +15,7 @@ class AdminGestionLineController extends Controller
     public function index() : Response
     {
         $viewData = [];
-        $gestionLines = GestionLine::all(['id', 'name']);
+        $gestionLines = GestionLine::select('id', 'name')->orderBy('id')->get();
         $viewData['gestionLines'] = $gestionLines;
 
         return Inertia::render('admin/gestion-lines/index', $viewData);

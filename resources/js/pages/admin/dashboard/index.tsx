@@ -23,7 +23,7 @@ const Dashboard: React.FC = () => {
     },
     {
       label: "Líneas de gestión",
-      name: "admin.dashboard", 
+      name: "admin.lines.index", 
       desc: "Organiza procesos y flujos",
       icon: GitBranch,
       accent: "amber",

@@ -20,7 +20,9 @@ class AdminServiceController extends Controller
     {
         $viewData = [];
 
-        $services = Service::all(['id', 'name', 'description']);
+        $services = Service::select('id', 'name', 'description')
+            ->orderBy('id')
+            ->get();
         $viewData['services'] = $services;
 
         return Inertia::render('admin/services/index', $viewData);
