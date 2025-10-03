@@ -36,7 +36,11 @@ class ConditionService
             $condition = array_pop($pendingConditionQueue);
             $conditionValues = $condition->conditionValues;
 
-            $conditions[$condition->getId()] = ['name' => $condition->getName(), 'items' => []];
+            $conditions[$condition->getId()] = [
+                'name' => $condition->getName(),
+                'description' => $condition->getDescription(),
+                'items' => []
+            ];
 
             foreach ($conditionValues as $value) {
                 $internalNextId = $value->getNextConditionId();

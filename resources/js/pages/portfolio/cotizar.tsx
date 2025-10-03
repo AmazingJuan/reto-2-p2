@@ -7,16 +7,12 @@ type Flags = {
   allows_other_values: boolean;
   allows_multiple_values: boolean;
   is_time: boolean;
-  is_fixed?: boolean; // Opcional para compatibilidad
-};
-
-type ConditionItem = {
-  flags: Flags;
-  items: string[];
+  is_fixed?: boolean;
 };
 
 type ConditionArrayItem = {
   name: string;
+  description?: string;
   items: { value: string; next_condition_id: number | null }[];
   next_condition_id: number | null;
   flags: {
@@ -34,6 +30,16 @@ interface ViewData {
   conditionsArray?: { [key: number]: ConditionArrayItem };
   services?: { [key: string]: string };
   initialConditionId?: number;
+  lineaGestion?: {
+    name: string;
+    items: string[];
+    flags: {
+      allows_other_values: boolean;
+      allows_multiple_values: boolean;
+      is_time: boolean;
+      is_fixed: boolean;
+    };
+  };
 }
 
 interface CotizarProps {
@@ -41,21 +47,19 @@ interface CotizarProps {
 }
 
 const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
-  const [responses, setResponses] = useState<{ [key: string]: any }>({});
-  const [otherInputs, setOtherInputs] = useState<{ [key: string]: boolean }>({});
-  const [dynamicSedes, setDynamicSedes] = useState<{ [key: string]: string[] }>({});
+  const [responses, setResponses] = useState<{ [key: string]: string | string[] }>({});
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
   // Estados para navegación del árbol de decisiones
   const [currentConditionId, setCurrentConditionId] = useState<number | null>(viewData.initialConditionId || null);
   const [conditionHistory, setConditionHistory] = useState<number[]>([]);
-  const [conditionResponses, setConditionResponses] = useState<{ [conditionId: number]: any }>({});
+  const [conditionResponses, setConditionResponses] = useState<{ [conditionId: number]: string | string[] }>({});
   const [showFinalStep, setShowFinalStep] = useState(false);
 
   // Id to name mapping for services (compatible con ambas estructuras)
   const serviceIdNameMap = Object.entries(
-    viewData.services || viewData.conditions?.services || {}
+    viewData.services || {}
   ).reduce(
     (acc, [id, name]) => ({ ...acc, [id]: name as string }),
     {} as Record<string, string>
@@ -64,7 +68,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
   const handleSelect = useCallback((section: string, value: string, flags: Flags) => {
     setResponses((prev) => {
       if (flags.allows_multiple_values) {
-        const prevArray: string[] = prev[section] || [];
+        const prevArray: string[] = Array.isArray(prev[section]) ? prev[section] as string[] : [];
         if (prevArray.includes(value)) {
           return { ...prev, [section]: prevArray.filter((v) => v !== value) };
         } else {
@@ -76,73 +80,17 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
     });
   }, []);
 
-  const handleOther = useCallback((section: string, value: string) => {
-    setResponses((prev) => ({
-      ...prev,
-      [section]: { ...(prev[section] || {}), other: value },
-    }));
-  }, []);
-
-  const handleTime = useCallback((section: string, value: string) => {
-    setResponses((prev) => ({
-      ...prev,
-      [section]: { ...(prev[section] || {}), time: value },
-    }));
-  }, []);
-
-  const toggleOtherInput = useCallback((section: string) => {
-    setOtherInputs((prev) => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-    if (!otherInputs[section]) {
-      setResponses((prev) => ({
-        ...prev,
-        [section]: { ...(prev[section] || {}), isOther: true },
-      }));
-    }
-  }, [otherInputs]);
-
+  // ===== FUNCIONES DE NAVEGACIÓN DEL ÁRBOL DE DECISIONES =====
+  
+  // Función para verificar si un servicio está seleccionado
   const isSelected = useCallback((section: string, value: string, flags: Flags): boolean => {
     if (!responses[section]) return false;
     if (flags.allows_multiple_values) {
-      return Array.isArray(responses[section]) && responses[section].includes(value);
+      return Array.isArray(responses[section]) && (responses[section] as string[]).includes(value);
     } else {
-      return responses[section] === value || (responses[section] && responses[section].isOther);
+      return responses[section] === value;
     }
   }, [responses]);
-
-  // Dinamyc sedes per section
-  const addSedeField = useCallback((sectionName: string) => {
-    setDynamicSedes(prev => ({
-      ...prev,
-      [sectionName]: [...(prev[sectionName] || [""]), ""]
-    }));
-  }, []);
-
-  const removeSedeField = useCallback((sectionName: string, index: number) => {
-    setDynamicSedes(prev => {
-      const newSedes = (prev[sectionName] || [""]).filter((_, i) => i !== index);
-      setResponses((prevResp) => ({
-        ...prevResp,
-        [sectionName]: newSedes.filter((sede) => sede.trim() !== ""),
-      }));
-      return { ...prev, [sectionName]: newSedes.length ? newSedes : [""] };
-    });
-  }, []);
-
-  const updateSedeField = useCallback((sectionName: string, index: number, value: string) => {
-    setDynamicSedes(prev => {
-      const newSedes = (prev[sectionName] || [""]).map((sede, i) => i === index ? value : sede);
-      setResponses((prevResp) => ({
-        ...prevResp,
-        [sectionName]: newSedes.filter((sede) => sede.trim() !== ""),
-      }));
-      return { ...prev, [sectionName]: newSedes };
-    });
-  }, []);
-
-  // ===== FUNCIONES DE NAVEGACIÓN DEL ÁRBOL DE DECISIONES =====
   
   // Obtiene la condición actual basada en currentConditionId
   const getCurrentCondition = useCallback(() => {
@@ -156,7 +104,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
 
     setConditionResponses(prev => {
       if (flags.allows_multiple_values) {
-        const prevArray: string[] = prev[currentConditionId] || [];
+        const prevArray: string[] = Array.isArray(prev[currentConditionId]) ? prev[currentConditionId] as string[] : [];
         if (prevArray.includes(value)) {
           return { ...prev, [currentConditionId]: prevArray.filter((v) => v !== value) };
         } else {
@@ -238,9 +186,6 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
 
   // ===== FIN FUNCIONES DE NAVEGACIÓN =====
 
-  // Splits services from the rest of the conditions (compatibility with old system)
-  const { services, ...otherConditions } = viewData.conditions || {};
-
   // Data validation
   const validate = (servicesArr: { id: string; name: string }[]) => {
     if (!servicesArr.length) {
@@ -257,7 +202,12 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
       const { services: selectedServices, ...otherResponses } = responses;
 
       // Compilar las respuestas del árbol de decisiones
-      const options: Record<string, string | number> = {};
+      const options: Record<string, string | string[] | number> = {};
+      
+      // Agregar línea de gestión si está seleccionada
+      if (responses.lineaGestion) {
+        options['Línea de gestión'] = responses.lineaGestion;
+      }
       
       // Agregar respuestas del árbol de decisiones
       Object.entries(conditionResponses).forEach(([conditionId, value]) => {
@@ -269,7 +219,9 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
 
       // Agregar cualquier respuesta adicional del sistema anterior (para compatibilidad)
       Object.entries(otherResponses).forEach(([key, value]) => {
-        options[key] = value;
+        if (key !== 'lineaGestion') { // Evitar duplicados
+          options[key] = value;
+        }
       });
 
       let servicesArr: { id: string; name: string }[] = [];
@@ -319,8 +271,6 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
         setCurrentConditionId(viewData.initialConditionId || null);
         setConditionHistory([]);
         setShowFinalStep(false);
-        setOtherInputs({});
-        setDynamicSedes({});
       } catch (error: unknown) {
         if (error && typeof error === 'object' && 'response' in error) {
           const axiosError = error as { response?: { data?: { message?: string } } };
@@ -339,9 +289,17 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
       // SISTEMA ANTERIOR (para compatibilidad)
       const { services: selectedServices, ...otherResponses } = responses;
 
-      const options: Record<string, string | number> = {};
+      const options: Record<string, string | string[] | number> = {};
+      
+      // Agregar línea de gestión si está seleccionada
+      if (responses.lineaGestion) {
+        options['Línea de gestión'] = responses.lineaGestion;
+      }
+      
       Object.entries(otherResponses).forEach(([key, value]) => {
-        options[key] = value;
+        if (key !== 'lineaGestion') { // Evitar duplicados
+          options[key] = value;
+        }
       });
 
       let servicesArr: { id: string; name: string }[] = [];
@@ -386,8 +344,6 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
         alert("Cotización añadida a tu lista correctamente");
 
         setResponses({});
-        setOtherInputs({});
-        setDynamicSedes({});
       } catch (error: unknown) {
         if (error && typeof error === 'object' && 'response' in error) {
           const axiosError = error as { response?: { data?: { message?: string } } };
@@ -416,170 +372,72 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
             <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{errorMsg}</div>
           )}
 
-          {/* AQUÍ VAAAN LAS LÍNEAS DE GESTIÓN */}
-
-          {/* Other conditions */}
-          {Object.values(otherConditions).map((conditionBlock) => {
-            const sectionName = Object.keys(conditionBlock)[0];
-            const section: ConditionItem = conditionBlock[sectionName];
-            const effectiveFlags = section.flags;
-
-            return (
-              <div key={sectionName} className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
-                  <span className="bg-blue-100 text-blue-600 p-2 rounded-full mr-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                  </span>
-                  {sectionName}
-                  {effectiveFlags.allows_multiple_values && " (seleccione uno o más)"}
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {section.items.map((item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      aria-pressed={isSelected(sectionName, item, effectiveFlags)}
-                      onClick={() => handleSelect(sectionName, item, effectiveFlags)}
-                      className={`p-4 rounded-lg border transition-all flex items-center justify-center ${
-                        isSelected(sectionName, item, effectiveFlags)
-                          ? "bg-blue-50 border-blue-500 text-blue-700 font-medium shadow-sm"
-                          : "border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50"
-                      }`}
-                    >
-                      {item}
-                      {isSelected(sectionName, item, effectiveFlags) && (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </button>
-                  ))}
-                  
-                  {/* Button 'Other' for mode */}
-                  {effectiveFlags.allows_other_values && (
-                    <div className="flex flex-col">
-                      <button
-                        type="button"
-                        onClick={() => toggleOtherInput(sectionName)}
-                        className={`p-4 rounded-lg border transition-all flex items-center justify-center mb-2 ${
-                          otherInputs[sectionName] || (responses[sectionName] && responses[sectionName].isOther)
-                            ? "bg-blue-100 border-blue-500 text-blue-700 font-medium shadow-sm"
-                            : "border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50"
-                        }`}
-                      >
-                        Otro
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </button>
-                      
-                      {(otherInputs[sectionName] || (responses[sectionName] && responses[sectionName].isOther)) && (
-                        <div className="md:col-span-2 mt-2">
-                          <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor={`other-${sectionName}`}>Especifique otra modalidad</label>
-                          <input
-                            id={`other-${sectionName}`}
-                            type="text"
-                            placeholder="Describa su modalidad..."
-                            className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                            value={responses[sectionName]?.other || ""}
-                            onChange={(e) => handleOther(sectionName, e.target.value)}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {/* Time space */}
-                  {effectiveFlags.is_time && (
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor={`time-${sectionName}`}>Tiempo</label>
-                      <input
-                        id={`time-${sectionName}`}
-                        type="text"
-                        placeholder="Ej: 2 horas, 3 días, etc."
-                        className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                        value={responses[sectionName]?.time || ""}
-                        onChange={(e) => handleTime(sectionName, e.target.value)}
-                      />
-                    </div>
-                  )}
-                  {/* Dynamic Sedes */}
-                  {!(effectiveFlags.is_fixed) && (
-                    <div className="md:col-span-2">
-                      {(dynamicSedes[sectionName] || [""]).map((sede, index) => (
-                        <div key={index} className="flex items-center gap-2 mb-2">
-                          <label className="sr-only" htmlFor={`sede-${sectionName}-${index}`}>Sede {index + 1}</label>
-                          <input
-                            id={`sede-${sectionName}-${index}`}
-                            type="text"
-                            placeholder={`Nombre sede ${index + 1}`}
-                            className="flex-1 border border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                            value={sede}
-                            onChange={(e) => updateSedeField(sectionName, index, e.target.value)}
-                          />
-                          {(dynamicSedes[sectionName]?.length ?? 1) > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removeSedeField(sectionName, index)}
-                              className="p-3 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition"
-                              title="Eliminar sede"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                      {/* Button to add more venues */}
-                      <div className="flex justify-end mt-2">
-                        <button
-                          type="button"
-                          onClick={() => addSedeField(sectionName)}
-                          className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all shadow-md"
-                          title="Añadir otra sede"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+          {/* LÍNEAS DE GESTIÓN */}
+          {viewData.lineaGestion && (
+            <div className="mb-8 rounded-xl border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                <span className="bg-gray-100 text-gray-600 p-2 rounded-full mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </span>
+                {viewData.lineaGestion.name}
+                {viewData.lineaGestion.flags.allows_multiple_values && " (seleccione uno o más)"}
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {viewData.lineaGestion.items.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    aria-pressed={isSelected("lineaGestion", item, viewData.lineaGestion!.flags)}
+                    onClick={() => handleSelect("lineaGestion", item, viewData.lineaGestion!.flags)}
+                    className={`p-3 rounded-lg border transition-all flex items-center justify-center text-sm ${
+                      isSelected("lineaGestion", item, viewData.lineaGestion!.flags)
+                        ? "bg-blue-50 border-blue-500 text-blue-700 font-medium shadow-sm"
+                        : "border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50"
+                    }`}
+                  >
+                    {item}
+                    {isSelected("lineaGestion", item, viewData.lineaGestion!.flags) && (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </button>
+                ))}
               </div>
-            );
-          })}
+            </div>
+          )}
 
           {/* Árbol de decisiones */}
 
-          {viewData.conditionsArray && !showFinalStep && currentConditionId && (
+          {viewData.conditionsArray && (
             <div className="mb-8">
-              {/* Progreso del árbol */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600">
-                    Paso {conditionHistory.length + 1}
-                  </span>
-                  {conditionHistory.length > 0 && (
-                    <button
-                      onClick={navigateBack}
-                      className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
-                    >
-                      ← Volver atrás
-                    </button>
-                  )}
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                    style={{ width: `${((conditionHistory.length + 1) / Object.keys(viewData.conditionsArray).length) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
+              {!showFinalStep && currentConditionId ? (
+                <>
+                  {/* Progreso del árbol */}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-600">
+                        Paso {conditionHistory.length + 1}
+                      </span>
+                      {conditionHistory.length > 0 && (
+                        <button
+                          onClick={navigateBack}
+                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                        >
+                          ← Volver atrás
+                        </button>
+                      )}
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                        style={{ width: `${((conditionHistory.length + 1) / Object.keys(viewData.conditionsArray).length) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
 
               {/* Condición actual */}
               {(() => {
@@ -598,6 +456,15 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
                       {currentCondition.flags.allows_multiple_values && " (seleccione uno o más)"}
                     </h3>
 
+                    {/* Descripción de la condición */}
+                    {currentCondition.description && (
+                      <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p className="text-sm text-yellow-800">
+                          <span className="font-medium">Nota:</span> {currentCondition.description}
+                        </p>
+                      </div>
+                    )}
+
                     {/* Condición de tiempo */}
                     {currentCondition.flags.is_time ? (
                       <div className="space-y-4">
@@ -613,29 +480,53 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
                           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
+                    ) : currentCondition.items.length === 0 ? (
+                      // Campo numérico genérico (ej: Número de funcionarios entrevistados)
+                      <div className="space-y-4">
+                        <input
+                          type="number"
+                          min="0"
+                          placeholder="Ingrese el número"
+                          value={conditionResponses[currentConditionId] || ''}
+                          onChange={(e) => setConditionResponses(prev => ({
+                            ...prev,
+                            [currentConditionId]: e.target.value
+                          }))}
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
                     ) : (
-                      /* Opciones normales */
+                      /* Opciones normales (con filtrado condicional) */
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {currentCondition.items.map((item, index) => (
-                          <button
-                            key={index}
-                            type="button"
-                            aria-pressed={isConditionOptionSelected(item.value, currentCondition.flags)}
-                            onClick={() => handleConditionSelect(item.value, currentCondition.flags)}
-                            className={`p-4 rounded-lg border transition-all flex items-center justify-center ${
-                              isConditionOptionSelected(item.value, currentCondition.flags)
-                                ? "bg-blue-50 border-blue-500 text-blue-700 font-medium shadow-sm"
-                                : "border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50"
-                            }`}
-                          >
-                            {item.value}
-                            {isConditionOptionSelected(item.value, currentCondition.flags) && (
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              </svg>
-                            )}
-                          </button>
-                        ))}
+                        {(() => {
+                          let itemsToRender = currentCondition.items;
+                          if (currentCondition.name === 'Selección de profesionales') {
+                            const initialResponse = conditionResponses[viewData.initialConditionId || -1];
+                            if (initialResponse !== 'Auditoría interna (ISO 9001, 14001, 45001, 37001, 55001)') {
+                              itemsToRender = itemsToRender.filter(i => i.value !== 'Especialidad según norma ISO');
+                            }
+                          }
+                          return itemsToRender.map((item, index) => (
+                            <button
+                              key={index}
+                              type="button"
+                              aria-pressed={isConditionOptionSelected(item.value, currentCondition.flags)}
+                              onClick={() => handleConditionSelect(item.value, currentCondition.flags)}
+                              className={`p-4 rounded-lg border transition-all flex items-center justify-center ${
+                                isConditionOptionSelected(item.value, currentCondition.flags)
+                                  ? "bg-blue-50 border-blue-500 text-blue-700 font-medium shadow-sm"
+                                  : "border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50"
+                              }`}
+                            >
+                              {item.value}
+                              {isConditionOptionSelected(item.value, currentCondition.flags) && (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </button>
+                          ));
+                        })()}
                       </div>
                     )}
 
@@ -654,14 +545,22 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
                   </div>
                 );
               })()}
+                </>
+              ) : showFinalStep ? null : (
+                <div className="text-center py-8">
+                  <p className="text-gray-600">
+                    {viewData.conditionsArray ? 'Iniciando proceso de cotización...' : 'No hay condiciones configuradas para este tipo de servicio.'}
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
           {/* Paso final - Selección de servicios cuando se termina el árbol */}
           {showFinalStep && (
-            <div className="mb-8 bg-green-50 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-green-700 mb-4 flex items-center">
-                <span className="bg-green-100 text-green-600 p-2 rounded-full mr-2">
+            <div className="mb-8 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                <span className="bg-blue-100 text-blue-600 p-2 rounded-full mr-2">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
@@ -693,8 +592,8 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
                         is_time: false,
                         is_fixed: true,
                       })
-                        ? "bg-green-50 border-green-500 text-green-700 font-medium shadow-sm"
-                        : "border-gray-200 text-gray-700 hover:border-green-300 hover:bg-green-50"
+                        ? "bg-blue-50 border-blue-500 text-blue-700 font-medium shadow-sm"
+                        : "border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50"
                     }`}
                   >
                     {name as string}
@@ -704,7 +603,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
                       is_time: false,
                       is_fixed: true,
                     }) && (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     )}

@@ -1,6 +1,5 @@
 import { usePage, router } from '@inertiajs/react';
-import Header from '../../../components/admin/Header';
-import Footer from '../../../components/admin/Footer';
+import AdminLayout from '../../../layouts/AdminLayout';
 import { route } from 'ziggy-js';
 import { Pencil, Trash2 } from "lucide-react";
 
@@ -40,12 +39,8 @@ const handleDelete = (id: number) => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      {/* Header */}
-      <Header />
-
-      {/* Contenido principal */}
-      <main className="flex-1 p-6">
+    <AdminLayout>
+      <div className="p-6">
         <h1 className="text-2xl font-bold mb-6">Administrar Servicios</h1>
 
         <button
@@ -105,10 +100,7 @@ const handleDelete = (id: number) => {
             )}
           </tbody>
         </table>
-      </main>
-
-      {/* Footer */}
-      <Footer />
-    </div>
+      </div>
+    </AdminLayout>
   );
 }

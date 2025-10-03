@@ -1,7 +1,6 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
-import Header from "../../../components/admin/Header";
-import Footer from "../../../components/admin/Footer";
+import AdminLayout from "../../../layouts/AdminLayout";
 import { route } from "ziggy-js";
 import { Users, Wrench, GitBranch, ChevronRight, ScrollText} from "lucide-react";
 
@@ -45,10 +44,8 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      <main className="container mx-auto px-4 py-10">
+    <AdminLayout>
+      <div className="container mx-auto px-4 py-10">
         <section className="mx-auto mb-10 max-w-4xl text-center">
           <h1 className="text-3xl font-semibold text-gray-900">Dashboard</h1>
           <p className="mt-2 text-gray-600">
@@ -84,10 +81,8 @@ const Dashboard: React.FC = () => {
             </Link>
           ))}
         </section>
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </AdminLayout>
   );
 };
 

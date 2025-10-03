@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Portfolio\Quotation;
 
 use App\Http\Controllers\Controller;
 use App\Models\ServiceType;
+use App\Models\Condition;
 use App\Repositories\ServiceTypeRepository;
 use App\Services\ConditionService;
 use Illuminate\Http\RedirectResponse;
@@ -42,12 +43,32 @@ class QuotationController extends Controller
 
         $initialConditionId = $serviceType->getInitialConditionId();
 
+        // Buscar línea de gestión (condición fija para este tipo de servicio)
+        $lineaGestionCondition = Condition::where('name', 'Línea de gestión')
+            ->where('is_fixed', true)
+            ->first();
+
+        $lineaGestionData = null;
+        if ($lineaGestionCondition) {
+            $lineaGestionData = [
+                'name' => $lineaGestionCondition->getName(),
+                'items' => $lineaGestionCondition->conditionValues->pluck('value')->toArray(),
+                'flags' => [
+                    'allows_other_values' => $lineaGestionCondition->allowsOtherValues(),
+                    'allows_multiple_values' => $lineaGestionCondition->allowsMultipleValues(),
+                    'is_time' => $lineaGestionCondition->getType() === 'time',
+                    'is_fixed' => $lineaGestionCondition->isFixed(),
+                ]
+            ];
+        }
+
         $viewData = [
             'serviceTypeId' => $serviceTypeId,
             'serviceType' => $serviceType->getName(),
             'conditionsArray' => $this->conditionService->resolveConditions($initialConditionId),
             'services' => $serviceType->services->pluck('name', 'id')->all(),
             'initialConditionId' => $initialConditionId,
+            'lineaGestion' => $lineaGestionData,
         ];
 
         return inertia('portfolio/cotizar', [
