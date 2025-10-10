@@ -409,6 +409,7 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
               </div>
             </div>
           )}
+          
 
           {/* Árbol de decisiones */}
 
@@ -556,47 +557,73 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
             </div>
           )}
 
+          
+
           {/* Paso final - Selección de servicios cuando se termina el árbol */}
-          {showFinalStep && (
-            <div className="mb-8 rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-              <h3 className="text-xl font-semibold text-gray-800 mb-6">
-                Selecciona los servicios que necesitas
-              </h3>
+         {showFinalStep && (
+  <div className="mb-8 rounded-2xl border border-gray-200 bg-white/90 p-8 shadow-md backdrop-blur-sm">
+    <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+      <span className="bg-blue-100 text-blue-600 p-2 rounded-full mr-3">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+      </span>
+      Selecciona los servicios que necesitas
+    </h3>
 
-              <div className="max-h-60 overflow-y-auto pr-2 space-y-2">
-                {Object.entries(viewData.services || {}).map(([id, name]) => (
-                  <label
-                    key={id}
-                    className="flex items-center border border-gray-200 rounded-lg p-3 hover:bg-gray-50 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      value={name as string}
-                      onChange={(e) =>
-                        handleSelect("services", e.target.value, {
-                          allows_multiple_values: true,
-                          allows_other_values: false,
-                          is_time: false,
-                          is_fixed: true,
-                        })
-                      }
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <span className="ml-3 text-gray-700">{name as string}</span>
-                  </label>
-                ))}
-              </div>
+    <div className="max-h-64 overflow-y-auto pr-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {Object.entries(viewData.services || {}).map(([id, name]) => (
+        <label
+          key={id}
+          className="group flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 bg-white hover:shadow-sm hover:border-blue-400 transition-all cursor-pointer"
+        >
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              value={name as string}
+              onChange={(e) =>
+                handleSelect("services", e.target.value, {
+                  allows_multiple_values: true,
+                  allows_other_values: false,
+                  is_time: false,
+                  is_fixed: true,
+                })
+              }
+              className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-400 transition-all"
+            />
+            <span className="ml-3 text-gray-700 font-medium group-hover:text-blue-600 transition-colors">
+              {name as string}
+            </span>
+          </div>
 
-              <div className="mt-8 flex justify-end">
-                <button
-                  onClick={navigateBack}
-                  className="px-5 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
-                >
-                  ← Volver a revisar opciones
-                </button>
-              </div>
-            </div>
-          )}
+          {/* Icono de check al seleccionar */}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5 text-blue-500 opacity-0 group-has-[input:checked]:opacity-100 transition-opacity"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </label>
+      ))}
+    </div>
+
+    <div className="mt-8 flex justify-end">
+      <button
+        onClick={navigateBack}
+        className="px-5 py-2.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all shadow-sm"
+      >
+        ← Volver a revisar opciones
+      </button>
+    </div>
+  </div>
+)}
+
 
           
           <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
