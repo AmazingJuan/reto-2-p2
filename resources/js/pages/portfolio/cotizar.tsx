@@ -572,46 +572,52 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
     </h3>
 
     <div className="max-h-64 overflow-y-auto pr-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
-      {Object.entries(viewData.services || {}).map(([id, name]) => (
-        <label
-          key={id}
-          className="group flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 bg-white hover:shadow-sm hover:border-blue-400 transition-all cursor-pointer"
-        >
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              value={name as string}
-              onChange={(e) =>
-                handleSelect("services", e.target.value, {
-                  allows_multiple_values: true,
-                  allows_other_values: false,
-                  is_time: false,
-                  is_fixed: true,
-                })
-              }
-              className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-400 transition-all"
-            />
-            <span className="ml-3 text-gray-700 font-medium group-hover:text-blue-600 transition-colors">
-              {name as string}
-            </span>
-          </div>
+  {Object.entries(viewData.services || {}).length > 0 ? (
+    Object.entries(viewData.services || {}).map(([id, name]) => (
+      <label
+        key={id}
+        className="group flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 bg-white hover:shadow-sm hover:border-blue-400 transition-all cursor-pointer"
+      >
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            value={name as string}
+            onChange={(e) =>
+              handleSelect("services", e.target.value, {
+                allows_multiple_values: true,
+                allows_other_values: false,
+                is_time: false,
+                is_fixed: true,
+              })
+            }
+            className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-400 transition-all"
+          />
+          <span className="ml-3 text-gray-700 font-medium group-hover:text-blue-600 transition-colors">
+            {name as string}
+          </span>
+        </div>
 
-          {/* Icono de check al seleccionar */}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 text-blue-500 opacity-0 group-has-[input:checked]:opacity-100 transition-opacity"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </label>
-      ))}
+        {/* Icono de check al seleccionar */}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5 text-blue-500 opacity-0 group-has-[input:checked]:opacity-100 transition-opacity"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </label>
+    ))
+  ) : (
+    <div className="col-span-full text-center text-gray-500 italic">
+      No hay servicios disponibles en esta línea de gestión.
     </div>
+  )}
+</div>
 
     <div className="mt-8 flex justify-end">
       <button
