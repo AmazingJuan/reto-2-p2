@@ -5,6 +5,8 @@ import { Menu, X, Search, ChevronDown, ClipboardList, Shield } from 'lucide-reac
 import { FaFacebook, FaLinkedin } from 'react-icons/fa';
 
 const Header = () => {
+  
+  const [expandedItemId, setExpandedItemId] = useState<number | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpenMobile, setIsDropdownOpenMobile] = useState(false);
   const [isServicesDropdownOpenMobile, setIsServicesDropdownOpenMobile] = useState(false);
@@ -319,55 +321,88 @@ const Header = () => {
       </header>
 
       {/* Modal cotización */}
-      <div
-        className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${
-          showQuotationModal ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={handleBackdropClick}
+<div
+  className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${
+    showQuotationModal ? 'opacity-100' : 'opacity-0 pointer-events-none'
+  }`}
+  onClick={handleBackdropClick}
+>
+  <div
+    className={`bg-white h-full w-[28rem] shadow-2xl rounded-l-2xl transform transition-transform duration-300 ${
+      showQuotationModal ? 'translate-x-0' : 'translate-x-full'
+    }`}
+    onClick={(e) => e.stopPropagation()}
+  >
+    {/* Header */}
+    <div className="flex justify-between items-center p-6 border-b rounded-tl-2xl bg-white">
+      <h3 className="text-xl font-semibold text-gray-900">Lista de Cotización</h3>
+      <button
+        onClick={() => setShowQuotationModal(false)}
+        className="text-gray-500 hover:text-gray-700 transition-colors"
       >
-        <div
-          className={`bg-white h-full w-[28rem] shadow-2xl rounded-l-2xl transform transition-transform duration-300 ${
-            showQuotationModal ? 'translate-x-0' : 'translate-x-full'
-          }`}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex justify-between items-center p-6 border-b rounded-tl-2xl bg-white">
-            <h3 className="text-xl font-semibold text-gray-900">Lista de Cotización</h3>
-            <button
-              onClick={() => setShowQuotationModal(false)}
-              className="text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
+        <X className="h-6 w-6" />
+      </button>
+    </div>
 
-          {successMessage && (
-            <div className="mx-6 mt-4 bg-green-100 text-green-700 px-4 py-2 rounded shadow-md">
-              {successMessage}
-            </div>
-          )}
+    {/* Mensaje de éxito */}
+    {successMessage && (
+      <div className="mx-6 mt-4 bg-green-100 text-green-700 px-4 py-2 rounded shadow-md">
+        {successMessage}
+      </div>
+    )}
 
-          <div className="p-6 overflow-y-auto h-[calc(100%-120px)] bg-gray-50">
-            {isLoading ? (
-              <div className="flex justify-center items-center h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              </div>
-            ) : quotationData.length > 0 ? (
-              <ul className="space-y-6">
-                {quotationData.map((item) => (
-                  <li key={item.id} className="relative p-4 border rounded shadow-sm bg-gray-50">
-                    <button
-                      onClick={() => handleDeleteService(item.id)}
-                      className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                      title="Eliminar servicio"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
+    {/* Contenido principal */}
+    <div className="p-6 overflow-y-auto h-[calc(100%-120px)] bg-gray-50">
+      {isLoading ? (
+        <div className="flex justify-center items-center h-32">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      ) : quotationData.length > 0 ? (
+        <ul className="space-y-4">
+          {quotationData.map((item) => {
+            const isExpanded = expandedItemId === item.id; // item expandido o no
+            return (
+              <li
+                key={item.id}
+                className="relative p-4 border rounded-lg shadow-sm bg-white hover:shadow-md transition cursor-pointer"
+              >
+                {/* Encabezado (preview) */}
+                <div
+                  onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
+                  className={`flex justify-between items-center ${
+                    isExpanded ? 'mb-3' : ''
+                  }`}
+                >
+                  <h4 className="text-lg font-bold text-blue-600 uppercase tracking-wide">
+                    {item.serviceType || `Cotización #${item.id}`}
+                  </h4>
+                  <span
+                    className={`transform transition-transform ${
+                      isExpanded ? 'rotate-180' : ''
+                    }`}
+                  >
+                    ▼
+                  </span>
+                </div>
 
-                    <h4 className="text-lg font-bold text-blue-600 mb-3 text-center uppercase tracking-wide">
-                      {item.serviceType}
-                    </h4>
+                {/* Vista expandida */}
+                {isExpanded && (
+                  <div className="mt-2 space-y-4 animate-fade-in">
+                    {/* Botón eliminar (más abajo, con margen y separado del borde) */}
+                    <div className="flex justify-end mt-1 mb-2 pr-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteService(item.id);
+                        }}
+                        className="text-red-500 hover:text-red-700 transition"
+                        title="Eliminar servicio"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
 
+                    {/* Servicios */}
                     <div>
                       <strong>Servicios:</strong>
                       <ul className="list-disc list-inside ml-4">
@@ -377,7 +412,8 @@ const Header = () => {
                       </ul>
                     </div>
 
-                    <div className="mt-2">
+                    {/* Opciones */}
+                    <div>
                       <strong>Opciones:</strong>
                       <ul className="list-disc list-inside ml-4">
                         {item.options &&
@@ -393,15 +429,20 @@ const Header = () => {
                           ))}
                       </ul>
                     </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500 text-center">No hay elementos en la lista.</p>
-            )}
-          </div>
-        </div>
-      </div>
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="text-gray-500 text-center">No hay elementos en la lista.</p>
+      )}
+    </div>
+  </div>
+</div>
+
+
     </>
   );
 };
