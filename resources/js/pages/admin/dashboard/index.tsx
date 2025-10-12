@@ -29,7 +29,7 @@ const Dashboard: React.FC = () => {
     },
     {
       label: "Lista Cotizaciones",
-      name: "admin.dashboard",
+      name: "admin.quotation-orders.index",
       desc: "Visualiza y gestiona cotizaciones",
       icon: ScrollText,
       accent: "indigo",

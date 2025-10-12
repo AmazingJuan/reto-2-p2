@@ -50,5 +50,5 @@ Route::prefix('admin')->group(function () {
     Route::put('/lineas-gestion/{id}', [AdminGestionLineController::class, 'update'])->name('admin.lines.update');
 
     // Ordenes de cotización
-    Route::get('/ordenes-cotizacion', [AdminQuotationOrderController::class, 'index'])->name('admin.quotation_orders.index');
+    Route::get('/ordenes-cotizacion', [AdminQuotationOrderController::class, 'index'])->name('admin.quotation-orders.index');
 });
