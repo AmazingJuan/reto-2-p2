@@ -1,6 +1,6 @@
-import { usePage } from "@inertiajs/react";
+import { usePage, Link } from "@inertiajs/react";
 import AdminLayout from "../../../layouts/AdminLayout";
-import { Download } from "lucide-react"; // 👈 icono que mencionaste
+import { Download } from "lucide-react";
 import { route } from "ziggy-js";
 
 interface QuotationOrder {
@@ -17,10 +17,30 @@ interface PageProps {
 
 export default function Index() {
   const { viewData } = usePage<PageProps>().props;
-  const quotationOrders = viewData.quotationOrders;
+  // const quotationOrders = viewData; para datos dummies, descomentar al final
+
+  const quotationOrders =
+    viewData?.quotationOrders && viewData.quotationOrders.length > 0
+      ? viewData.quotationOrders
+      : [
+          {
+            id: 1,
+            is_generated: true,
+            quotation_url: "https://example.com/quotation_1.pdf",
+          },
+          {
+            id: 2,
+            is_generated: false,
+          },
+          {
+            id: 3,
+            is_generated: true,
+            quotation_url: "https://example.com/quotation_3.pdf",
+          },
+        ];
 
   const handleDownload = (url: string) => {
-    window.open(url, "_blank"); // abre la URL de descarga en una nueva pestaña
+    window.open(url, "_blank");
   };
 
   return (
@@ -33,14 +53,21 @@ export default function Index() {
             <tr className="bg-gray-100 text-left">
               <th className="py-2 px-4 border-b">ID</th>
               <th className="py-2 px-4 border-b">Estado</th>
-              <th className="py-2 px-4 border-b">Acción</th>
+              <th className="py-2 px-4 border-b">Descarga</th>
             </tr>
           </thead>
 
           <tbody>
             {quotationOrders.map((order) => (
               <tr key={order.id} className="hover:bg-gray-50">
-                <td className="py-2 px-4 border-b">{order.id}</td>
+                <td className="py-2 px-4 border-b">
+                  <Link
+                    href={route("admin.quotation-orders.show", order.id)}
+                    className="text-blue-600 hover:underline"
+                  >
+                    {order.id}
+                  </Link>
+                </td>
 
                 <td className="py-2 px-4 border-b">
                   {order.is_generated ? (

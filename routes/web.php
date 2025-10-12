@@ -51,4 +51,7 @@ Route::prefix('admin')->group(function () {
 
     // Ordenes de cotización
     Route::get('/ordenes-cotizacion', [AdminQuotationOrderController::class, 'index'])->name('admin.quotation-orders.index');
-});
+    Route::get('/ordenes-cotizacion/{id}', [AdminQuotationOrderController::class, 'show']) ->name('admin.quotation-orders.show');
+
+    }
+);
