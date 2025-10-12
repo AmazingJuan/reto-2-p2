@@ -21,8 +21,7 @@ interface PageProps {
 
 export default function Show() {
   const { viewData } = usePage<PageProps>().props;
-  const { quotationOrder } = viewData; 
-
+  const { quotationOrder } = viewData;
 
   if (!quotationOrder) {
     return (
@@ -37,11 +36,11 @@ export default function Show() {
   return (
     <AdminLayout>
       <div className="p-6">
-        {/* Header */}
+        {/* Encabezado */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Link
-              href={route("admin.quotation_orders.index")}
+              href={route("admin.quotation-orders.index")}
               className="flex items-center text-gray-600 hover:text-gray-900"
             >
               <ArrowLeft className="h-5 w-5 mr-1" /> Volver
@@ -51,7 +50,7 @@ export default function Show() {
             </h1>
           </div>
 
-          {/* Botón de descarga (solo si está generada) */}
+          {/* Botón de descarga */}
           {quotationOrder.is_generated && quotationOrder.quotation_url && (
             <a
               href={quotationOrder.quotation_url}
@@ -65,57 +64,89 @@ export default function Show() {
           )}
         </div>
 
-        {/* Información principal */}
-        <div className="bg-white shadow rounded-lg p-6 border space-y-4">
-          <div>
-            <p className="text-sm text-gray-500">ID</p>
-            <p className="text-lg font-semibold">{quotationOrder.id}</p>
-          </div>
+        {/* Contenido principal */}
+        <div className="bg-white shadow-md rounded-lg border p-6">
+          <table className="w-full border-collapse">
+            <tbody>
+              <tr className="border-b">
+                <td className="py-3 font-semibold text-gray-600 w-1/3">
+                  ID
+                </td>
+                <td className="py-3">{quotationOrder.id}</td>
+              </tr>
 
-          <div>
-            <p className="text-sm text-gray-500">Estado</p>
-            <p
-              className={`text-lg font-semibold ${
-                quotationOrder.is_generated ? "text-green-600" : "text-yellow-600"
-              }`}
-            >
-              {quotationOrder.is_generated ? "Generada" : "Pendiente"}
-            </p>
-          </div>
+              <tr className="border-b">
+                <td className="py-3 font-semibold text-gray-600">Estado</td>
+                <td className="py-3">
+                  {quotationOrder.is_generated ? (
+                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
+                      Generada
+                    </span>
+                  ) : (
+                    <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-semibold">
+                      Pendiente
+                    </span>
+                  )}
+                </td>
+              </tr>
 
-          {quotationOrder.service_type_id && (
-            <div>
-              <p className="text-sm text-gray-500">Tipo de servicio</p>
-              <p className="text-lg">{quotationOrder.service_type_id}</p>
-            </div>
-          )}
+              {quotationOrder.service_type_id && (
+                <tr className="border-b">
+                  <td className="py-3 font-semibold text-gray-600">
+                    Tipo de servicio
+                  </td>
+                  <td className="py-3">{quotationOrder.service_type_id}</td>
+                </tr>
+              )}
 
-          {quotationOrder.gestion_line_id && (
-            <div>
-              <p className="text-sm text-gray-500">Línea de gestión</p>
-              <p className="text-lg">{quotationOrder.gestion_line_id}</p>
-            </div>
-          )}
+              {quotationOrder.gestion_line_id && (
+                <tr className="border-b">
+                  <td className="py-3 font-semibold text-gray-600">
+                    Línea de gestión
+                  </td>
+                  <td className="py-3">{quotationOrder.gestion_line_id}</td>
+                </tr>
+              )}
 
-          {/* Servicios */}
-          {quotationOrder.services && (
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Servicios</p>
-              <pre className="bg-gray-50 p-3 rounded text-sm overflow-x-auto">
-                {JSON.stringify(quotationOrder.services, null, 2)}
-              </pre>
-            </div>
-          )}
+              {/* Servicios */}
+              {quotationOrder.services && (
+                <tr className="border-b align-top">
+                  <td className="py-3 font-semibold text-gray-600">Servicios</td>
+                  <td className="py-3">
+                    <ul className="list-disc ml-5 space-y-1">
+                      {Object.entries(quotationOrder.services).map(
+                        ([key, value]) => (
+                          <li key={key}>
+                            <span className="font-medium">{key}: </span>
+                            {String(value)}
+                          </li>
+                        )
+                      )}
+                    </ul>
+                  </td>
+                </tr>
+              )}
 
-          {/* Opciones */}
-          {quotationOrder.options && (
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Opciones</p>
-              <pre className="bg-gray-50 p-3 rounded text-sm overflow-x-auto">
-                {JSON.stringify(quotationOrder.options, null, 2)}
-              </pre>
-            </div>
-          )}
+              {/* Opciones */}
+              {quotationOrder.options && (
+                <tr className="align-top">
+                  <td className="py-3 font-semibold text-gray-600">Opciones</td>
+                  <td className="py-3">
+                    <ul className="list-disc ml-5 space-y-1">
+                      {Object.entries(quotationOrder.options).map(
+                        ([key, value]) => (
+                          <li key={key}>
+                            <span className="font-medium">{key}: </span>
+                            {String(value)}
+                          </li>
+                        )
+                      )}
+                    </ul>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </AdminLayout>
