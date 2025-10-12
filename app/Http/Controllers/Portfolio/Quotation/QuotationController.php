@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Portfolio\Quotation;
 
 use App\Http\Controllers\Controller;
-use App\Models\ServiceType;
 use App\Models\Condition;
+use App\Models\GestionLine;
+use App\Models\ServiceType;
 use App\Repositories\ServiceTypeRepository;
 use App\Services\ConditionService;
 use Illuminate\Http\RedirectResponse;
@@ -34,6 +35,7 @@ class QuotationController extends Controller
     public function show(string $serviceTypeId): InertiaResponse|RedirectResponse
     {
         $serviceType = $this->serviceTypeRepository->find($serviceTypeId); // Search serviceType in DB.
+        $gestionLines = GestionLine::all();
 
         if (! $serviceType) {
             return redirect()
@@ -43,7 +45,7 @@ class QuotationController extends Controller
 
         $initialConditionId = $serviceType->getInitialConditionId();
 
-        // Buscar línea de gestión (condición fija para este tipo de servicio)
+        // QUITAR TODO ESTO
         $lineaGestionCondition = Condition::where('name', 'Línea de gestión')
             ->where('is_fixed', true)
             ->first();
@@ -58,7 +60,7 @@ class QuotationController extends Controller
                     'allows_multiple_values' => $lineaGestionCondition->allowsMultipleValues(),
                     'is_time' => $lineaGestionCondition->getType() === 'time',
                     'is_fixed' => $lineaGestionCondition->isFixed(),
-                ]
+                ],
             ];
         }
 
@@ -68,6 +70,8 @@ class QuotationController extends Controller
             'conditionsArray' => $this->conditionService->resolveConditions($initialConditionId),
             'services' => $serviceType->services->pluck('name', 'id')->all(),
             'initialConditionId' => $initialConditionId,
+            'gestionLines' => $gestionLines,
+            // QUITAR
             'lineaGestion' => $lineaGestionData,
         ];
 

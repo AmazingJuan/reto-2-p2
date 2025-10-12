@@ -39,7 +39,7 @@ class ConditionService
             $conditions[$condition->getId()] = [
                 'name' => $condition->getName(),
                 'description' => $condition->getDescription(),
-                'items' => []
+                'items' => [],
             ];
 
             foreach ($conditionValues as $value) {

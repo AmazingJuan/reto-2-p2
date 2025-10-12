@@ -21,7 +21,6 @@ class ConditionsTableSeeder extends Seeder
     /**
      * Constructor.
      */
-
     public function __construct(
         ConditionService $conditionService,
         ServiceTypeRepository $serviceTypeRepository,
@@ -37,16 +36,13 @@ class ConditionsTableSeeder extends Seeder
     /**
      * Run the database seeds.
      */
-
     public function run(): void
     {
         $auditoriaServiceType = $this->serviceTypeRepository->find('auditoria');
         $consultoriaServiceType = $this->serviceTypeRepository->find('consultoria');
         $formacionServiceType = $this->serviceTypeRepository->find('formacion');
 
-
         // CONDICIONES PARA AUDITORÍA
-
 
         // Selección de profesionales
 
@@ -129,7 +125,7 @@ class ConditionsTableSeeder extends Seeder
         $normaAuditoriaCondition = $this->conditionService->create([
             'name' => 'Norma o estándar aplicable',
             'next_condition_id' => $modalidadAuditoriaCondition->getId(),
-        ], ['ISO 9001', 'ISO 14001', 'ISO 45001', 'ISO 37001', 'ISO 31000', 'ISO 55001',]);
+        ], ['ISO 9001', 'ISO 14001', 'ISO 45001', 'ISO 37001', 'ISO 31000', 'ISO 55001']);
 
         // 1. Tipo de servicio (primera condición del árbol con lógica)
         $tipoServicioAuditoriaCondition = $this->conditionService->create([
@@ -162,8 +158,6 @@ class ConditionsTableSeeder extends Seeder
             ['initial_condition_id' => $tipoServicioAuditoriaCondition->getId()],
             $auditoriaServiceType
         );
-
-
 
         // Viáticos y logística (último paso)
         $viaticosConsultoriaCondition = $this->conditionService->create([
@@ -207,7 +201,6 @@ class ConditionsTableSeeder extends Seeder
             ['initial_condition_id' => $modalidadConsultoriaCondition->getId()],
             $consultoriaServiceType
         );
-
 
         // Viáticos y logística (último paso)
         $viaticosFormacionCondition = $this->conditionService->create([

@@ -3,16 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
+use App\Http\Requests\Admin\AdminGestionLineRequest;
 use App\Models\GestionLine;
 use Illuminate\Http\RedirectResponse;
-use App\Http\Requests\Admin\AdminGestionLineRequest;
+use Inertia\Inertia;
 use Inertia\Response;
 
 class AdminGestionLineController extends Controller
 {
-    public function index() : Response
+    public function index(): Response
     {
         $viewData = [];
         $gestionLines = GestionLine::select('id', 'name')->orderBy('id')->get();
@@ -21,19 +20,19 @@ class AdminGestionLineController extends Controller
         return Inertia::render('admin/gestion-lines/index', $viewData);
     }
 
-    public function delete(int $id) : RedirectResponse
+    public function delete(int $id): RedirectResponse
     {
         GestionLine::destroy($id);
 
         return redirect()->route('admin.lines.index');
     }
 
-    public function create() : Response
+    public function create(): Response
     {
         return Inertia::render('admin/gestion-lines/create');
     }
 
-    public function store(AdminGestionLineRequest $request) : RedirectResponse
+    public function store(AdminGestionLineRequest $request): RedirectResponse
     {
         $validatedData = $request->validated();
         GestionLine::create($validatedData);
@@ -41,7 +40,7 @@ class AdminGestionLineController extends Controller
         return redirect()->route('admin.lines.index');
     }
 
-    public function edit(int $id) : Response
+    public function edit(int $id): Response
     {
         $viewData = [];
         $gestionLine = GestionLine::findOrFail($id);
@@ -50,7 +49,7 @@ class AdminGestionLineController extends Controller
         return Inertia::render('admin/gestion-lines/edit', $viewData);
     }
 
-    public function update(AdminGestionLineRequest $request, int $id) : RedirectResponse
+    public function update(AdminGestionLineRequest $request, int $id): RedirectResponse
     {
         $validatedData = $request->validated();
         $gestionLine = GestionLine::findOrFail($id);

@@ -3,20 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
+use App\Http\Requests\Admin\AdminServiceRequest;
+use App\Models\GestionLine;
 use App\Models\Service;
 use App\Models\ServiceType;
-use App\Models\GestionLine;
-
-use App\Http\Requests\Admin\AdminServiceRequest;
-
 use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class AdminServiceController extends Controller
 {
-    public function index() : Response
+    public function index(): Response
     {
         $viewData = [];
 
@@ -28,14 +25,14 @@ class AdminServiceController extends Controller
         return Inertia::render('admin/services/index', $viewData);
     }
 
-    public function delete(int $id) : RedirectResponse
+    public function delete(int $id): RedirectResponse
     {
         Service::destroy($id);
 
         return redirect()->route('admin.services.index');
     }
 
-    public function create() : Response
+    public function create(): Response
     {
         $viewData = [];
 
@@ -45,7 +42,7 @@ class AdminServiceController extends Controller
         return Inertia::render('admin/services/create', $viewData);
     }
 
-    public function store(AdminServiceRequest $request) : RedirectResponse
+    public function store(AdminServiceRequest $request): RedirectResponse
     {
         $validatedData = $request->validated();
 
@@ -54,7 +51,7 @@ class AdminServiceController extends Controller
         return redirect()->route('admin.services.index');
     }
 
-    public function edit(int $id) : Response
+    public function edit(int $id): Response
     {
         $viewData = [];
 
@@ -66,7 +63,7 @@ class AdminServiceController extends Controller
         return Inertia::render('admin/services/edit', $viewData);
     }
 
-    public function update(AdminServiceRequest $request, int $id) : RedirectResponse
+    public function update(AdminServiceRequest $request, int $id): RedirectResponse
     {
         $validatedData = $request->validated();
 
@@ -75,5 +72,4 @@ class AdminServiceController extends Controller
 
         return redirect()->route('admin.services.index');
     }
-
 }

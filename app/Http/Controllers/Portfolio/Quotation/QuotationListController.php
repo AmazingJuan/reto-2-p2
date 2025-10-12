@@ -25,12 +25,14 @@ class QuotationListController extends Controller
             'options' => $request->options,
             'serviceTypeId' => $request->serviceTypeId,
             'serviceType' => $request->serviceType,
+            'gestionLine' => $request->gestionLine,
+            'gestionLineId' => $request->gestionLineId,
         ];
 
         $quotationList[] = $listItem;
         session()->put('quotation_list', $quotationList);
 
-        return response()->json(['quotation_list' => $quotationList]);
+        return response()->json(['quotation_list' => $quotationList], 201);
     }
 
     public function destroy($id): JsonResponse

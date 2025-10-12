@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\ServiceType;
 use App\Models\Condition;
+use App\Models\ServiceType;
 
 class ConditionResolverService
 {
