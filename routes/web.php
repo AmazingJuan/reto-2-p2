@@ -9,9 +9,9 @@ use App\Http\Controllers\Portfolio\PortfolioController;
 use App\Http\Controllers\Portfolio\Quotation\QuotationController;
 use App\Http\Controllers\Portfolio\Quotation\QuotationListController;
 use App\Http\Controllers\Portfolio\Services\ServicesController;
+use App\Http\Controllers\User\UserQuotationOrderController;
+use App\Http\Controllers\User\UserProfileController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
-use App\Http\Controllers\QuotationOrderController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -32,18 +32,10 @@ Route::prefix('lista')->middleware(['ajax'])->group(function () {
     Route::delete('/{id}', [QuotationListController::class, 'destroy'])->name('list.destroy'); // eliminar item
 });
 
-/*Route::prefix('usuario')->group(function () {
-        Route::get('/', [QuotationOrderController::class, 'userProfile'])
-            ->name('user.profile');
-            
-        Route::get('/ordenes-cotizacion', [QuotationOrderController::class, 'quotationOrder'])
-            ->name('user.orders');
-    });*/
-
 Route::prefix('usuario')->group(function () {
-    Route::get('/', function () {return Inertia::render('users/userProfile');})->name('user.profile');
+    Route::get('/', [UserProfileController::class, 'index'])->name('user.profile');
 
-    Route::get('/ordenes-cotizacion', [QuotationOrderController::class, 'quotationOrder'])
+    Route::get('/ordenes-cotizacion', [UserQuotationOrderController::class, 'index'])
         ->name('user.orders');
 });
 

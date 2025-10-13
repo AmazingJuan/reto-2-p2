@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('quotation_orders', function (Blueprint $table) {
             $table->id();
+            
             $table->string('service_type_id')->nullable();
             $table->foreign('service_type_id')
                 ->references('id')
@@ -22,6 +23,11 @@ return new class extends Migration
                 ->nullable()
                 ->constrained('gestion_lines')
                 ->onDelete('set null');
+
+            $table->foreignId('user_id')
+                ->constrained('users')
+                ->onDelete('cascade');
+
             $table->boolean('is_generated')->default(false);
             $table->json('services');
             $table->json('options');

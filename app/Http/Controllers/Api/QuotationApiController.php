@@ -6,12 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\QuotationOrder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class QuotationApiController extends Controller
 {
     public function store(Request $request): JsonResponse
     {
-        $quotationData = $request->only('id', 'services', 'options', 'serviceTypeId');
+        $quotationData = $request->only('services', 'options', 'service_type_id', 'gestion_line_id');
+        $quotationData['id'] = uniqid();
+        $quotationData['user_id'] = Auth::id();
+
         $quotationOrder = QuotationOrder::create($quotationData);
 
         return response()->json($quotationOrder, 201);

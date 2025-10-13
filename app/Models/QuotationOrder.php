@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use App\Models\User;
 
 class QuotationOrder extends Model
 {
@@ -11,6 +12,7 @@ class QuotationOrder extends Model
      * Attributes:
      *
      * $this->attributes['id'] - int - Primary key identifier
+     * $this->attributes['user_id'] - int|null - Foreign key referencing users.id
      * $this->attributes['service_type_id'] - int|null - Foreign key referencing service_types.id
      * $this->attributes['gestion_line_id'] - int|null - Foreign key referencing gestion_lines.id
      * $this->attributes['is_generated'] - bool - Indicates if the quotation has been generated
@@ -28,6 +30,7 @@ class QuotationOrder extends Model
      */
     protected $fillable = [
         'id',
+        'user_id',
         'service_type_id',
         'gestion_line_id',
         'is_generated',
@@ -63,6 +66,14 @@ class QuotationOrder extends Model
     */
 
     /**
+     * Get the user that owns this quotation order.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
      * Get the service type associated with this quotation order.
      */
     public function serviceType()
@@ -88,6 +99,17 @@ class QuotationOrder extends Model
     public function getId(): int
     {
         return $this->attributes['id'];
+    }
+
+    // User ID
+    public function getUserId(): ?int
+    {
+        return $this->attributes['user_id'] ?? null;
+    }
+
+    public function setUserId(?int $value): void
+    {
+        $this->attributes['user_id'] = $value;
     }
 
     // Service Type ID
