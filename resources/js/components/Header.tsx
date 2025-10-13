@@ -1,12 +1,14 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import { route } from 'ziggy-js';
-import { Menu, X, Search, ChevronDown, ClipboardList, Shield } from 'lucide-react';
+import { Menu, X, Search, ChevronDown, ClipboardList, Shield, User } from 'lucide-react';
 import { FaFacebook, FaLinkedin } from 'react-icons/fa';
+
 
 const Header = () => {
   
   const [expandedItemId, setExpandedItemId] = useState<number | null>(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpenMobile, setIsDropdownOpenMobile] = useState(false);
   const [isServicesDropdownOpenMobile, setIsServicesDropdownOpenMobile] = useState(false);
@@ -186,6 +188,35 @@ const Header = () => {
                 )}
               </button>
 
+              {/* 👤 Panel de usuario */}
+          <div className="relative">
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition-all shadow-sm"
+              title="Panel de usuario"
+            >
+              <User className="h-5 w-5" />
+            </button>
+
+            {showUserMenu && (
+              <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-10">
+                <a
+                  href={route('user.profile')}
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-xl"
+                >
+                  Perfil usuario
+                </a>
+                <a
+                  href={route('user.orders')}
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-b-xl"
+                >
+                  Órdenes cotización
+                </a>
+              </div>
+            )}
+          </div>
+
+
               {/* 🚀 Botón Admin */}
               <a
                 href={route('admin.dashboard')}
@@ -196,6 +227,12 @@ const Header = () => {
                 <span>Admin</span>
               </a>
             </nav>
+
+            
+
+
+
+
 
             {/* Mobile menu button */}
             <button

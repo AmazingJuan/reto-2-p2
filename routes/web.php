@@ -10,6 +10,8 @@ use App\Http\Controllers\Portfolio\Quotation\QuotationController;
 use App\Http\Controllers\Portfolio\Quotation\QuotationListController;
 use App\Http\Controllers\Portfolio\Services\ServicesController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+use App\Http\Controllers\QuotationOrderController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -28,6 +30,21 @@ Route::prefix('lista')->middleware(['ajax'])->group(function () {
     Route::post('/add', [QuotationListController::class, 'add'])->name('list.add');         // agregar item
     Route::put('/{id}', [QuotationListController::class, 'update'])->name('list.update'); // actualizar item
     Route::delete('/{id}', [QuotationListController::class, 'destroy'])->name('list.destroy'); // eliminar item
+});
+
+/*Route::prefix('usuario')->group(function () {
+        Route::get('/', [QuotationOrderController::class, 'userProfile'])
+            ->name('user.profile');
+            
+        Route::get('/ordenes-cotizacion', [QuotationOrderController::class, 'quotationOrder'])
+            ->name('user.orders');
+    });*/
+
+Route::prefix('usuario')->group(function () {
+    Route::get('/', function () {return Inertia::render('users/userProfile');})->name('user.profile');
+
+    Route::get('/ordenes-cotizacion', [QuotationOrderController::class, 'quotationOrder'])
+        ->name('user.orders');
 });
 
 Route::prefix('admin')->group(function () {
@@ -54,4 +71,7 @@ Route::prefix('admin')->group(function () {
     Route::get('/ordenes-cotizacion/{id}', [AdminQuotationOrderController::class, 'show']) ->name('admin.quotation-orders.show');
 
     }
+
+    
+
 );
