@@ -17,6 +17,6 @@ class UserQuotationOrderController extends Controller
         $quotationOrders = $user->quotationOrders;
         $viewData['quotationOrders'] = $quotationOrders;
 
-        return Inertia::render('users/quotation-orders/index');
+        return Inertia::render('users/quotation-orders/index', ['viewData' => $viewData]);
     }
 }

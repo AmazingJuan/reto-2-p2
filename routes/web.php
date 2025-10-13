@@ -37,6 +37,8 @@ Route::prefix('usuario')->group(function () {
 
     Route::get('/ordenes-cotizacion', [UserQuotationOrderController::class, 'index'])
         ->name('user.orders');
+    Route::get('/ordenes-cotizacion/{id}', [UserQuotationOrderController::class, 'show'])
+        ->name('user.orders.show');
 });
 
 Route::prefix('admin')->group(function () {
