@@ -411,7 +411,7 @@ const Header = () => {
                   }`}
                 >
                   <h4 className="text-lg font-bold text-blue-600 uppercase tracking-wide">
-                    {item.serviceType || `Cotización #${item.id}`}
+                    {item.service_type || `Cotización #${item.id}`}
                   </h4>
                   <span
                     className={`transform transition-transform ${

@@ -553,48 +553,117 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
           )}
           
           {/* Botones de acción */}
-          <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={addToQuotationList}
-              disabled={loading || selectedServices.length === 0}
-              className={`px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 flex items-center ${
-                loading || selectedServices.length === 0 ? "opacity-60 cursor-not-allowed" : "hover:bg-gray-700"
-              }`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-              </svg>
-              {loading ? "Enviando..." : "Añadir a lista de cotización"}
-            </button>
+<div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
+  {/* Botón: Añadir a lista de cotización (sin cambios) */}
+  <button
+    type="button"
+    onClick={addToQuotationList}
+    disabled={loading || selectedServices.length === 0}
+    className={`px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 flex items-center ${
+      loading || selectedServices.length === 0
+        ? "opacity-60 cursor-not-allowed"
+        : "hover:bg-gray-700"
+    }`}
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="h-5 w-5 mr-2"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+      />
+    </svg>
+    {loading ? "Enviando..." : "Añadir a lista de cotización"}
+  </button>
 
-            <button
-              type="button"
-              onClick={() => alert("¡Solicitud de cotización enviada!")}
-              disabled={selectedServices.length === 0}
-              className={`px-8 py-3 font-semibold rounded-lg shadow-md transition-all transform focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center ${
-                selectedServices.length === 0
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-blue-600 text-white hover:bg-blue-700 hover:-translate-y-0.5"
-              }`}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                />
-              </svg>
-              Cotizar ahora
-            </button>
-          </div>
+  {/* Botón: Cotizar ahora (envía datos a quotation_order.create) */}
+  {/* Botón: Cotizar ahora (envía datos a quotation_order.create) */}
+<button
+  type="button"
+  onClick={async () => {
+    if (selectedServices.length === 0) return;
+
+    // Construir datos igual que en addToQuotationList
+    const options: Record<string, string | string[] | number> = {};
+
+    Object.entries(conditionResponses).forEach(([conditionId, value]) => {
+      const condition = viewData.conditionsArray?.[parseInt(conditionId)];
+      if (condition && condition.name) {
+        options[condition.name] = value;
+      }
+    });
+
+    const servicesArr: { id: string; name: string }[] = selectedServices
+      .map((serviceId) => {
+        const service = viewData.services?.find((s) => s.id === serviceId);
+        return service ? { id: service.id, name: service.name } : null;
+      })
+      .filter(Boolean) as { id: string; name: string }[];
+
+    if (servicesArr.length === 0) {
+      alert("Debes seleccionar al menos un servicio.");
+      return;
+    }
+
+    try {
+      await axios.get("/sanctum/csrf-cookie", { withCredentials: true });
+
+      const gestionLine = selectedGestionLineId
+        ? viewData.gestionLines?.find((gl) => gl.id === selectedGestionLineId)
+        : undefined;
+
+      await axios.post(
+        route("quotation_order.create"),
+        {
+          services: servicesArr,
+          options,
+          service_type_id: viewData.serviceTypeId,
+          service_type: viewData.serviceType,
+          gestion_line: gestionLine?.name ?? null,
+          gestion_line_id: selectedGestionLineId ?? null,
+        },
+        { withCredentials: true }
+      );
+
+      alert("¡Solicitud de cotización enviada!");
+      // Si deseas redirigir después:
+      // window.location.href = route("quotation_order.index");
+    } catch (error) {
+      console.error("Error al enviar la solicitud de cotización:", error);
+      alert("Hubo un error al enviar la solicitud. Intenta nuevamente.");
+    }
+  }}
+  disabled={selectedServices.length === 0}
+  className={`px-8 py-3 font-semibold rounded-lg shadow-md transition-all transform focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center ${
+    selectedServices.length === 0
+      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+      : "bg-blue-600 text-white hover:bg-blue-700 hover:-translate-y-0.5"
+  }`}
+>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-5 w-5 mr-2"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+    />
+  </svg>
+  Cotizar ahora
+</button>
+</div>
+
         </div>
         
         <div className="bg-blue-50 rounded-xl p-6 border border-blue-100">
