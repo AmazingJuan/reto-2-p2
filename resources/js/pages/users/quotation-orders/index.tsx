@@ -2,7 +2,6 @@ import React from 'react';
 import Layout from '@/layouts/Layout';
 import { Download } from 'lucide-react';
 
-
 interface QuotationOrder {
   id: number;
   is_generated: boolean;
@@ -26,7 +25,7 @@ export default function Index({ viewData }: Props) {
             <span role="img" aria-label="document">🧾</span> Mis Cotizaciones
           </h1>
 
-          {quotationOrders.length === 0 ? (
+          {!quotationOrders || quotationOrders.length === 0 ? (
             <p className="text-center text-gray-600 text-lg">
               No tienes cotizaciones generadas todavía.
             </p>
@@ -40,6 +39,7 @@ export default function Index({ viewData }: Props) {
                   <h2 className="text-xl font-semibold text-gray-800 mb-2">
                     Cotización #{q.id}
                   </h2>
+
                   <p
                     className={`text-sm font-medium mb-3 ${
                       q.is_generated ? 'text-green-600' : 'text-yellow-600'
@@ -48,22 +48,33 @@ export default function Index({ viewData }: Props) {
                     {q.is_generated ? 'Generada ✅' : 'Pendiente ⏳'}
                   </p>
 
-                  {q.is_generated && q.quotation_url ? (
-                  <a
-                    href={q.quotation_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-blue-600 font-medium hover:underline"
-                    title="Descargar cotización"
+                  <div className="flex items-center justify-between">
+                    {/* Enlace al show */}
+                    <a
+                      href={`/usuario/ordenes-cotizacion/${q.id}`}
+                      className="text-blue-600 font-medium hover:underline"
+                      title={`Ver detalles de la cotización ${q.id}`}
+                    >
+                      Ver detalles
+                    </a>
+
+                    {/* Descarga (si existe) */}
+                    {q.is_generated && q.quotation_url ? (
+                      <a
+                        href={q.quotation_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-blue-600 font-medium hover:text-blue-800 transition-colors"
+                        title="Descargar cotización"
                       >
                         <Download className="h-5 w-5" />
                       </a>
                     ) : (
-                  <span className="text-gray-400 text-sm italic">
-                  No disponible
-                </span>
-                )}
-
+                      <span className="text-gray-400 text-sm italic">
+                        - No disponible
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

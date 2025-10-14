@@ -21,6 +21,20 @@ interface Props {
 export default function Show({ viewData }: Props) {
   const { quotationOrder } = viewData;
 
+  const renderKeyValueList = (data: Record<string, any>) => (
+    <div className="grid gap-2 mt-2">
+      {Object.entries(data).map(([key, value]) => (
+        <div
+          key={key}
+          className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 flex justify-between"
+        >
+          <span className="font-medium text-gray-700">{key}:</span>
+          <span className="text-gray-600">{String(value)}</span>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <Layout>
       <div className="min-h-screen bg-gray-50 py-12 px-8">
@@ -39,35 +53,17 @@ export default function Show({ viewData }: Props) {
               )}
             </div>
 
-            {quotationOrder.service_type_id && (
-              <div>
-                <strong>ID Tipo de servicio:</strong>{' '}
-                {quotationOrder.service_type_id}
-              </div>
-            )}
-
-            {quotationOrder.gestion_line_id && (
-              <div>
-                <strong>ID Línea de gestión:</strong>{' '}
-                {quotationOrder.gestion_line_id}
-              </div>
-            )}
-
             {quotationOrder.services && (
               <div>
                 <strong>Servicios incluidos:</strong>
-                <pre className="bg-gray-100 text-sm rounded-lg p-4 overflow-x-auto mt-2">
-                  {JSON.stringify(quotationOrder.services, null, 2)}
-                </pre>
+                {renderKeyValueList(quotationOrder.services)}
               </div>
             )}
 
             {quotationOrder.options && (
               <div>
                 <strong>Opciones adicionales:</strong>
-                <pre className="bg-gray-100 text-sm rounded-lg p-4 overflow-x-auto mt-2">
-                  {JSON.stringify(quotationOrder.options, null, 2)}
-                </pre>
+                {renderKeyValueList(quotationOrder.options)}
               </div>
             )}
 
@@ -85,9 +81,7 @@ export default function Show({ viewData }: Props) {
                 </a>
               </div>
             ) : (
-              <p className="text-gray-500 italic">
-                Documento no disponible.
-              </p>
+              <p className="text-gray-500 italic">Documento no disponible.</p>
             )}
           </div>
 
