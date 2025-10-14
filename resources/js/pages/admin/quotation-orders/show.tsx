@@ -3,12 +3,17 @@ import AdminLayout from "../../../layouts/AdminLayout";
 import { ArrowLeft, Download } from "lucide-react";
 import { route } from "ziggy-js";
 
+interface Service {
+  id: string | number;
+  name: string;
+}
+
 interface QuotationOrder {
-  id: number;
+  id: number | string;
   service_type_id?: number;
   gestion_line_id?: number;
   is_generated: boolean;
-  services?: Record<string, any>;
+  services?: Service[];
   options?: Record<string, any>;
   quotation_url?: string;
 }
@@ -32,6 +37,17 @@ export default function Show() {
       </AdminLayout>
     );
   }
+
+  const renderOptions = (options: Record<string, any>) => (
+    <ul className="list-disc ml-5 space-y-1">
+      {Object.entries(options).map(([key, value]) => (
+        <li key={key}>
+          <span className="font-medium">{key}: </span>
+          {Array.isArray(value) ? value.join(", ") : String(value)}
+        </li>
+      ))}
+    </ul>
+  );
 
   return (
     <AdminLayout>
@@ -109,19 +125,14 @@ export default function Show() {
               )}
 
               {/* Servicios */}
-              {quotationOrder.services && (
+              {quotationOrder.services && quotationOrder.services.length > 0 && (
                 <tr className="border-b align-top">
                   <td className="py-3 font-semibold text-gray-600">Servicios</td>
                   <td className="py-3">
                     <ul className="list-disc ml-5 space-y-1">
-                      {Object.entries(quotationOrder.services).map(
-                        ([key, value]) => (
-                          <li key={key}>
-                            <span className="font-medium">{key}: </span>
-                            {String(value)}
-                          </li>
-                        )
-                      )}
+                      {quotationOrder.services.map((service) => (
+                        <li key={service.id}>{service.name}</li>
+                      ))}
                     </ul>
                   </td>
                 </tr>
@@ -131,18 +142,7 @@ export default function Show() {
               {quotationOrder.options && (
                 <tr className="align-top">
                   <td className="py-3 font-semibold text-gray-600">Opciones</td>
-                  <td className="py-3">
-                    <ul className="list-disc ml-5 space-y-1">
-                      {Object.entries(quotationOrder.options).map(
-                        ([key, value]) => (
-                          <li key={key}>
-                            <span className="font-medium">{key}: </span>
-                            {String(value)}
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  </td>
+                  <td className="py-3">{renderOptions(quotationOrder.options)}</td>
                 </tr>
               )}
             </tbody>

@@ -3,11 +3,11 @@ import Layout from '@/layouts/Layout';
 import { Download } from 'lucide-react';
 
 interface QuotationOrder {
-  id: number;
-  service_type_id?: number;
+  id: string;
+  service_type_id?: string;
   gestion_line_id?: number;
   is_generated: boolean;
-  services?: Record<string, any>;
+  services?: { id: string; name: string }[];
   options?: Record<string, any>;
   quotation_url?: string;
 }
@@ -21,7 +21,7 @@ interface Props {
 export default function Show({ viewData }: Props) {
   const { quotationOrder } = viewData;
 
-  const renderKeyValueList = (data: Record<string, any>) => (
+  const renderOptions = (data: Record<string, any>) => (
     <div className="grid gap-2 mt-2">
       {Object.entries(data).map(([key, value]) => (
         <div
@@ -29,7 +29,9 @@ export default function Show({ viewData }: Props) {
           className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 flex justify-between"
         >
           <span className="font-medium text-gray-700">{key}:</span>
-          <span className="text-gray-600">{String(value)}</span>
+          <span className="text-gray-600">
+            {Array.isArray(value) ? value.join(', ') : String(value)}
+          </span>
         </div>
       ))}
     </div>
@@ -53,17 +55,23 @@ export default function Show({ viewData }: Props) {
               )}
             </div>
 
-            {quotationOrder.services && (
+            {quotationOrder.services && quotationOrder.services.length > 0 && (
               <div>
                 <strong>Servicios incluidos:</strong>
-                {renderKeyValueList(quotationOrder.services)}
+                <ul className="list-disc list-inside mt-2">
+                  {quotationOrder.services.map((service) => (
+                    <li key={service.id} className="text-gray-600">
+                      {service.name}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
 
             {quotationOrder.options && (
               <div>
                 <strong>Opciones adicionales:</strong>
-                {renderKeyValueList(quotationOrder.options)}
+                {renderOptions(quotationOrder.options)}
               </div>
             )}
 

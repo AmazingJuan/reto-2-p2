@@ -31,6 +31,7 @@ class QuotationListController extends Controller
 
         $quotationList[] = $listItem;
         session()->put('quotation_list', $quotationList);
+
         return response()->json([
             'quotation_list' => $quotationList,
         ], 201);
