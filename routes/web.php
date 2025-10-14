@@ -9,8 +9,8 @@ use App\Http\Controllers\Portfolio\PortfolioController;
 use App\Http\Controllers\Portfolio\Quotation\QuotationController;
 use App\Http\Controllers\Portfolio\Quotation\QuotationListController;
 use App\Http\Controllers\Portfolio\Services\ServicesController;
-use App\Http\Controllers\User\UserQuotationOrderController;
 use App\Http\Controllers\User\UserProfileController;
+use App\Http\Controllers\User\UserQuotationOrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -62,10 +62,8 @@ Route::prefix('admin')->group(function () {
 
     // Ordenes de cotización
     Route::get('/ordenes-cotizacion', [AdminQuotationOrderController::class, 'index'])->name('admin.quotation-orders.index');
-    Route::get('/ordenes-cotizacion/{id}', [AdminQuotationOrderController::class, 'show']) ->name('admin.quotation-orders.show');
+    Route::get('/ordenes-cotizacion/{id}', [AdminQuotationOrderController::class, 'show'])->name('admin.quotation-orders.show');
 
-    }
-
-    
+}
 
 );

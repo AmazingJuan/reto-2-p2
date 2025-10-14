@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('quotation_orders', function (Blueprint $table) {
             $table->id();
-            
+
             $table->string('service_type_id')->nullable();
             $table->foreign('service_type_id')
                 ->references('id')
