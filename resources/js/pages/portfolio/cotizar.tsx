@@ -215,12 +215,6 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
     const options: Record<string, string | string[] | number> = {};
     
     // Agregar línea de gestión seleccionada
-    if (selectedGestionLineId) {
-      const gestionLine = viewData.gestionLines?.find(gl => gl.id === selectedGestionLineId);
-      if (gestionLine) {
-        options['Línea de gestión'] = gestionLine.name;
-      }
-    }
     
     // Agregar respuestas del árbol de condiciones
     Object.entries(conditionResponses).forEach(([conditionId, value]) => {
@@ -247,14 +241,21 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
         withCredentials: true,
       });
 
+      const gestionLine = selectedGestionLineId
+        ? viewData.gestionLines?.find(gl => gl.id === selectedGestionLineId)
+        : undefined;
+
       await axios.post(
         route("list.add"),
-        {
-          services: servicesArr,
-          options,
-          serviceTypeId: viewData.serviceTypeId,
-          serviceType: viewData.serviceType
-        },
+          {
+            services: servicesArr,
+            options,
+            service_type_id: viewData.serviceTypeId,
+            service_type: viewData.serviceType,
+            // usar ":" para asignar en el objeto y enviar snake_case
+            gestion_line: gestionLine?.name ?? null,
+            gestion_line_id: selectedGestionLineId ?? null,
+          },
         { withCredentials: true }
       );
 

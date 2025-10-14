@@ -12,7 +12,6 @@ use App\Http\Controllers\Portfolio\Services\ServicesController;
 use App\Http\Controllers\User\UserProfileController;
 use App\Http\Controllers\User\UserQuotationOrderController;
 use App\Http\Controllers\TestApi\QuotationTestApiController;
-
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
