@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\TestApi;
 
 use App\Http\Controllers\Controller;
 use App\Models\QuotationOrder;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class QuotationApiTestController extends Controller
+class QuotationTestApiController extends Controller
 {
     public function index(): Response
     {
