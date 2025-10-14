@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Portfolio\Quotation;
 
 use App\Http\Controllers\Controller;
-use App\Models\Condition;
 use App\Models\GestionLine;
 use App\Models\ServiceType;
 use App\Repositories\ServiceTypeRepository;
@@ -45,34 +44,22 @@ class QuotationController extends Controller
 
         $initialConditionId = $serviceType->getInitialConditionId();
 
-        // QUITAR TODO ESTO
-        $lineaGestionCondition = Condition::where('name', 'Línea de gestión')
-            ->where('is_fixed', true)
-            ->first();
-
-        $lineaGestionData = null;
-        if ($lineaGestionCondition) {
-            $lineaGestionData = [
-                'name' => $lineaGestionCondition->getName(),
-                'items' => $lineaGestionCondition->conditionValues->pluck('value')->toArray(),
-                'flags' => [
-                    'allows_other_values' => $lineaGestionCondition->allowsOtherValues(),
-                    'allows_multiple_values' => $lineaGestionCondition->allowsMultipleValues(),
-                    'is_time' => $lineaGestionCondition->getType() === 'time',
-                    'is_fixed' => $lineaGestionCondition->isFixed(),
-                ],
+        // Servicios con su gestion_line_id
+        $services = $serviceType->services->map(function ($service) {
+            return [
+                'id' => (string) $service->id,
+                'name' => $service->name,
+                'gestion_line_id' => $service->gestion_line_id,
             ];
-        }
+        })->values()->all();
 
         $viewData = [
             'serviceTypeId' => $serviceTypeId,
             'serviceType' => $serviceType->getName(),
             'conditionsArray' => $this->conditionService->resolveConditions($initialConditionId),
-            'services' => $serviceType->services->pluck('name', 'id')->all(),
+            'services' => $services,
             'initialConditionId' => $initialConditionId,
             'gestionLines' => $gestionLines,
-            // QUITAR
-            'lineaGestion' => $lineaGestionData,
         ];
 
         return inertia('portfolio/cotizar', [

@@ -103,7 +103,7 @@ class ConditionsTableSeeder extends Seeder
             'Alimentación',
         ]);
 
-        // Duración y dedicación (selección directa desde modalidad)
+        // Duración y dedicación
         $duracionAuditoriaCondition = $this->conditionService->create([
             'name' => 'Duración y dedicación',
         ], [
@@ -112,12 +112,12 @@ class ConditionsTableSeeder extends Seeder
             ['value' => '>5 días (empresas grandes/multisede)', 'next_condition_id' => $viaticosAuditoriaCondition->getId()],
         ]);
 
-        // 3. Modalidad de prestación (todas llevan a duración y dedicación; se eliminan preguntas de días específicos)
+        // Modalidad de prestación
         $modalidadAuditoriaCondition = $this->conditionService->create([
             'name' => 'Modalidad de prestación',
         ], [
             ['value' => 'Presencial', 'next_condition_id' => $duracionAuditoriaCondition->getId()],
-            ['value' => 'Virtual (documental)', 'next_condition_id' => $duracionAuditoriaCondition->getId()],
+            ['value' => 'Virtual (documental)', 'next_condition_id' => $procesosAreasAuditoriaCondition->getId()], // Salta viáticos
             ['value' => 'Híbrida (Mixta)', 'next_condition_id' => $duracionAuditoriaCondition->getId()],
         ]);
 
@@ -125,12 +125,12 @@ class ConditionsTableSeeder extends Seeder
         $normaAuditoriaCondition = $this->conditionService->create([
             'name' => 'Norma o estándar aplicable',
             'next_condition_id' => $modalidadAuditoriaCondition->getId(),
+            'allows_multiple_values' => true,
         ], ['ISO 9001', 'ISO 14001', 'ISO 45001', 'ISO 37001', 'ISO 31000', 'ISO 55001']);
 
-        // 1. Tipo de servicio (primera condición del árbol con lógica)
+        // 1. Tipo de servicio
         $tipoServicioAuditoriaCondition = $this->conditionService->create([
             'name' => 'Tipo de servicio',
-            // Solo se puede elegir uno; se elimina allows_multiple_values para forzar selección única
         ], [
             ['value' => 'Auditoría interna (ISO 9001, 14001, 45001, 37001, 55001)', 'next_condition_id' => $normaAuditoriaCondition->getId()],
             ['value' => 'Auditoría de segunda parte (proveedores)', 'next_condition_id' => $modalidadAuditoriaCondition->getId()],
@@ -162,6 +162,7 @@ class ConditionsTableSeeder extends Seeder
         // Viáticos y logística (último paso)
         $viaticosConsultoriaCondition = $this->conditionService->create([
             'name' => 'Viáticos y logística',
+            'description' => 'Las opciones seleccionadas serán cubiertas por Training Corporation. Las no seleccionadas se asume que serán cubiertas por el cliente.',
             'allows_multiple_values' => true,
         ], [
             'Transporte',
@@ -170,14 +171,12 @@ class ConditionsTableSeeder extends Seeder
         ]);
 
         // Modalidad de prestación
-
         $modalidadConsultoriaCondition = $this->conditionService->create([
             'name' => 'Modalidad de prestación',
-            'next_condition_id' => $viaticosConsultoriaCondition->getId(),
         ], [
-            'Presencial',
-            'Virtual',
-            'Híbrida (Mixta)',
+            ['value' => 'Presencial', 'next_condition_id' => $viaticosConsultoriaCondition->getId()],
+            ['value' => 'Virtual', 'next_condition_id' => null], // Fin del árbol, sin viáticos
+            ['value' => 'Híbrida (Mixta)', 'next_condition_id' => $viaticosConsultoriaCondition->getId()],
         ]);
 
         // Línea de gestión (condición independiente)
@@ -205,6 +204,7 @@ class ConditionsTableSeeder extends Seeder
         // Viáticos y logística (último paso)
         $viaticosFormacionCondition = $this->conditionService->create([
             'name' => 'Viáticos y logística',
+            'description' => 'Las opciones seleccionadas serán cubiertas por Training Corporation. Las no seleccionadas se asume que serán cubiertas por el cliente.',
             'allows_multiple_values' => true,
         ], [
             'Transporte',
@@ -212,14 +212,13 @@ class ConditionsTableSeeder extends Seeder
             'Alimentación',
         ]);
 
-        // Modalidad de prestación (inicial)
+        // Modalidad de prestación
         $modalidadFormacionCondition = $this->conditionService->create([
             'name' => 'Modalidad de prestación',
-            'next_condition_id' => $viaticosFormacionCondition->getId(),
         ], [
-            'Presencial',
-            'Virtual',
-            'Híbrida (Mixta)',
+            ['value' => 'Presencial', 'next_condition_id' => $viaticosFormacionCondition->getId()],
+            ['value' => 'Virtual', 'next_condition_id' => null], // Fin del árbol, sin viáticos
+            ['value' => 'Híbrida (Mixta)', 'next_condition_id' => $viaticosFormacionCondition->getId()],
         ]);
 
         // Línea de gestión (condición independiente)

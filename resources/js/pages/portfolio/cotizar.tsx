@@ -22,24 +22,25 @@ type ConditionArrayItem = {
   };
 };
 
+interface GestionLine {
+  id: number;
+  name: string;
+}
+
+interface Service {
+  id: string;
+  name: string;
+  gestion_line_id: number;
+}
+
 interface ViewData {
   serviceType: string;
   serviceTypeId: string;
   serviceId: string | null;
-  conditions?: Record<string, unknown>; // Mantenemos para compatibilidad hacia atrás
   conditionsArray?: { [key: number]: ConditionArrayItem };
-  services?: { [key: string]: string };
+  services?: Service[];
   initialConditionId?: number;
-  lineaGestion?: {
-    name: string;
-    items: string[];
-    flags: {
-      allows_other_values: boolean;
-      allows_multiple_values: boolean;
-      is_time: boolean;
-      is_fixed: boolean;
-    };
-  };
+  gestionLines?: GestionLine[];
 }
 
 interface CotizarProps {
@@ -47,52 +48,62 @@ interface CotizarProps {
 }
 
 const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
-  const [responses, setResponses] = useState<{ [key: string]: string | string[] }>({});
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
-  // Estados para navegación del árbol de decisiones
-  const [currentConditionId, setCurrentConditionId] = useState<number | null>(viewData.initialConditionId || null);
+  // Estado para la línea de gestión seleccionada
+  const [selectedGestionLineId, setSelectedGestionLineId] = useState<number | null>(null);
+  
+  // Estado para servicios seleccionados
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  
+  // Estados para navegación del árbol de condiciones
+  const [currentConditionId, setCurrentConditionId] = useState<number | null>(null);
   const [conditionHistory, setConditionHistory] = useState<number[]>([]);
   const [conditionResponses, setConditionResponses] = useState<{ [conditionId: number]: string | string[] }>({});
-  const [showFinalStep, setShowFinalStep] = useState(false);
+  const [showConditionsTree, setShowConditionsTree] = useState(false);
 
-  // Id to name mapping for services (compatible con ambas estructuras)
-  const serviceIdNameMap = Object.entries(
-    viewData.services || {}
-  ).reduce(
-    (acc, [id, name]) => ({ ...acc, [id]: name as string }),
-    {} as Record<string, string>
-  );
+  // Servicios filtrados por línea de gestión
+  const filteredServices = selectedGestionLineId 
+    ? (viewData.services || []).filter(service => service.gestion_line_id === selectedGestionLineId)
+    : [];
 
-  const handleSelect = useCallback((section: string, value: string, flags: Flags) => {
-    setResponses((prev) => {
-      if (flags.allows_multiple_values) {
-        const prevArray: string[] = Array.isArray(prev[section]) ? prev[section] as string[] : [];
-        if (prevArray.includes(value)) {
-          return { ...prev, [section]: prevArray.filter((v) => v !== value) };
-        } else {
-          return { ...prev, [section]: [...prevArray, value] };
-        }
-      } else {
-        return { ...prev, [section]: value };
-      }
-    });
+  // Maneja la selección de línea de gestión
+  const handleGestionLineSelect = useCallback((gestionLineId: number) => {
+    setSelectedGestionLineId(gestionLineId);
+    setSelectedServices([]);
+    setShowConditionsTree(false);
+    setCurrentConditionId(null);
+    setConditionHistory([]);
+    setConditionResponses({});
+    setErrorMsg(null);
   }, []);
 
-  // ===== FUNCIONES DE NAVEGACIÓN DEL ÁRBOL DE DECISIONES =====
+  // Maneja la selección de servicios
+
+  const handleServiceToggle = useCallback((serviceId: string) => {
+    setSelectedServices(prev => {
+      const newSelected = prev.includes(serviceId) 
+        ? prev.filter(id => id !== serviceId)
+        : [...prev, serviceId];
+      
+      if (newSelected.length > 0 && !showConditionsTree) {
+        setShowConditionsTree(true);
+        setCurrentConditionId(viewData.initialConditionId || null);
+      } else if (newSelected.length === 0) {
+        setShowConditionsTree(false);
+        setCurrentConditionId(null);
+        setConditionHistory([]);
+        setConditionResponses({});
+      }
+      
+      return newSelected;
+    });
+  }, [showConditionsTree, viewData.initialConditionId]);
+
+  // Funciones de navegación del árbol de condiciones
   
-  // Función para verificar si un servicio está seleccionado
-  const isSelected = useCallback((section: string, value: string, flags: Flags): boolean => {
-    if (!responses[section]) return false;
-    if (flags.allows_multiple_values) {
-      return Array.isArray(responses[section]) && (responses[section] as string[]).includes(value);
-    } else {
-      return responses[section] === value;
-    }
-  }, [responses]);
-  
-  // Obtiene la condición actual basada en currentConditionId
+  // Obtiene la condición actual
   const getCurrentCondition = useCallback(() => {
     if (!currentConditionId || !viewData.conditionsArray) return null;
     return viewData.conditionsArray[currentConditionId];
@@ -155,20 +166,25 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
       // Navegar a la siguiente condición
       setCurrentConditionId(nextConditionId);
     } else {
-      // No hay más condiciones, mostrar paso final
-      setShowFinalStep(true);
+      // No hay más condiciones, fin del árbol
       setCurrentConditionId(null);
     }
   }, [getCurrentCondition, currentConditionId, conditionResponses]);
 
   // Navega hacia atrás en el árbol
   const navigateBack = useCallback(() => {
-    if (conditionHistory.length === 0) return;
+    if (conditionHistory.length === 0) {
+      // Si no hay historial, volver a servicios
+      setShowConditionsTree(false);
+      setCurrentConditionId(null);
+      setConditionResponses({});
+      setErrorMsg(null);
+      return;
+    }
 
     const previousConditionId = conditionHistory[conditionHistory.length - 1];
     setConditionHistory(prev => prev.slice(0, -1));
     setCurrentConditionId(previousConditionId);
-    setShowFinalStep(false);
     setErrorMsg(null);
   }, [conditionHistory]);
 
@@ -184,9 +200,8 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
     }
   }, [currentConditionId, conditionResponses]);
 
-  // ===== FIN FUNCIONES DE NAVEGACIÓN =====
 
-  // Data validation
+  // Validación de datos
   const validate = (servicesArr: { id: string; name: string }[]) => {
     if (!servicesArr.length) {
       setErrorMsg('Debes seleccionar al menos un servicio.');
@@ -197,167 +212,73 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
   };
   
   const addToQuotationList = async () => {
-    // Para el nuevo sistema de árbol de decisiones
-    if (viewData.conditionsArray) {
-      const { services: selectedServices, ...otherResponses } = responses;
-
-      // Compilar las respuestas del árbol de decisiones
-      const options: Record<string, string | string[] | number> = {};
-      
-      // Agregar línea de gestión si está seleccionada
-      if (responses.lineaGestion) {
-        options['Línea de gestión'] = responses.lineaGestion;
+    const options: Record<string, string | string[] | number> = {};
+    
+    // Agregar línea de gestión seleccionada
+    if (selectedGestionLineId) {
+      const gestionLine = viewData.gestionLines?.find(gl => gl.id === selectedGestionLineId);
+      if (gestionLine) {
+        options['Línea de gestión'] = gestionLine.name;
       }
-      
-      // Agregar respuestas del árbol de decisiones
-      Object.entries(conditionResponses).forEach(([conditionId, value]) => {
-        const condition = viewData.conditionsArray?.[parseInt(conditionId)];
-        if (condition && condition.name) {
-          options[condition.name] = value;
-        }
+    }
+    
+    // Agregar respuestas del árbol de condiciones
+    Object.entries(conditionResponses).forEach(([conditionId, value]) => {
+      const condition = viewData.conditionsArray?.[parseInt(conditionId)];
+      if (condition && condition.name) {
+        options[condition.name] = value;
+      }
+    });
+
+    // Construir array de servicios
+    const servicesArr: { id: string; name: string }[] = selectedServices
+      .map((serviceId) => {
+        const service = viewData.services?.find(s => s.id === serviceId);
+        return service ? { id: service.id, name: service.name } : null;
+      })
+      .filter(Boolean) as { id: string; name: string }[];
+
+    if (!validate(servicesArr)) return;
+
+    setLoading(true);
+
+    try {
+      await axios.get("/sanctum/csrf-cookie", {
+        withCredentials: true,
       });
 
-      // Agregar cualquier respuesta adicional del sistema anterior (para compatibilidad)
-      Object.entries(otherResponses).forEach(([key, value]) => {
-        if (key !== 'lineaGestion') { // Evitar duplicados
-          options[key] = value;
-        }
-      });
+      await axios.post(
+        route("list.add"),
+        {
+          services: servicesArr,
+          options,
+          serviceTypeId: viewData.serviceTypeId,
+          serviceType: viewData.serviceType
+        },
+        { withCredentials: true }
+      );
 
-      let servicesArr: { id: string; name: string }[] = [];
-      if (Array.isArray(selectedServices)) {
-        servicesArr = selectedServices
-          .map((name: string) => {
-            const id = Object.keys(serviceIdNameMap).find(
-              (serviceId) => serviceIdNameMap[serviceId] === name
-            );
-            return id ? { id, name } : null;
-          })
-          .filter(Boolean) as { id: string; name: string }[];
-      } else if (selectedServices) {
-        const id = Object.keys(serviceIdNameMap).find(
-          (serviceId) => serviceIdNameMap[serviceId] === selectedServices
-        );
-        if (id) servicesArr = [{ id, name: selectedServices }];
-      }
+      alert("Cotización añadida a tu lista correctamente");
 
-      if (!validate(servicesArr)) return;
-
-      setLoading(true);
-
-      try {
-        // 1. Initialize CSRF cookie (necessary with Sanctum in different domains)
-        await axios.get("/sanctum/csrf-cookie", {
-          withCredentials: true,
-        });
-
-        // 2. Send form to backend
-        await axios.post(
-          route("list.add"),
-          {
-            services: servicesArr,
-            options,
-            serviceTypeId: viewData.serviceTypeId,
-            serviceType: viewData.serviceType
-          },
-          { withCredentials: true }
-        );
-
-        alert("Cotización añadida a tu lista correctamente");
-
-        // Reset del nuevo sistema
-        setResponses({});
-        setConditionResponses({});
-        setCurrentConditionId(viewData.initialConditionId || null);
-        setConditionHistory([]);
-        setShowFinalStep(false);
-      } catch (error: unknown) {
-        if (error && typeof error === 'object' && 'response' in error) {
-          const axiosError = error as { response?: { data?: { message?: string } } };
-          if (axiosError.response?.data?.message) {
-            setErrorMsg(axiosError.response.data.message);
-          } else {
-            setErrorMsg("Error al añadir a la lista");
-          }
+      setSelectedGestionLineId(null);
+      setSelectedServices([]);
+      setConditionResponses({});
+      setCurrentConditionId(null);
+      setConditionHistory([]);
+      setShowConditionsTree(false);
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: { message?: string } } };
+        if (axiosError.response?.data?.message) {
+          setErrorMsg(axiosError.response.data.message);
         } else {
           setErrorMsg("Error al añadir a la lista");
         }
-      } finally {
-        setLoading(false);
+      } else {
+        setErrorMsg("Error al añadir a la lista");
       }
-    } else {
-      // SISTEMA ANTERIOR (para compatibilidad)
-      const { services: selectedServices, ...otherResponses } = responses;
-
-      const options: Record<string, string | string[] | number> = {};
-      
-      // Agregar línea de gestión si está seleccionada
-      if (responses.lineaGestion) {
-        options['Línea de gestión'] = responses.lineaGestion;
-      }
-      
-      Object.entries(otherResponses).forEach(([key, value]) => {
-        if (key !== 'lineaGestion') { // Evitar duplicados
-          options[key] = value;
-        }
-      });
-
-      let servicesArr: { id: string; name: string }[] = [];
-      if (Array.isArray(selectedServices)) {
-        servicesArr = selectedServices
-          .map((name: string) => {
-            const id = Object.keys(serviceIdNameMap).find(
-              (serviceId) => serviceIdNameMap[serviceId] === name
-            );
-            return id ? { id, name } : null;
-          })
-          .filter(Boolean) as { id: string; name: string }[];
-      } else if (selectedServices) {
-        const id = Object.keys(serviceIdNameMap).find(
-          (serviceId) => serviceIdNameMap[serviceId] === selectedServices
-        );
-        if (id) servicesArr = [{ id, name: selectedServices }];
-      }
-
-      if (!validate(servicesArr)) return;
-
-      setLoading(true);
-
-      try {
-        // 1. Initialize CSRF cookie (necessary with Sanctum in different domains)
-        await axios.get("/sanctum/csrf-cookie", {
-          withCredentials: true,
-        });
-
-        // 2. Send form to backend
-        await axios.post(
-          route("list.add"),
-          {
-            services: servicesArr,
-            options,
-            serviceTypeId: viewData.serviceTypeId,
-            serviceType: viewData.serviceType
-          },
-          { withCredentials: true }
-        );
-
-        alert("Cotización añadida a tu lista correctamente");
-
-        setResponses({});
-      } catch (error: unknown) {
-        if (error && typeof error === 'object' && 'response' in error) {
-          const axiosError = error as { response?: { data?: { message?: string } } };
-          if (axiosError.response?.data?.message) {
-            setErrorMsg(axiosError.response.data.message);
-          } else {
-            setErrorMsg("Error al añadir a la lista");
-          }
-        } else {
-          setErrorMsg("Error al añadir a la lista");
-        }
-      } finally {
-        setLoading(false);
-      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -372,273 +293,272 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
             <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{errorMsg}</div>
           )}
 
-          {/* LÍNEAS DE GESTIÓN */}
-          {viewData.lineaGestion && (
+          {!selectedGestionLineId && viewData.gestionLines && viewData.gestionLines.length > 0 && (
             <div className="mb-8 rounded-xl border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
-                <span className="bg-gray-100 text-gray-600 p-2 rounded-full mr-2">
+                <span className="bg-purple-100 text-purple-600 p-2 rounded-full mr-2">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                   </svg>
                 </span>
-                {viewData.lineaGestion.name}
-                {viewData.lineaGestion.flags.allows_multiple_values && " (seleccione uno o más)"}
+                ¿Qué línea de gestión te interesa?
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {viewData.lineaGestion.items.map((item) => (
+                {viewData.gestionLines.map((gestionLine) => (
                   <button
-                    key={item}
+                    key={gestionLine.id}
                     type="button"
-                    aria-pressed={isSelected("lineaGestion", item, viewData.lineaGestion!.flags)}
-                    onClick={() => handleSelect("lineaGestion", item, viewData.lineaGestion!.flags)}
-                    className={`p-3 rounded-lg border transition-all flex items-center justify-center text-sm ${
-                      isSelected("lineaGestion", item, viewData.lineaGestion!.flags)
-                        ? "bg-blue-50 border-blue-500 text-blue-700 font-medium shadow-sm"
-                        : "border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50"
-                    }`}
+                    onClick={() => handleGestionLineSelect(gestionLine.id)}
+                    className="p-4 rounded-lg border border-gray-200 text-gray-700 hover:border-purple-400 hover:bg-purple-50 transition-all flex items-center justify-center text-sm font-medium"
                   >
-                    {item}
-                    {isSelected("lineaGestion", item, viewData.lineaGestion!.flags) && (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    )}
+                    {gestionLine.name}
                   </button>
                 ))}
               </div>
             </div>
           )}
-          
 
-          {/* Árbol de decisiones */}
+          {/** Filtro de las líneas de gestión */}
+          {selectedGestionLineId && (
+            <div className="mb-6 flex items-center gap-2">
+              <span className="inline-flex items-center px-4 py-2 rounded-full bg-purple-100 text-purple-700 text-sm font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Línea: {viewData.gestionLines?.find(gl => gl.id === selectedGestionLineId)?.name}
+              </span>
+              <button
+                onClick={() => setSelectedGestionLineId(null)}
+                className="text-sm text-gray-600 hover:text-gray-800 underline"
+              >
+                Cambiar
+              </button>
+            </div>
+          )}
 
-          {viewData.conditionsArray && (
-            <div className="mb-8">
-              {!showFinalStep && currentConditionId ? (
-                <>
-                  {/* Progreso del árbol */}
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-gray-600">
-                        Paso {conditionHistory.length + 1}
-                      </span>
-                      {conditionHistory.length > 0 && (
-                        <button
-                          onClick={navigateBack}
-                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+          {/** Seleccionar servicios filtrados */}
+
+          {selectedGestionLineId && (
+            <div className="mb-8 rounded-xl border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                <span className="bg-blue-100 text-blue-600 p-2 rounded-full mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </span>
+                Selecciona los servicios que necesitas
+              </h3>
+
+              {/** Arbol de condiciones */}
+
+              {filteredServices.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                  {filteredServices.map((service) => (
+                    <label
+                      key={service.id}
+                      className={`group flex items-center justify-between border rounded-xl px-4 py-3 cursor-pointer transition-all ${
+                        selectedServices.includes(service.id)
+                          ? "bg-blue-50 border-blue-500 shadow-sm"
+                          : "border-gray-200 hover:border-blue-300 hover:bg-blue-50"
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedServices.includes(service.id)}
+                          onChange={() => handleServiceToggle(service.id)}
+                          className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-400 transition-all"
+                        />
+                        <span className="ml-3 text-gray-700 font-medium group-hover:text-blue-600 transition-colors">
+                          {service.name}
+                        </span>
+                      </div>
+
+                      {selectedServices.includes(service.id) && (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-blue-600"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
                         >
-                          ← Volver atrás
-                        </button>
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
                       )}
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                        style={{ width: `${((conditionHistory.length + 1) / Object.keys(viewData.conditionsArray).length) * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
-
-              {/* Condición actual */}
-              {(() => {
-                const currentCondition = getCurrentCondition();
-                if (!currentCondition) return null;
-
-                return (
-                  <div className="bg-gray-50 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
-                      <span className="bg-blue-100 text-blue-600 p-2 rounded-full mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                      </span>
-                      {currentCondition.name}
-                      {currentCondition.flags.allows_multiple_values && " (seleccione uno o más)"}
-                    </h3>
-
-                    {/* Descripción de la condición */}
-                    {currentCondition.description && (
-                      <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <p className="text-sm text-yellow-800">
-                          <span className="font-medium">Nota:</span> {currentCondition.description}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Condición de tiempo */}
-                    {currentCondition.flags.is_time ? (
-                      <div className="space-y-4">
-                        <input
-                          type="number"
-                          min="1"
-                          placeholder="Ingrese el número de días"
-                          value={conditionResponses[currentConditionId] || ''}
-                          onChange={(e) => setConditionResponses(prev => ({
-                            ...prev,
-                            [currentConditionId]: e.target.value
-                          }))}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                    ) : currentCondition.items.length === 0 ? (
-                      // Campo numérico genérico (ej: Número de funcionarios entrevistados)
-                      <div className="space-y-4">
-                        <input
-                          type="number"
-                          min="0"
-                          placeholder="Ingrese el número"
-                          value={conditionResponses[currentConditionId] || ''}
-                          onChange={(e) => setConditionResponses(prev => ({
-                            ...prev,
-                            [currentConditionId]: e.target.value
-                          }))}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                    ) : (
-                      /* Opciones normales (con filtrado condicional) */
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {(() => {
-                          let itemsToRender = currentCondition.items;
-                          if (currentCondition.name === 'Selección de profesionales') {
-                            const initialResponse = conditionResponses[viewData.initialConditionId || -1];
-                            if (initialResponse !== 'Auditoría interna (ISO 9001, 14001, 45001, 37001, 55001)') {
-                              itemsToRender = itemsToRender.filter(i => i.value !== 'Especialidad según norma ISO');
-                            }
-                          }
-                          return itemsToRender.map((item, index) => (
-                            <button
-                              key={index}
-                              type="button"
-                              aria-pressed={isConditionOptionSelected(item.value, currentCondition.flags)}
-                              onClick={() => handleConditionSelect(item.value, currentCondition.flags)}
-                              className={`p-4 rounded-lg border transition-all flex items-center justify-center ${
-                                isConditionOptionSelected(item.value, currentCondition.flags)
-                                  ? "bg-blue-50 border-blue-500 text-blue-700 font-medium shadow-sm"
-                                  : "border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50"
-                              }`}
-                            >
-                              {item.value}
-                              {isConditionOptionSelected(item.value, currentCondition.flags) && (
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
-                              )}
-                            </button>
-                          ));
-                        })()}
-                      </div>
-                    )}
-
-                    {/* Botón para continuar */}
-                    <div className="mt-6 flex justify-end">
-                      <button
-                        onClick={navigateToNext}
-                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-                      >
-                        Continuar
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                );
-              })()}
-                </>
-              ) : showFinalStep ? null : (
-                <div className="text-center py-8">
-                  <p className="text-gray-600">
-                    {viewData.conditionsArray ? 'Iniciando proceso de cotización...' : 'No hay condiciones configuradas para este tipo de servicio.'}
-                  </p>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  No hay servicios disponibles para esta línea de gestión.
                 </div>
               )}
             </div>
           )}
 
+          {showConditionsTree && viewData.conditionsArray && (
+            <div className="mb-8 rounded-xl border border-gray-200 p-6">
+              {currentConditionId ? (
+                <>
+                  {/* Progreso */}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-lg font-semibold text-gray-700 flex items-center">
+                        <span className="bg-green-100 text-green-600 p-2 rounded-full mr-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                          </svg>
+                        </span>
+                        Información adicional
+                      </h3>
+                      <button
+                        onClick={navigateBack}
+                        className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                      >
+                        ← Volver
+                      </button>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-green-600 h-2 rounded-full transition-all duration-300" 
+                        style={{ width: `${((conditionHistory.length + 1) / Object.keys(viewData.conditionsArray).length) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Condición actual */}
+                  {(() => {
+                    const currentCondition = getCurrentCondition();
+                    if (!currentCondition) return null;
+
+                    return (
+                      <div className="bg-gray-50 rounded-lg p-6">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                          <span className="bg-green-100 text-green-600 p-2 rounded-full mr-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </span>
+                          {currentCondition.name}
+                          {currentCondition.flags.allows_multiple_values && " (seleccione uno o más)"}
+                        </h3>
+
+                        {/* Descripción de la condición */}
+                        {currentCondition.description && (
+                          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p className="text-sm text-yellow-800">
+                              <span className="font-medium">Nota:</span> {currentCondition.description}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Condición de tiempo */}
+                        {currentCondition.flags.is_time ? (
+                          <div className="space-y-4">
+                            <input
+                              type="number"
+                              min="1"
+                              placeholder="Ingrese el número de días"
+                              value={conditionResponses[currentConditionId] || ''}
+                              onChange={(e) => setConditionResponses(prev => ({
+                                ...prev,
+                                [currentConditionId]: e.target.value
+                              }))}
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            />
+                          </div>
+                        ) : currentCondition.items.length === 0 ? (
+                          // Campo numérico genérico
+                          <div className="space-y-4">
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="Ingrese el número"
+                              value={conditionResponses[currentConditionId] || ''}
+                              onChange={(e) => setConditionResponses(prev => ({
+                                ...prev,
+                                [currentConditionId]: e.target.value
+                              }))}
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            />
+                          </div>
+                        ) : (
+                          /* Opciones normales */
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {currentCondition.items.map((item, index) => (
+                              <button
+                                key={index}
+                                type="button"
+                                aria-pressed={isConditionOptionSelected(item.value, currentCondition.flags)}
+                                onClick={() => handleConditionSelect(item.value, currentCondition.flags)}
+                                className={`p-4 rounded-lg border transition-all flex items-center justify-center ${
+                                  isConditionOptionSelected(item.value, currentCondition.flags)
+                                    ? "bg-green-50 border-green-500 text-green-700 font-medium shadow-sm"
+                                    : "border-gray-200 text-gray-700 hover:border-green-300 hover:bg-green-50"
+                                }`}
+                              >
+                                {item.value}
+                                {isConditionOptionSelected(item.value, currentCondition.flags) && (
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Botón para continuar */}
+                        <div className="mt-6 flex justify-end">
+                          <button
+                            onClick={navigateToNext}
+                            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
+                          >
+                            Continuar
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </>
+              ) : (
+                /* Fin del cuestionario */
+                <div className="text-center py-8 bg-green-50 rounded-lg border border-green-200">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-green-600 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                    ¡Información completada!
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Ya tienes todo listo. Ahora puedes agregar esta cotización a tu lista o enviarla directamente.
+                  </p>
+                  <button
+                    onClick={navigateBack}
+                    className="text-blue-600 hover:text-blue-800 underline text-sm"
+                  >
+                    ← Revisar información
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
           
-
-          {/* Paso final - Selección de servicios cuando se termina el árbol */}
-         {showFinalStep && (
-  <div className="mb-8 rounded-2xl border border-gray-200 bg-white/90 p-8 shadow-md backdrop-blur-sm">
-    <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-      <span className="bg-blue-100 text-blue-600 p-2 rounded-full mr-3">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
-      </span>
-      Selecciona los servicios que necesitas
-    </h3>
-
-    <div className="max-h-64 overflow-y-auto pr-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
-  {Object.entries(viewData.services || {}).length > 0 ? (
-    Object.entries(viewData.services || {}).map(([id, name]) => (
-      <label
-        key={id}
-        className="group flex items-center justify-between border border-gray-200 rounded-xl px-4 py-3 bg-white hover:shadow-sm hover:border-blue-400 transition-all cursor-pointer"
-      >
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            value={name as string}
-            onChange={(e) =>
-              handleSelect("services", e.target.value, {
-                allows_multiple_values: true,
-                allows_other_values: false,
-                is_time: false,
-                is_fixed: true,
-              })
-            }
-            className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-400 transition-all"
-          />
-          <span className="ml-3 text-gray-700 font-medium group-hover:text-blue-600 transition-colors">
-            {name as string}
-          </span>
-        </div>
-
-        {/* Icono de check al seleccionar */}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5 text-blue-500 opacity-0 group-has-[input:checked]:opacity-100 transition-opacity"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fillRule="evenodd"
-            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-            clipRule="evenodd"
-          />
-        </svg>
-      </label>
-    ))
-  ) : (
-    <div className="col-span-full text-center text-gray-500 italic">
-      No hay servicios disponibles en esta línea de gestión.
-    </div>
-  )}
-</div>
-
-    <div className="mt-8 flex justify-end">
-      <button
-        onClick={navigateBack}
-        className="px-5 py-2.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all shadow-sm"
-      >
-        ← Volver a revisar opciones
-      </button>
-    </div>
-  </div>
-)}
-
-
-          
+          {/* Botones de acción */}
           <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
             <button
               type="button"
               onClick={addToQuotationList}
-              disabled={loading}
+              disabled={loading || selectedServices.length === 0}
               className={`px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 flex items-center ${
-                loading ? "opacity-60 cursor-not-allowed" : "hover:bg-gray-700"
+                loading || selectedServices.length === 0 ? "opacity-60 cursor-not-allowed" : "hover:bg-gray-700"
               }`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -650,7 +570,12 @@ const Cotizar: React.FC<CotizarProps> = ({ viewData }) => {
             <button
               type="button"
               onClick={() => alert("¡Solicitud de cotización enviada!")}
-              className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center"
+              disabled={selectedServices.length === 0}
+              className={`px-8 py-3 font-semibold rounded-lg shadow-md transition-all transform focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center ${
+                selectedServices.length === 0
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700 hover:-translate-y-0.5"
+              }`}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
