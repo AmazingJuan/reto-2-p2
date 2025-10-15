@@ -8,7 +8,6 @@ import QuotationButton from "../../components/QuotationButton";
 import ServiceShow from "./show";
 import { Search, X } from "lucide-react";
 import { route } from "ziggy-js";
-import { Inertia } from "@inertiajs/inertia";
 
 // ViewData: Data received from backend for the view
 interface ViewData {

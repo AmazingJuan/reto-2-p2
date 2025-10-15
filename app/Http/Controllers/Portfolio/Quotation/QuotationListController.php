@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Quotation;
+namespace App\Http\Controllers\Portfolio\Quotation;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
@@ -13,10 +13,9 @@ class QuotationListController extends Controller
         $quotationList = session()->get('quotation_list', []);
 
         return response()->json($quotationList);
-
     }
 
-    public function add(Request $request): JsonResponse
+    public function add(Request $request)
     {
         $quotationList = session()->get('quotation_list', []);
 
@@ -24,22 +23,17 @@ class QuotationListController extends Controller
             'id' => uniqid(),
             'services' => $request->services,
             'options' => $request->options,
-            'serviceTypeId' => $request->serviceTypeId,
-            'serviceType' => $request->serviceType,
+            'service_type_id' => $request->service_type_id,
+            'service_type' => $request->service_type,
+            'gestion_line' => $request->gestion_line,
+            'gestion_line_id' => $request->gestion_line_id,
         ];
 
         $quotationList[] = $listItem;
         session()->put('quotation_list', $quotationList);
 
-        return response()->json(['quotation_list' => $quotationList]);
-    }
-
-    public function destroy($id): JsonResponse
-    {
-        $quotationList = session()->get('quotation_list', []);
-        $quotationList = array_filter($quotationList, fn ($item) => $item['id'] != $id);
-        session()->put('quotation_list', array_values($quotationList));
-
-        return response()->json(['quotation_list' => $quotationList]);
+        return response()->json([
+            'quotation_list' => $quotationList,
+        ], 201);
     }
 }

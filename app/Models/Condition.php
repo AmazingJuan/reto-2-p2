@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Condition extends Model
@@ -13,6 +14,8 @@ class Condition extends Model
      * $this->attributes['id'] - int - Primary key identifier
      * $this->attributes['name'] - string - Unique name of the condition
      * $this->attributes['type'] - string - Input type (default: "text")
+     * $this->attributes['description'] - string|null - Description of the condition
+     * $this->attributes['next_condition_id'] - int|null - ID of the next condition in sequence
      * $this->attributes['is_fixed'] - bool - Whether the condition is fixed and cannot be changed
      * $this->attributes['allows_other_values'] - bool - Whether the condition allows an "other" value
      * $this->attributes['allows_multiple_values'] - bool - Whether multiple values can be selected
@@ -29,11 +32,15 @@ class Condition extends Model
     protected $fillable = [
         'name',
         'type',
+        'description',
+        'next_condition_id',
         'is_fixed',
         'allows_other_values',
         'allows_multiple_values',
         'is_boolean',
     ];
+
+    public $timestamps = false;
 
     /*
     |--------------------------------------------------------------------------
@@ -49,6 +56,14 @@ class Condition extends Model
     public function serviceTypes()
     {
         return $this->belongsToMany(ServiceType::class, 'condition_service_type');
+    }
+
+    /**
+     * The next condition in the sequence (self-referencing).
+     */
+    public function nextCondition(): BelongsTo
+    {
+        return $this->belongsTo(Condition::class, 'next_condition_id');
     }
 
     /*
@@ -85,6 +100,28 @@ class Condition extends Model
         $this->attributes['type'] = $value;
     }
 
+    // Description
+    public function getDescription(): ?string
+    {
+        return $this->attributes['description'] ?? null;
+    }
+
+    public function setDescription(?string $value): void
+    {
+        $this->attributes['description'] = $value;
+    }
+
+    // Next Condition ID
+    public function getNextConditionId(): ?int
+    {
+        return $this->attributes['next_condition_id'] ?? null;
+    }
+
+    public function setNextConditionId(?int $value): void
+    {
+        $this->attributes['next_condition_id'] = $value;
+    }
+
     // Is Fixed
     public function isFixed(): bool
     {
@@ -96,15 +133,15 @@ class Condition extends Model
         $this->attributes['is_fixed'] = $value;
     }
 
-    // Allows Other Value
-    public function allowsOtherValue(): bool
+    // Allows Other Values
+    public function allowsOtherValues(): bool
     {
         return (bool) ($this->attributes['allows_other_values'] ?? false);
     }
 
-    public function setAllowsOtherValue(bool $value): void
+    public function setAllowsOtherValues(bool $value): void
     {
-        $this->attributes['allows_other_value'] = $value;
+        $this->attributes['allows_other_values'] = $value;
     }
 
     // Allows Multiple Values
@@ -129,6 +166,7 @@ class Condition extends Model
         $this->attributes['is_boolean'] = $value;
     }
 
+    // Is Time
     public function isTime(): bool
     {
         return $this->attributes['type'] === 'time';

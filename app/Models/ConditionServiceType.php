@@ -26,6 +26,8 @@ class ConditionServiceType extends Model
         'service_type_id',
     ];
 
+    public $timestamps = false;
+
     /*
     |--------------------------------------------------------------------------
     | Relationships

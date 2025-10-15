@@ -17,8 +17,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('service_type_id');
             $table->foreign('service_type_id')->references('id')->on('service_types')->onDelete('cascade');
-            $table->string('gestion_line', 50);
-            $table->timestamps();
+            $table->foreignId('gestion_line_id')->references('id')->on('gestion_lines')->onDelete('cascade');
         });
     }
 

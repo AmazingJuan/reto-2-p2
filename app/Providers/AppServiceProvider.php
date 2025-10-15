@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +21,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        if (app()->environment('local')) {
+            $user = User::firstOrCreate(
+                ['email' => 'mariaacevedos2006@gmail.com'],
+                [
+                    'name' => 'Usuario de Prueba',
+                    'password' => bcrypt('password'),
+                ]
+            );
+            Auth::login($user);
+        }
     }
 }

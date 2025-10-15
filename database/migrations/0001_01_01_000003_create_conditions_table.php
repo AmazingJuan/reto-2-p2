@@ -13,13 +13,17 @@ return new class extends Migration
     {
         Schema::create('conditions', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
+            $table->string('name');
             $table->string('type')->default('text');
+            $table->text('description')->nullable();
+            $table->foreignId('next_condition_id')
+                ->nullable()
+                ->constrained('conditions')
+                ->onDelete('set null');
             $table->boolean('is_fixed')->default(true);
             $table->boolean('allows_other_values')->default(false);
             $table->boolean('allows_multiple_values')->default(false);
             $table->boolean('is_boolean')->default(false);
-            $table->timestamps();
         });
     }
 

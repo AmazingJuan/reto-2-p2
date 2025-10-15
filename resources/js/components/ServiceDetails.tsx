@@ -44,7 +44,7 @@ export const ServiceDetails = ({ service, onClose }: ServiceDetailsProps) => {
       Línea de gestión
     </p>
     <p className="text-gray-900 font-semibold">
-      {service.gestion_line}
+      {service.gestion_line_name}
     </p>
   </div>
 </div>
@@ -52,3 +52,4 @@ export const ServiceDetails = ({ service, onClose }: ServiceDetailsProps) => {
     </div>
   );
 };
+

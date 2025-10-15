@@ -5,16 +5,28 @@ namespace App\Repositories;
 use App\Models\Service;
 use Illuminate\Support\Collection;
 
-class ServiceRepository
+class ServiceRepository extends BaseRepository
 {
-    public function getByServiceTypeAndSearch(string $serviceTypeId, ?string $search = null): Collection
-    {
-        $query = Service::where('service_type_id', $serviceTypeId);
+    protected string $model = Service::class;
 
-        if ($search) {
-            $query->where('name', 'like', "%{$search}%");
+    protected array $with = ['gestionLine', 'serviceType'];
+
+    public function getByServiceTypeAndKeyword(string $serviceTypeId, ?string $keyword = null): Collection
+    {
+        $query = $this->query()->where('service_type_id', $serviceTypeId);
+
+        if ($keyword) {
+            $query->where(function ($q) use ($keyword) {
+                $q->where('name', 'like', "%{$keyword}%")
+                ->orWhere('description', 'like', "%{$keyword}%");
+            });
         }
 
-        return $query->get();
+        return $query->get()->map(fn ($service) => [
+            'id' => $service->getId(),
+            'name' => $service->getName(),
+            'description' => $service->getDescription(),
+            'gestion_line_name' => $service->gestionLine?->name,
+        ]);
     }
 }

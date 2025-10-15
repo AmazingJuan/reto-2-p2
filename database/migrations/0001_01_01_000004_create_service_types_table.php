@@ -14,7 +14,10 @@ return new class extends Migration
         Schema::create('service_types', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->string('name')->unique();
-            $table->timestamps();
+            $table->foreignId('initial_condition_id')
+                ->nullable()
+                ->constrained('conditions')
+                ->onDelete('set null');
         });
     }
 
