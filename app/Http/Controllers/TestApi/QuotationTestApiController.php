@@ -12,7 +12,7 @@ class QuotationTestApiController extends Controller
     public function index(): Response
     {
         $viewData = [];
-        $quotationOrders = QuotationOrder::where('is_generated', false);
+        $quotationOrders = QuotationOrder::where('is_generated', false) -> get();
         $viewData['quotationOrders'] = $quotationOrders;
 
         return Inertia::render('test/quotation-api/index', ['viewData' => $viewData]);
