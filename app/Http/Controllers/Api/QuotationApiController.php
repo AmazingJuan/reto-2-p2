@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\QuotationGenerated;
 use App\Models\QuotationOrder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class QuotationApiController extends Controller
 {
@@ -35,6 +37,10 @@ class QuotationApiController extends Controller
             'quotation_url' => $generatedQuotationUrl,
             'is_generated' => true,
         ]);
+
+        $user = $quotationOrder->user;
+
+        Mail::to($user->email)->send(new QuotationGenerated($quotationOrder));
 
         return response()->json([], 204);
     }

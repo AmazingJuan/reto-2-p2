@@ -95,7 +95,7 @@ class QuotationOrder extends Model
     */
 
     // ID
-    public function getId(): int
+    public function getId(): string
     {
         return $this->attributes['id'];
     }

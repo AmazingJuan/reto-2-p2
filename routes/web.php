@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminGestionLineController;
 use App\Http\Controllers\Admin\AdminQuotationOrderController;
 use App\Http\Controllers\Admin\AdminServiceController;
+use App\Http\Controllers\Api\QuotationApiController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Portfolio\PortfolioController;
 use App\Http\Controllers\Portfolio\Quotation\QuotationController;
@@ -12,9 +13,7 @@ use App\Http\Controllers\Portfolio\Services\ServicesController;
 use App\Http\Controllers\TestApi\QuotationTestApiController;
 use App\Http\Controllers\User\UserProfileController;
 use App\Http\Controllers\User\UserQuotationOrderController;
-use App\Http\Controllers\Api\QuotationApiController;
 use Illuminate\Support\Facades\Route;
-
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -78,8 +77,6 @@ Route::prefix('api')->group(function () {
     Route::patch('/quotation/{quotationOrderId}/quotation-url', [QuotationApiController::class, 'updateQuotationUrl'])->name('quotation_order.confirm');
 });
 
-
-
 Route::get('/test-email/quotation', function () {
     $quotationId = 12345;
     $quotationUrl = 'https://www.trainingcorporation.com.co/cotizaciones/12345';
@@ -89,5 +86,3 @@ Route::get('/test-email/quotation', function () {
         'quotationUrl' => $quotationUrl,
     ]);
 });
-
-

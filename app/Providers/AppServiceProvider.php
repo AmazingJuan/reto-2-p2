@@ -23,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
     {
         if (app()->environment('local')) {
             $user = User::firstOrCreate(
-                ['email' => 'test@example.com'],
+                ['email' => 'mariaacevedos2006@gmail.com'],
                 [
                     'name' => 'Usuario de Prueba',
                     'password' => bcrypt('password'),
