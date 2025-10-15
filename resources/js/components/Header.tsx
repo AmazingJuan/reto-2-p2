@@ -438,6 +438,13 @@ const Header = () => {
                         <X className="h-5 w-5" />
                       </button>
                     </div>
+                    {/*Linea de gestión*/}
+                    <div>
+                      <strong>Linea de gestión:</strong>
+                      <ul className="list-disc list-inside ml-4">
+                          <li>{item.gestion_line}</li>
+                      </ul>
+                    </div>
 
                     {/* Servicios */}
                     <div>
