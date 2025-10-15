@@ -16,7 +16,10 @@ class ServiceRepository extends BaseRepository
         $query = $this->query()->where('service_type_id', $serviceTypeId);
 
         if ($keyword) {
-            $query->where('name', 'like', "%{$keyword}%");
+            $query->where(function ($q) use ($keyword) {
+                $q->where('name', 'like', "%{$keyword}%")
+                ->orWhere('description', 'like', "%{$keyword}%");
+            });
         }
 
         return $query->get()->map(fn ($service) => [
