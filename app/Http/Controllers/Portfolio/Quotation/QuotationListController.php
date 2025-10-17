@@ -36,4 +36,20 @@ class QuotationListController extends Controller
             'quotation_list' => $quotationList,
         ], 201);
     }
+
+    public function destroy(string $id): JsonResponse
+    {
+        $quotationList = session()->get('quotation_list', []);
+
+        $quotationList = array_values(array_filter($quotationList, function ($item) use ($id) {
+            return $item['id'] !== $id;
+        }));
+
+        session()->put('quotation_list', $quotationList);
+
+        return response()->json([
+            'message' => 'Cotización eliminada exitosamente',
+            'quotation_list' => $quotationList,
+        ], 200);
+    }
 }
