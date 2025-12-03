@@ -1,13 +1,14 @@
 <?php
+
 // HU - 07 Enviar solicitud de cotización
 
 namespace Tests\Feature\Sprint2\Api;
 
-use App\Models\User;
-use App\Models\Service;
-use App\Models\ServiceType;
 use App\Models\GestionLine;
 use App\Models\QuotationOrder;
+use App\Models\Service;
+use App\Models\ServiceType;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -39,7 +40,7 @@ class SendQuotationListRequestTest extends TestCase
 
         $response = $this->postJson(route('quotation_order.create'), [
             'services' => [
-                ['id' => (string) $service->id, 'name' => $service->name]
+                ['id' => (string) $service->id, 'name' => $service->name],
             ],
             'options' => ['Modalidad' => 'Virtual'],
             'service_type_id' => 'auditoria',

@@ -1,14 +1,15 @@
 <?php
+
 // HU - 09 Notificar cotización generada
 
 namespace Tests\Feature\Sprint2\Notifications;
 
-use App\Models\User;
-use App\Models\Service;
-use App\Models\ServiceType;
+use App\Mail\QuotationGenerated;
 use App\Models\GestionLine;
 use App\Models\QuotationOrder;
-use App\Mail\QuotationGenerated;
+use App\Models\Service;
+use App\Models\ServiceType;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
@@ -47,7 +48,7 @@ class NotifyGeneratedQuotationTest extends TestCase
             'service_type_id' => 'auditoria',
             'gestion_line_id' => $gestionLine->id,
             'services' => [
-                ['id' => (string) $service->id, 'name' => $service->name]
+                ['id' => (string) $service->id, 'name' => $service->name],
             ],
             'options' => ['Modalidad' => 'Presencial', 'Duración' => '3 días'],
             'is_generated' => false,
@@ -91,7 +92,7 @@ class NotifyGeneratedQuotationTest extends TestCase
             'service_type_id' => 'consultoria',
             'gestion_line_id' => $gestionLine->id,
             'services' => [
-                ['id' => '1', 'name' => 'Consultoría Estratégica']
+                ['id' => '1', 'name' => 'Consultoría Estratégica'],
             ],
             'options' => [],
             'is_generated' => true,

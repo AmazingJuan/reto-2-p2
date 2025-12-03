@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Portfolio\Quotation;
+namespace App\Http\Controllers\Quotation;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;

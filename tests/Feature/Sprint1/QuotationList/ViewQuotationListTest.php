@@ -1,11 +1,12 @@
 <?php
+
 // HU - 05 Visualizar lista de cotizacion
 
 namespace Tests\Feature\Sprint1\QuotationList;
 
+use App\Models\GestionLine;
 use App\Models\Service;
 use App\Models\ServiceType;
-use App\Models\GestionLine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -35,20 +36,20 @@ class ViewQuotationListTest extends TestCase
             [
                 'id' => 'test123',
                 'services' => [
-                    ['id' => (string) $service->id, 'name' => $service->name]
+                    ['id' => (string) $service->id, 'name' => $service->name],
                 ],
                 'options' => ['Modalidad' => 'Virtual'],
                 'service_type_id' => 'auditoria',
                 'service_type' => 'Auditoría',
                 'gestion_line' => 'Gestión de Calidad',
                 'gestion_line_id' => $gestionLine->id,
-            ]
+            ],
         ];
 
         session(['quotation_list' => $quotationList]);
 
         $response = $this->getJson(route('list.index'), [
-            'X-Requested-With' => 'XMLHttpRequest'
+            'X-Requested-With' => 'XMLHttpRequest',
         ]);
 
         $response->assertStatus(200);
@@ -57,13 +58,13 @@ class ViewQuotationListTest extends TestCase
             [
                 'id' => 'test123',
                 'services' => [
-                    ['id' => (string) $service->id, 'name' => $service->name]
+                    ['id' => (string) $service->id, 'name' => $service->name],
                 ],
                 'options' => ['Modalidad' => 'Virtual'],
                 'service_type_id' => 'auditoria',
                 'service_type' => 'Auditoría',
                 'gestion_line' => 'Gestión de Calidad',
-            ]
+            ],
         ]);
 
         $response->assertJsonCount(1);
@@ -72,7 +73,7 @@ class ViewQuotationListTest extends TestCase
     public function test_can_view_empty_quotation_list(): void
     {
         $response = $this->getJson(route('list.index'), [
-            'X-Requested-With' => 'XMLHttpRequest'
+            'X-Requested-With' => 'XMLHttpRequest',
         ]);
 
         $response->assertStatus(200);

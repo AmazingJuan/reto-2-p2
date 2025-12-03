@@ -133,7 +133,7 @@ const Header = () => {
               {/* Portafolio */}
               <div className="relative group">
                 <a
-                  href={route('portfolio.index')}
+                  href='#'
                   className="flex items-center font-medium text-gray-900 hover:text-blue-600 transition-colors"
                 >
                   Portafolio de servicios <ChevronDown className="ml-1 h-4 w-4" />

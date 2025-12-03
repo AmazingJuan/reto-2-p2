@@ -1,11 +1,12 @@
 <?php
+
 // HU - 03 Mostrar Detalles del Servicio
 
 namespace Tests\Feature\Sprint1\Services;
 
+use App\Models\GestionLine;
 use App\Models\Service;
 use App\Models\ServiceType;
-use App\Models\GestionLine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

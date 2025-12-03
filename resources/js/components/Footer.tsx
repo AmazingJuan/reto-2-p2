@@ -89,7 +89,7 @@ const Footer = () => {
               <ul className="space-y-2 text-sm">
                 <li><a href={ route('home') } className="text-gray-300 hover:text-white transition-colors">Inicio</a></li>
                 <li><a className="text-gray-300 hover:text-white transition-colors">Nuestra empresa</a></li>
-                <li><a href={ route('portfolio.index') } className="text-gray-300 hover:text-white transition-colors">Portafolio de servicios</a></li>
+                <li><a href='#' className="text-gray-300 hover:text-white transition-colors">Portafolio de servicios</a></li>
                 <li><a className="text-gray-300 hover:text-white transition-colors">Actualidad</a></li>
                 <li><a className="text-gray-300 hover:text-white transition-colors">Clientes</a></li>
                 <li><a className="text-gray-300 hover:text-white transition-colors">Cursos y Formaciones</a></li>

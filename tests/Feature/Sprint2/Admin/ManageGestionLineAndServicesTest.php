@@ -1,4 +1,5 @@
 <?php
+
 // HU - 20 Gestión de líneas de gestión y servicios
 
 namespace Tests\Feature\Sprint2\Admin;
@@ -17,12 +18,12 @@ class ManageGestionLineAndServicesTest extends TestCase
     public function test_admin_can_create_service_with_valid_data(): void
     {
         $user = User::factory()->create();
-        
+
         $serviceType = ServiceType::create([
             'id' => 'auditoria',
             'name' => 'Auditoría',
         ]);
-        
+
         $gestionLine = GestionLine::create([
             'name' => 'Línea de Gestión Test',
         ]);

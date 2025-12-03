@@ -2,17 +2,20 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\User;
 
-abstract class FeatureTestCase extends TestCase {
+abstract class FeatureTestCase extends TestCase
+{
     use RefreshDatabase;
 
     protected User $admin;
+
     protected User $client;
 
-    protected function setUp(): void {
+    protected function setUp(): void
+    {
         parent::setUp();
 
         // Ejecuta antes de cada test
@@ -28,11 +31,13 @@ abstract class FeatureTestCase extends TestCase {
         ]);
     }
 
-    protected function actingAsAdmin(){
+    protected function actingAsAdmin()
+    {
         return $this->actingAs($this->admin);
     }
 
-    protected function actingAsClient(){
+    protected function actingAsClient()
+    {
         return $this->actingAs($this->client);
     }
 }

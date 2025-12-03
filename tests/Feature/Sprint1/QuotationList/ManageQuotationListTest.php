@@ -1,11 +1,12 @@
 <?php
+
 // HU - 06 Administrar mi lista
 
 namespace Tests\Feature\Sprint1\QuotationList;
 
+use App\Models\GestionLine;
 use App\Models\Service;
 use App\Models\ServiceType;
-use App\Models\GestionLine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -42,7 +43,7 @@ class ManageQuotationListTest extends TestCase
             [
                 'id' => 'item1',
                 'services' => [
-                    ['id' => (string) $service1->id, 'name' => $service1->name]
+                    ['id' => (string) $service1->id, 'name' => $service1->name],
                 ],
                 'options' => [],
                 'service_type_id' => 'auditoria',
@@ -53,14 +54,14 @@ class ManageQuotationListTest extends TestCase
             [
                 'id' => 'item2',
                 'services' => [
-                    ['id' => (string) $service2->id, 'name' => $service2->name]
+                    ['id' => (string) $service2->id, 'name' => $service2->name],
                 ],
                 'options' => [],
                 'service_type_id' => 'auditoria',
                 'service_type' => 'Auditoría',
                 'gestion_line' => 'Gestión de Calidad',
                 'gestion_line_id' => $gestionLine->id,
-            ]
+            ],
         ];
 
         session(['quotation_list' => $quotationList]);
@@ -68,7 +69,7 @@ class ManageQuotationListTest extends TestCase
         $this->assertCount(2, session('quotation_list'));
 
         $response = $this->deleteJson(route('list.destroy', 'item1'), [], [
-            'X-Requested-With' => 'XMLHttpRequest'
+            'X-Requested-With' => 'XMLHttpRequest',
         ]);
 
         $response->assertStatus(200);

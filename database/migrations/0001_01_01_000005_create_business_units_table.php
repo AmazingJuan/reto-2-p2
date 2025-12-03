@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('service_types', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->string('name')->unique();
+        Schema::create('business_units', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
             $table->foreignId('initial_condition_id')
                 ->nullable()
                 ->constrained('conditions')
                 ->onDelete('set null');
+            $table->timestamps();
         });
     }
 
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('service_types');
+        Schema::dropIfExists('business_units');
     }
 };

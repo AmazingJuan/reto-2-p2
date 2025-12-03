@@ -1,12 +1,13 @@
 <?php
+
 // HU - 14 Visualizar cotizaciones (admin)
 
 namespace Tests\Feature\Sprint2\Admin;
 
-use App\Models\User;
-use App\Models\ServiceType;
 use App\Models\GestionLine;
 use App\Models\QuotationOrder;
+use App\Models\ServiceType;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

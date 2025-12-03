@@ -1,16 +1,17 @@
 <?php
+
 // HU - 08 Recibir cotizaciones generadas
 
 namespace Tests\Feature\Sprint2\Api;
 
-use App\Models\User;
-use App\Models\Service;
-use App\Models\ServiceType;
+use App\Mail\QuotationGenerated;
 use App\Models\GestionLine;
 use App\Models\QuotationOrder;
+use App\Models\Service;
+use App\Models\ServiceType;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\QuotationGenerated;
 use Tests\TestCase;
 
 class ReceiveGeneratedQuotationsTest extends TestCase
@@ -47,7 +48,7 @@ class ReceiveGeneratedQuotationsTest extends TestCase
             'service_type_id' => 'auditoria',
             'gestion_line_id' => $gestionLine->id,
             'services' => [
-                ['id' => (string) $service->id, 'name' => $service->name]
+                ['id' => (string) $service->id, 'name' => $service->name],
             ],
             'options' => ['Modalidad' => 'Virtual'],
             'is_generated' => false,
@@ -73,7 +74,7 @@ class ReceiveGeneratedQuotationsTest extends TestCase
         $this->assertTrue($quotationOrder->is_generated);
 
         Mail::assertSent(QuotationGenerated::class, function ($mail) use ($user, $quotationOrder) {
-            return $mail->hasTo($user->email) && 
+            return $mail->hasTo($user->email) &&
                    $mail->order->id === $quotationOrder->id;
         });
     }

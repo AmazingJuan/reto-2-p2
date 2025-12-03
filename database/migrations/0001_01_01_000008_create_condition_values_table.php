@@ -13,25 +13,14 @@ return new class extends Migration
     {
         Schema::create('condition_values', function (Blueprint $table) {
             $table->id();
-
-            // condition_id = referencia a conditions.id (auto increment -> bigint) => foreignId funciona
             $table->foreignId('condition_id')
-                ->constrained('conditions')
+                ->constrained()
                 ->onDelete('cascade');
-
-            // service_type_id = string, coincide con service_types.id
-            $table->string('service_type_id')->nullable();
-            $table->foreign('service_type_id')
-                ->references('id')
-                ->on('service_types')
-                ->onDelete('set null');
-
-            // next_condition_id = bigint, coincide con conditions.id
+            $table->foreignId('business_unit_id')->constrained();
             $table->foreignId('next_condition_id')
                 ->nullable()
                 ->constrained('conditions')
                 ->onDelete('set null');
-
             $table->string('value', 100);
         });
     }

@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('name')->unique();
             $table->text('description')->nullable();
             $table->string('service_type_id');
-            $table->foreign('service_type_id')->references('id')->on('service_types')->onDelete('cascade');
-            $table->foreignId('gestion_line_id')->references('id')->on('gestion_lines')->onDelete('cascade');
+            $table->foreignId('business_unit_id')->constrained();
+            $table->foreignId('gestion_line_id')->constrained();
         });
     }
 

@@ -13,21 +13,14 @@ return new class extends Migration
     {
         Schema::create('quotation_orders', function (Blueprint $table) {
             $table->string('id')->primary();
-
-            $table->string('service_type_id')->nullable();
-            $table->foreign('service_type_id')
-                ->references('id')
-                ->on('service_types')
-                ->nullOnDelete();
+            $table->foreignId('business_unit_id')->constrained();
             $table->foreignId('gestion_line_id')
                 ->nullable()
-                ->constrained('gestion_lines')
+                ->constrained()
                 ->onDelete('set null');
-
             $table->foreignId('user_id')
-                ->constrained('users')
+                ->constrained()
                 ->onDelete('cascade');
-
             $table->boolean('is_generated')->default(false);
             $table->json('services');
             $table->json('options');
