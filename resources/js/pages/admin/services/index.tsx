@@ -1,5 +1,5 @@
 import { usePage, router } from '@inertiajs/react';
-import AdminLayout from '../../../layouts/AdminLayout';
+import AdminLayout from '../../../layouts/admin-layout';
 import { route } from 'ziggy-js';
 import { Pencil, Trash2 } from "lucide-react";
 
@@ -9,12 +9,13 @@ interface Service {
   description: string;
 }
 
-interface PageProps {
+interface IndexPageProps extends Record<string, unknown> {
+  auth: { user: any };
   services: Service[];
 }
 
 export default function Index() {
-  const { services } = usePage<PageProps>().props;
+  const { services } = usePage<IndexPageProps>().props;
 
   // Acción: borrar servicio
 const handleDelete = (id: number) => {

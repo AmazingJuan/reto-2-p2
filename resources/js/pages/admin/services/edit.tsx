@@ -1,6 +1,6 @@
 import { useForm, usePage } from "@inertiajs/react";
-import Header from "../../../components/admin/Header";
-import Footer from "../../../components/admin/Footer";
+import Header from "../../../components/admin/header";
+import Footer from "../../../components/admin/footer";
 import { route } from "ziggy-js";
 
 interface Service {
@@ -21,14 +21,15 @@ interface GestionLine {
   name: string;
 }
 
-interface PageProps {
+interface EditPageProps extends Record<string, unknown> {
+  auth: { user: any };
   service: Service;
   serviceTypes: ServiceType[];
   gestionLines: GestionLine[];
 }
 
 export default function Edit() {
-  const { service, serviceTypes, gestionLines } = usePage<PageProps>().props;
+  const { service, serviceTypes, gestionLines } = usePage<EditPageProps>().props;
 
   const { data, setData, put, processing, errors } = useForm({
     name: service.name || "",

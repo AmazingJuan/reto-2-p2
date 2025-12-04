@@ -1,1 +1,0 @@
-Esta será la carpeta para ejecutar las respectivas pruebas para el sprint 3

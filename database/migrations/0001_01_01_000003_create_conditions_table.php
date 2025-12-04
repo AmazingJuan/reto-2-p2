@@ -24,6 +24,7 @@ return new class extends Migration
             $table->boolean('allows_other_values')->default(false);
             $table->boolean('allows_multiple_values')->default(false);
             $table->boolean('is_boolean')->default(false);
+            $table->timestamps();
         });
     }
 

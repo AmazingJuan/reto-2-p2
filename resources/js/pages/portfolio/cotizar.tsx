@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import Layout from "../../layouts/Layout";
+import Layout from "../../layouts/layout";
 import { route } from 'ziggy-js';
 import axios from "axios";
 
