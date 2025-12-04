@@ -1,7 +1,7 @@
 import { useForm } from '@inertiajs/react';
 import { route } from 'ziggy-js';
-import Header from '@/components/admin/Header';
-import Footer from '@/components/admin/Footer';
+import Header from '@/components/admin/header';
+import Footer from '@/components/admin/footer';
 
 export default function Create() {
   const { data, setData, post, processing, errors } = useForm({

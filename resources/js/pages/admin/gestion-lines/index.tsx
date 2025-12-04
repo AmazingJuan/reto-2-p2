@@ -1,7 +1,7 @@
 import { usePage, router } from "@inertiajs/react";
 import { route } from "ziggy-js"; 
-import Header from "@/components/admin/Header";
-import Footer from "@/components/admin/Footer";
+import Header from "@/components/admin/header";
+import Footer from "@/components/admin/footer";
 import { Pencil, Trash2 } from "lucide-react";
 
 interface GestionLine {
@@ -9,12 +9,13 @@ interface GestionLine {
   name: string;
 }
 
-interface PageProps {
+interface IndexPageProps extends Record<string, unknown> {
+  auth: { user: any };
   gestionLines: GestionLine[];
 }
 
 export default function Index() {
-  const { gestionLines } = usePage<PageProps>().props;
+  const { gestionLines } = usePage<IndexPageProps>().props;
 
   // Acción: borrar línea de gestión
   const handleDelete = (id: number) => {

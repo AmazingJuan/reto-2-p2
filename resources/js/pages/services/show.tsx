@@ -2,7 +2,7 @@
 // Receives service data and onClose handler as props
 
 import React from "react";
-import { ServiceDetails } from "../../components/ServiceDetails";
+import { ServiceDetails } from "../../components/service-details";
 import { Service } from "../../types/service";
 
 // Props for ServiceShow component

@@ -1,7 +1,7 @@
 import React from "react";
 
-import QuotationButton from "../components/QuotationButton";
-import Layout from "../layouts/Layout";
+import QuotationButton from "../components/quotation-button";
+import Layout from "../layouts/layout";
 
 export default function Home() {
   return (

@@ -1,5 +1,5 @@
 import { usePage } from "@inertiajs/react";
-import AdminLayout from "../../../layouts/AdminLayout";
+import AdminLayout from "../../../layouts/admin-layout";
 import { Download } from "lucide-react";
 import { route } from "ziggy-js";
 
@@ -9,14 +9,15 @@ interface QuotationOrder {
   quotation_url?: string;
 }
 
-interface PageProps {
+interface IndexPageProps extends Record<string, unknown> {
+  auth: { user: any };
   viewData: {
     quotationOrders: QuotationOrder[];
   };
 }
 
 export default function Index() {
-  const { viewData } = usePage<PageProps>().props;
+  const { viewData } = usePage<IndexPageProps>().props;
   const quotationOrders = viewData.quotationOrders;
 
   const handleDownload = (url: string) => {

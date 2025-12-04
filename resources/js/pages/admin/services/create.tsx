@@ -1,6 +1,6 @@
 import { useForm, usePage } from "@inertiajs/react";
-import Header from "../../../components/admin/Header";
-import Footer from "../../../components/admin/Footer";
+import Header from "../../../components/admin/header";
+import Footer from "../../../components/admin/footer";
 import { route } from 'ziggy-js';
 
 interface ServiceType {
@@ -13,13 +13,14 @@ interface GestionLine {
   name: string;
 }
 
-interface PageProps {
+interface CreatePageProps extends Record<string, unknown> {
+  auth: { user: any };
   serviceTypes: ServiceType[];
   gestionLines: GestionLine[];
 }
 
 export default function Create() {
-  const { serviceTypes, gestionLines } = usePage<PageProps>().props;
+  const { serviceTypes, gestionLines } = usePage<CreatePageProps>().props;
 
   const { data, setData, post, processing, errors } = useForm({
     name: "",

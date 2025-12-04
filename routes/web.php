@@ -1,18 +1,10 @@
 <?php
 
-use App\Http\Controllers\Admin\AdminDashboardController;
-use App\Http\Controllers\Admin\AdminGestionLineController;
-use App\Http\Controllers\Admin\AdminQuotationOrderController;
-use App\Http\Controllers\Admin\AdminServiceController;
 use App\Http\Controllers\Api\QuotationApiController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\Portfolio\PortfolioController;
 use App\Http\Controllers\Quotation\QuotationController;
 use App\Http\Controllers\Quotation\QuotationListController;
-use App\Http\Controllers\Portfolio\Services\ServicesController;
 use App\Http\Controllers\TestApi\QuotationTestApiController;
-use App\Http\Controllers\User\UserProfileController;
-use App\Http\Controllers\User\UserQuotationOrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -47,3 +39,14 @@ Route::get('/test-email/quotation', function () {
         'quotationUrl' => $quotationUrl,
     ]);
 });
+
+
+use App\Http\Controllers\ProfileController;
+use Illuminate\Foundation\Application;
+use Inertia\Inertia;
+
+require __DIR__.'/auth.php';
+include __DIR__.'/admin.php';
+include __DIR__.'/quotation.php';
+include __DIR__.'/test.php';
+include __DIR__.'/settings.php';

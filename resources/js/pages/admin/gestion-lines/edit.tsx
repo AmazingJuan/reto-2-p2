@@ -1,19 +1,20 @@
 import { useForm, usePage } from '@inertiajs/react';
 import { route } from 'ziggy-js';
-import Header from '@/components/admin/Header';
-import Footer from '@/components/admin/Footer';
+import Header from '@/components/admin/header';
+import Footer from '@/components/admin/footer';
 
 interface GestionLine {
   id: number;
   name: string;
 }
 
-interface PageProps {
+interface EditPageProps extends Record<string, unknown> {
+  auth: { user: any };
   gestionLine: GestionLine;
 }
 
 export default function Edit() {
-  const { props } = usePage<PageProps>();
+  const { props } = usePage<EditPageProps>();
   const { gestionLine } = props;
 
   const { data, setData, put, processing, errors } = useForm({

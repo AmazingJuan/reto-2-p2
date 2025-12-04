@@ -2,9 +2,9 @@
 
 import React, { useState } from "react";
 import { Service } from "../../types/service";
-import { ServiceCard } from "../../components/ServiceCard";
-import Layout from "../../layouts/Layout";
-import QuotationButton from "../../components/QuotationButton";
+import { ServiceCard } from "../../components/service-card";
+import Layout from "../../layouts/layout";
+import QuotationButton from "../../components/quotation-button";
 import ServiceShow from "./show";
 import { Search, X } from "lucide-react";
 import { route } from "ziggy-js";

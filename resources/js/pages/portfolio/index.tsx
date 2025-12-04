@@ -1,5 +1,5 @@
-import Layout from "../../layouts/Layout";
-import QuotationButton from "../../components/QuotationButton";
+import Layout from "../../layouts/layout";
+import QuotationButton from "../../components/quotation-button";
 import { Link } from "@inertiajs/react";
 import { route } from 'ziggy-js';
 import React from "react";
