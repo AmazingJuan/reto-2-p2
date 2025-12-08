@@ -40,7 +40,7 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
     // Unidades de negocio
     Route::get('/unidad-negocio', [AdminBusinessUnitController::class, 'index'])->name('dashboard.business-unit.index');
     Route::get('/unidad-negocio/{id}', [AdminBusinessUnitController::class, 'show'])->where('id', '[0-9]+')->name('dashboard.business-unit.show');
-    Route::get('/unidad-negocio/{id}/eliminar', [AdminBusinessUnitController::class, 'delete'])->where('id', '[0-9]+')->name('dashboard.business-unit.delete');
+    Route::delete('/unidad-negocio/{id}', [AdminBusinessUnitController::class, 'delete'])->where('id', '[0-9]+')->name('dashboard.business-unit.delete');
     Route::get('/unidad-negocio/crear', [AdminBusinessUnitController::class, 'create'])->name('dashboard.business-unit.create');
     Route::post('/unidad-negocio', [AdminBusinessUnitController::class, 'store'])->name('dashboard.business-unit.store');
     Route::get('/unidad-negocio/{id}/editar', [AdminBusinessUnitController::class, 'edit'])->where('id', '[0-9]+')->name('dashboard.business-unit.edit');

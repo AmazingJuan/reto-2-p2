@@ -72,7 +72,7 @@ class AdminBusinessUnitController extends Controller
         return Inertia::render('admin/business-units/edit', compact('viewData'));
     }
 
-    public function update(AdminBusinessUnitRequest $request, int $businessUnitId)
+    public function update(AdminBusinessUnitRequest $request, int $businessUnitId): RedirectResponse
     {
         $businessUnit = BusinessUnit::where('id', $businessUnitId)->select('id', 'name')->first();
 
@@ -95,7 +95,7 @@ class AdminBusinessUnitController extends Controller
         }
     }
 
-    public function delete(int $businessUnitId)
+    public function delete(int $businessUnitId): RedirectResponse
     {
         $businessUnit = BusinessUnit::where('id', $businessUnitId)->first();
 
