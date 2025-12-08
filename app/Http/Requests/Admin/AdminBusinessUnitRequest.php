@@ -3,16 +3,15 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 
-class AdminGestionLineRequest extends FormRequest
+class AdminBusinessUnitRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return Auth::check();
+        return true; // permit form usage for both authenticated dashboard and public test routes
     }
 
     /**

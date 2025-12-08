@@ -2,17 +2,11 @@
 
 use App\Http\Controllers\Api\QuotationApiController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\Quotation\QuotationController;
 use App\Http\Controllers\Quotation\QuotationListController;
 use App\Http\Controllers\TestApi\QuotationTestApiController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
-
-Route::prefix('cotizacion')->group(function () {
-    Route::get('/', [QuotationController::class, 'selectBusinessUnit'])->name('quotation.index');
-    Route::get('/{serviceTypeId}', [QuotationController::class, 'show'])->name('quotation.show');
-});
 
 Route::prefix('lista')->middleware(['ajax'])->group(function () {
     Route::get('/', [QuotationListController::class, 'index'])->name('list.index');          // ver lista
@@ -40,13 +34,7 @@ Route::get('/test-email/quotation', function () {
     ]);
 });
 
-
-use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
-use Inertia\Inertia;
-
 require __DIR__.'/auth.php';
 include __DIR__.'/admin.php';
 include __DIR__.'/quotation.php';
 include __DIR__.'/test.php';
-include __DIR__.'/settings.php';

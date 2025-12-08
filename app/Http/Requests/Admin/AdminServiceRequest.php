@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class AdminServiceRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class AdminServiceRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return Auth::check();
     }
 
     /**
@@ -26,6 +27,26 @@ class AdminServiceRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'service_type_id' => ['required', 'exists:service_types,id'],
             'gestion_line_id' => ['required', 'exists:gestion_lines,id'],
+        ];
+    }
+
+    /**
+     * Mensajes de validación en español.
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'El nombre es obligatorio.',
+            'name.string' => 'El nombre debe ser un texto.',
+            'name.max' => 'El nombre no puede superar los 255 caracteres.',
+
+            'description.string' => 'La descripción debe ser un texto.',
+
+            'service_type_id.required' => 'El tipo de servicio es obligatorio.',
+            'service_type_id.exists' => 'El tipo de servicio seleccionado no es válido.',
+
+            'gestion_line_id.required' => 'La línea de gestión es obligatoria.',
+            'gestion_line_id.exists' => 'La línea de gestión seleccionada no es válida.',
         ];
     }
 }
