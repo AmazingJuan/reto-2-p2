@@ -20,10 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
-        // Cookies que no se encriptan
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
-        // ✅ Excluir las rutas /list/* del CSRF
         $middleware->validateCsrfTokens(except: [
             'list/*',
         ]);

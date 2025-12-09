@@ -14,8 +14,6 @@ return new class extends Migration
         Schema::create('services', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
-            $table->text('description')->nullable();
-            $table->string('service_type_id');
             $table->foreignId('business_unit_id')->constrained();
             $table->foreignId('gestion_line_id')->constrained();
         });

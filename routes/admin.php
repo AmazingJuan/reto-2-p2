@@ -1,10 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminBusinessUnitController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminGestionLineController;
 use App\Http\Controllers\Admin\AdminQuotationOrderController;
 use App\Http\Controllers\Admin\AdminServiceController;
-use App\Http\Controllers\Admin\AdminBusinessUnitController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -12,7 +13,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/perfil', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/perfil', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
-
 
 Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
@@ -39,4 +39,10 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
 
     // Unidades de negocio
     Route::get('/unidad-negocio', [AdminBusinessUnitController::class, 'index'])->name('dashboard.business-unit.index');
+    Route::get('/unidad-negocio/{id}', [AdminBusinessUnitController::class, 'show'])->where('id', '[0-9]+')->name('dashboard.business-unit.show');
+    Route::delete('/unidad-negocio/{id}', [AdminBusinessUnitController::class, 'delete'])->where('id', '[0-9]+')->name('dashboard.business-unit.delete');
+    Route::get('/unidad-negocio/crear', [AdminBusinessUnitController::class, 'create'])->name('dashboard.business-unit.create');
+    Route::post('/unidad-negocio', [AdminBusinessUnitController::class, 'store'])->name('dashboard.business-unit.store');
+    Route::get('/unidad-negocio/{id}/editar', [AdminBusinessUnitController::class, 'edit'])->where('id', '[0-9]+')->name('dashboard.business-unit.edit');
+    Route::put('/unidad-negocio/{id}', [AdminBusinessUnitController::class, 'update'])->where('id', '[0-9]+')->name('dashboard.business-unit.update');
 });

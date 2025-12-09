@@ -17,8 +17,7 @@ class Service extends Model
      */
     protected $fillable = [
         'name',
-        'description',
-        'service_type_id',
+        'business_unit_id',
         'gestion_line_id',
     ];
 
@@ -33,9 +32,9 @@ class Service extends Model
     /**
      * A Service belongs to a ServiceType.
      */
-    public function serviceType(): BelongsTo
+    public function businessUnit(): BelongsTo
     {
-        return $this->belongsTo(ServiceType::class, 'service_type_id', 'id');
+        return $this->belongsTo(BusinessUnit::class, 'business_unit_id', 'id');
     }
 
     /**

@@ -33,6 +33,21 @@ class LoginRequest extends FormRequest
     }
 
     /**
+     * Mensajes de validación en español.
+     */
+    public function messages(): array
+    {
+        return [
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.string' => 'El correo electrónico debe ser un texto.',
+            'email.email' => 'Ingresa un correo electrónico válido.',
+
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.string' => 'La contraseña debe ser un texto.',
+        ];
+    }
+
+    /**
      * Attempt to authenticate the request's credentials.
      *
      * @throws \Illuminate\Validation\ValidationException

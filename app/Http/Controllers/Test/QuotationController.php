@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Test\Quotation;
+namespace App\Http\Controllers\Test;
 
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
