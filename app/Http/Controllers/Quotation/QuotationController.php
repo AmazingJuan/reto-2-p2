@@ -13,7 +13,7 @@ class QuotationController extends Controller
 {
     public function selectBusinessUnit(): InertiaResponse
     {
-        $businessUnitNames = GestionLine::pluck('name');
+        $businessUnitNames = BusinessUnit::pluck('name');
 
         $viewData['businessUnits'] = $businessUnitNames;
 
