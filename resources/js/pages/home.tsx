@@ -19,7 +19,7 @@ export default function Home() {
                             Solicita tus cotizaciones con precisión y rapidez
                         </h2>
                         <div className="flex flex-col items-center justify-center gap-4 pt-6 sm:flex-row">
-                            <Link href={route('quotation.index')}>
+                            <Link href={route('quotation.select.business_unit')}>
                                 <Button size="lg" variant="training">
                                     Comenzar Cotización
                                 </Button>

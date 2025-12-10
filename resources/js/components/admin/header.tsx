@@ -9,9 +9,7 @@ const Header: React.FC = () => {
   return (
     <header className="border-b bg-white">
       <div className="container mx-auto px-4 h-14 flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-gray-800">
-          Panel de Administración
-        </h1>
+        <h1 className="text-xl font-bold text-slate-900">Panel de administración</h1>
 
         <nav className="hidden sm:flex items-center gap-4">
           {/* enlaces opcionales */}
