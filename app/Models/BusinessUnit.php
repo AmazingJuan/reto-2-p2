@@ -3,12 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
 class BusinessUnit extends Model
 {
-
     /**
      * Attributes:
      *
@@ -16,10 +14,9 @@ class BusinessUnit extends Model
      * $this->attributes['name'] - string - Unique name of the condition
      * $this->attributes['created_at'] - Carbon - Record creation timestamp
      * $this->attributes['updated_at'] - Carbon - Record last update timestamp
+     * $this->attributes['services'] - Service[] - Services associated with the business unit
      */
-
     protected $fillable = ['name'];
-
 
     // Getters
 
@@ -33,7 +30,7 @@ class BusinessUnit extends Model
         return $this->attributes['name'];
     }
 
-    // Setters 
+    // Setters
 
     public function setName(string $name): void
     {
@@ -42,13 +39,8 @@ class BusinessUnit extends Model
 
     // Relationships
 
-    public function services(): HasMany
-    {
-        return $this->hasMany(Service::class);
-    }
-
     public function getServices(): Collection
     {
-        return $this->services()->get();
+        return $this->hasMany(Service::class)->get();
     }
 }
