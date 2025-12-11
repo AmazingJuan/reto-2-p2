@@ -4,22 +4,25 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AdminServiceRequest;
+use App\Models\BusinessUnit;
 use App\Models\GestionLine;
 use App\Models\Service;
-use App\Models\ServiceType;
+use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
-use Inertia\Response;
+use Inertia\Response as InertiaResponse;
 
 class AdminServiceController extends Controller
 {
-    public function index(): Response
+    public function index(): InertiaResponse
     {
         $viewData = [];
 
-        $services = Service::select('id', 'name', 'description')
+        $services = Service::select('id', 'name')
             ->orderBy('id')
             ->get();
+
         $viewData['services'] = $services;
 
         return Inertia::render('admin/services/index', $viewData);
@@ -27,17 +30,30 @@ class AdminServiceController extends Controller
 
     public function delete(int $id): RedirectResponse
     {
-        Service::destroy($id);
+        try {
+            $service = Service::findOrFail($id);
+            $service->delete();
 
-        return redirect()->route('admin.services.index');
+            return redirect()->route('dashboard.services.index')->with('success', 'Servicio eliminado exitosamente.');
+        } catch (ModelNotFoundException $e) {
+            return redirect()->route('dashboard.services.index')->with('error', 'Servicio con ID '.$id.' no encontrado.');
+        }
     }
 
-    public function create(): Response
+    public function create(): InertiaResponse|RedirectResponse
     {
-        $viewData = [];
+        $businessUnits = BusinessUnit::all(['id', 'name']);
+        if ($businessUnits->isEmpty()) {
+            return redirect()->route('dashboard.services.index')->with('error', 'No existen unidades de negocio con las cuales usted pueda asociar un nuevo servicio.');
+        }
 
-        $viewData['serviceTypes'] = ServiceType::all(['id', 'name']);
-        $viewData['gestionLines'] = GestionLine::all(['id', 'name']);
+        $gestionLines = GestionLine::all(['id', 'name']);
+        if ($gestionLines->isEmpty()) {
+            return redirect()->route('dashboard.services.index')->with('error', 'No existen lineas de gestion con las cuales usted pueda asociar un nuevo servicio.');
+        }
+
+        $viewData['businessUnits'] = $businessUnits;
+        $viewData['gestionLines'] = $gestionLines;
 
         return Inertia::render('admin/services/create', $viewData);
     }
@@ -46,19 +62,36 @@ class AdminServiceController extends Controller
     {
         $validatedData = $request->validated();
 
-        Service::create($validatedData);
+        try {
+            Service::create($validatedData);
 
-        return redirect()->route('admin.services.index');
+            return redirect()->route('dashboard.services.index');
+        } catch (Exception $e) {
+            return redirect()->route('dashboard.services.index')->with('error', 'Ha ocurrido un error al crear el servicio.');
+        }
     }
 
-    public function edit(int $id): Response
+    public function edit(int $id): InertiaResponse|RedirectResponse
     {
-        $viewData = [];
+        try {
+            $service = Service::findOrFail($id);
+        } catch (ModelNotFoundException $e) {
+            return redirect()->route('dashboard.services.index')->with('error', 'Servicio con ID '.$id.' no encontrado.');
+        }
 
-        $service = Service::findOrFail($id);
+        $businessUnits = BusinessUnit::all(['id', 'name']);
+        if ($businessUnits->isEmpty()) {
+            return redirect()->route('dashboard.services.index')->with('error', 'No existen unidades de negocio con las cuales usted pueda asociar un nuevo servicio.');
+        }
+
+        $gestionLines = GestionLine::all(['id', 'name']);
+        if ($gestionLines->isEmpty()) {
+            return redirect()->route('dashboard.services.index')->with('error', 'No existen lineas de gestion con las cuales usted pueda asociar un nuevo servicio.');
+        }
+
         $viewData['service'] = $service;
-        $viewData['serviceTypes'] = ServiceType::all(['id', 'name']);
-        $viewData['gestionLines'] = GestionLine::all(['id', 'name']);
+        $viewData['businessUnits'] = $businessUnits;
+        $viewData['gestionLines'] = $gestionLines;
 
         return Inertia::render('admin/services/edit', $viewData);
     }
@@ -67,9 +100,13 @@ class AdminServiceController extends Controller
     {
         $validatedData = $request->validated();
 
-        $service = Service::findOrFail($id);
-        $service->update($validatedData);
+        try {
+            $service = Service::findOrFail($id);
+            $service->update($validatedData);
 
-        return redirect()->route('admin.services.index');
+            return redirect()->route('dashboard.services.index')->with('success', 'Servicio actualizado exitosamente.');
+        } catch (ModelNotFoundException $e) {
+            return redirect()->route('dashboard.services.index')->with('error', 'Servicio con ID '.$id.' no encontrado.');
+        }
     }
 }

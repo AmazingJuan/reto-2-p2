@@ -11,6 +11,7 @@ class GestionLine extends Model
      *
      * $this->attributes['id'] - int - Primary key identifier
      * $this->attributes['name'] - string - Name of the gestion line
+     * $this->attributes['services'] - Service[] - Services associated with the gestion line
      */
 
     /**
@@ -45,5 +46,12 @@ class GestionLine extends Model
     public function setName(string $value): void
     {
         $this->attributes['name'] = $value;
+    }
+
+    // Relationship
+
+    public function getServices()
+    {
+        return $this->hasMany(Service::class)->get();
     }
 }
