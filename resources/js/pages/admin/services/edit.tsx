@@ -1,183 +1,154 @@
-import { useForm, usePage } from "@inertiajs/react";
-import Header from "../../../components/admin/header";
-import Footer from "../../../components/admin/footer";
-import { route } from "ziggy-js";
+import { useForm, usePage } from '@inertiajs/react';
+import { route } from 'ziggy-js';
+import Footer from '../../../components/admin/footer';
+import Header from '../../../components/admin/header';
 
 interface Service {
-  id: number;
-  name: string;
-  description: string;
-  service_type_id: string;
-  gestion_line_id: number;
+    id: number;
+    name: string;
+    business_unit_id: string;
+    gestion_line_id: number;
 }
 
-interface ServiceType {
-  id: string;
-  name: string;
+interface BussinesUnit {
+    id: string;
+    name: string;
 }
 
 interface GestionLine {
-  id: number;
-  name: string;
+    id: number;
+    name: string;
 }
 
 interface EditPageProps extends Record<string, unknown> {
-  auth: { user: any };
-  service: Service;
-  serviceTypes: ServiceType[];
-  gestionLines: GestionLine[];
+    auth: { user: any };
+    service: Service;
+    businessUnit: BussinesUnit[];
+    gestionLines: GestionLine[];
 }
 
 export default function Edit() {
-  const { service, serviceTypes, gestionLines } = usePage<EditPageProps>().props;
+    const { service, businessUnit, gestionLines } = usePage<EditPageProps>().props;
 
-  const { data, setData, put, processing, errors } = useForm({
-    name: service.name || "",
-    description: service.description || "",
-    service_type_id: service.service_type_id || "",
-    gestion_line_id: service.gestion_line_id || "",
-  });
+    const { data, setData, put, processing, errors } = useForm({
+        name: service.name || '',
+        business_unit_id: service.business_unit_id || '',
+        gestion_line_id: service.gestion_line_id || '',
+    });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    put(route("admin.services.update", service.id));
-  };
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        put(route('dashboard.services.update', service.id));
+    };
 
-  return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <Header />
+    return (
+        <div className="flex min-h-screen flex-col bg-gray-50">
+            <Header />
 
-      <main className="flex-grow py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-semibold text-gray-900">Editar Servicio</h1>
-            <p className="mt-2 text-sm text-gray-600">Modifique los campos necesarios para actualizar el servicio</p>
-          </div>
+            <main className="flex-grow px-4 py-12 sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-4xl">
+                    {/* Header */}
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-semibold text-gray-900">Editar Servicio</h1>
+                        <p className="mt-2 text-sm text-gray-600">Modifique los campos necesarios para actualizar el servicio</p>
+                    </div>
 
-          {/* Form Card */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <form onSubmit={handleSubmit} className="p-8 space-y-8">
-              {/* Información básica */}
-              <div>
+                    {/* Form Card */}
+                    <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+                        <form onSubmit={handleSubmit} className="space-y-8 p-8">
+                            {/* Información básica */}
+                            <div>
+                                <div className="grid grid-cols-1 gap-6">
+                                    {/* Nombre */}
+                                    <div>
+                                        <label htmlFor="name" className="mb-2 block text-sm font-medium text-gray-700">
+                                            Nombre <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            id="name"
+                                            type="text"
+                                            value={data.name}
+                                            onChange={(e) => setData('name', e.target.value)}
+                                            className="block w-full rounded-lg border border-gray-300 px-4 py-3 shadow-sm transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Ingrese el nombre del servicio"
+                                        />
+                                        {errors.name && <p className="mt-2 text-sm text-red-600">{errors.name}</p>}
+                                    </div>
+                                </div>
+                            </div>
 
-                <div className="grid grid-cols-1 gap-6">
-                  {/* Nombre */}
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                      Nombre <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      id="name"
-                      type="text"
-                      value={data.name}
-                      onChange={(e) => setData("name", e.target.value)}
-                      className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                      placeholder="Ingrese el nombre del servicio"
-                    />
-                    {errors.name && (
-                      <p className="mt-2 text-sm text-red-600">{errors.name}</p>
-                    )}
-                  </div>
+                            {/* Clasificación */}
+                            <div>
+                                <h2 className="mb-6 border-b border-gray-200 pb-3 text-lg font-medium text-gray-900">Clasificación</h2>
 
-                  {/* Descripción */}
-                  <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                      Descripción
-                    </label>
-                    <textarea
-                      id="description"
-                      value={data.description}
-                      onChange={(e) => setData("description", e.target.value)}
-                      className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
-                      rows={4}
-                      placeholder="Ingrese una descripción detallada del servicio"
-                    />
-                    {errors.description && (
-                      <p className="mt-2 text-sm text-red-600">{errors.description}</p>
-                    )}
-                  </div>
+                                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                    {/* Tipo de servicio */}
+                                    <div>
+                                        <label htmlFor="business_unit_id" className="mb-2 block text-sm font-medium text-gray-700">
+                                            Tipo de Servicio <span className="text-red-500">*</span>
+                                        </label>
+                                        <select
+                                            id="business_unit_id"
+                                            value={data.business_unit_id}
+                                            onChange={(e) => setData('business_unit_id', e.target.value)}
+                                            className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 shadow-sm transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            <option value="">Seleccione un tipo</option>
+                                            {businessUnit.map((type) => (
+                                                <option key={type.id} value={type.id}>
+                                                    {type.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {errors.business_unit_id && <p className="mt-2 text-sm text-red-600">{errors.business_unit_id}</p>}
+                                    </div>
+
+                                    {/* Línea de gestión */}
+                                    <div>
+                                        <label htmlFor="gestion_line_id" className="mb-2 block text-sm font-medium text-gray-700">
+                                            Línea de Gestión <span className="text-red-500">*</span>
+                                        </label>
+                                        <select
+                                            id="gestion_line_id"
+                                            value={data.gestion_line_id}
+                                            onChange={(e) => setData('gestion_line_id', e.target.value)}
+                                            className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 shadow-sm transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            <option value="">Seleccione una línea</option>
+                                            {gestionLines.map((line) => (
+                                                <option key={line.id} value={line.id}>
+                                                    {line.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {errors.gestion_line_id && <p className="mt-2 text-sm text-red-600">{errors.gestion_line_id}</p>}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Botones de acción */}
+                            <div className="flex justify-end gap-3 border-t border-gray-200 pt-6">
+                                <button
+                                    type="button"
+                                    onClick={() => window.history.back()}
+                                    className="rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="rounded-lg border border-transparent bg-blue-600 px-6 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    {processing ? 'Actualizando...' : 'Actualizar Servicio'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-              </div>
+            </main>
 
-              {/* Clasificación */}
-              <div>
-                <h2 className="text-lg font-medium text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                  Clasificación
-                </h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Tipo de servicio */}
-                  <div>
-                    <label htmlFor="service_type_id" className="block text-sm font-medium text-gray-700 mb-2">
-                      Tipo de Servicio <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      id="service_type_id"
-                      value={data.service_type_id}
-                      onChange={(e) => setData("service_type_id", e.target.value)}
-                      className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-                    >
-                      <option value="">Seleccione un tipo</option>
-                      {serviceTypes.map((type) => (
-                        <option key={type.id} value={type.id}>
-                          {type.name}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.service_type_id && (
-                      <p className="mt-2 text-sm text-red-600">{errors.service_type_id}</p>
-                    )}
-                  </div>
-
-                  {/* Línea de gestión */}
-                  <div>
-                    <label htmlFor="gestion_line_id" className="block text-sm font-medium text-gray-700 mb-2">
-                      Línea de Gestión <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      id="gestion_line_id"
-                      value={data.gestion_line_id}
-                      onChange={(e) => setData("gestion_line_id", e.target.value)}
-                      className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-                    >
-                      <option value="">Seleccione una línea</option>
-                      {gestionLines.map((line) => (
-                        <option key={line.id} value={line.id}>
-                          {line.name}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.gestion_line_id && (
-                      <p className="mt-2 text-sm text-red-600">{errors.gestion_line_id}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Botones de acción */}
-              <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
-                <button
-                  type="button"
-                  onClick={() => window.history.back()}
-                  className="px-6 py-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={processing}
-                  className="px-6 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {processing ? "Actualizando..." : "Actualizar Servicio"}
-                </button>
-              </div>
-            </form>
-          </div>
+            <Footer />
         </div>
-      </main>
-
-      <Footer />
-    </div>
-  );
+    );
 }

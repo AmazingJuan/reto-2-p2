@@ -1,7 +1,10 @@
+import { Button } from '@/components/ui/button';
+import Footer from '@/components/ui/footer';
+import Header from '@/components/ui/header';
 import { useForm, usePage } from '@inertiajs/react';
 import { route } from 'ziggy-js';
-import Footer from '../../../components/admin/footer';
-import Header from '../../../components/admin/header';
+
+
 
 interface businessUnit {
     id: string;
@@ -37,11 +40,11 @@ export default function Create() {
         <div className="flex min-h-screen flex-col bg-gray-50">
             <Header />
 
-            <main className="flex-grow px-4 py-12 sm:px-6 lg:px-8">
+            <main className="flex-grow px-4 py-12 sm:px-6 lg:px-8 mt-20">
                 <div className="mx-auto max-w-4xl">
                     {/* Header */}
                     <div className="mb-8">
-                        <h1 className="text-3xl font-semibold text-gray-900">Crear Servicio</h1>
+                        <h1 className="text-3xl font-bold leading-tight text-slate-900 md:text-3xl">Crear Servicio</h1>
                         <p className="mt-2 text-sm text-gray-600">Complete los siguientes campos para crear un nuevo servicio</p>
                     </div>
 
@@ -121,20 +124,20 @@ export default function Create() {
 
                             {/* Botones de acción */}
                             <div className="flex justify-end gap-3 border-t border-gray-200 pt-6">
-                                <button
+                                <Button
                                     type="button"
                                     onClick={() => window.history.back()}
-                                    className="rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                    variant = "crear" className='bg-red-600 hover:bg-red-700'
                                 >
                                     Cancelar
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     type="submit"
                                     disabled={processing}
-                                    className="rounded-lg border border-transparent bg-blue-600 px-6 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    variant = "crear" className='bg-emerald-600 hover:bg-emerald-700'
                                 >
                                     {processing ? 'Guardando...' : 'Guardar Servicio'}
-                                </button>
+                                </Button>
                             </div>
                         </form>
                     </div>
