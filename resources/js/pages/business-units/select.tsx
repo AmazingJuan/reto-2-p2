@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import Footer from '@/components/ui/footer';
@@ -6,6 +5,7 @@ import GoHome from '@/components/ui/gohome';
 import Header from '@/components/ui/header';
 import { PageProps } from '@inertiajs/core';
 import { Link, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 
 type SelectPageProps = PageProps & {
     viewData: {

@@ -4,8 +4,6 @@ import Header from '@/components/ui/header';
 import { useForm, usePage } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 
-
-
 interface businessUnit {
     id: string;
     name: string;
@@ -40,7 +38,7 @@ export default function Create() {
         <div className="flex min-h-screen flex-col bg-gray-50">
             <Header />
 
-            <main className="flex-grow px-4 py-12 sm:px-6 lg:px-8 mt-20">
+            <main className="mt-20 flex-grow px-4 py-12 sm:px-6 lg:px-8">
                 <div className="mx-auto max-w-4xl">
                     {/* Header */}
                     <div className="mb-8">
@@ -69,7 +67,6 @@ export default function Create() {
                                         />
                                         {errors.name && <p className="mt-2 text-sm text-red-600">{errors.name}</p>}
                                     </div>
-                                    
                                 </div>
                             </div>
 
@@ -124,18 +121,10 @@ export default function Create() {
 
                             {/* Botones de acción */}
                             <div className="flex justify-end gap-3 border-t border-gray-200 pt-6">
-                                <Button
-                                    type="button"
-                                    onClick={() => window.history.back()}
-                                    variant = "crear" className='bg-red-600 hover:bg-red-700'
-                                >
+                                <Button type="button" onClick={() => window.history.back()} variant="crear" className="bg-red-600 hover:bg-red-700">
                                     Cancelar
                                 </Button>
-                                <Button
-                                    type="submit"
-                                    disabled={processing}
-                                    variant = "crear" className='bg-emerald-600 hover:bg-emerald-700'
-                                >
+                                <Button type="submit" disabled={processing} variant="crear" className="bg-emerald-600 hover:bg-emerald-700">
                                     {processing ? 'Guardando...' : 'Guardar Servicio'}
                                 </Button>
                             </div>
