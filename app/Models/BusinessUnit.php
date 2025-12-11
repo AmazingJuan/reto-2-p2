@@ -8,7 +8,39 @@ use Illuminate\Support\Collection;
 
 class BusinessUnit extends Model
 {
+
+    /**
+     * Attributes:
+     *
+     * $this->attributes['id'] - int - Primary key identifier
+     * $this->attributes['name'] - string - Unique name of the condition
+     * $this->attributes['created_at'] - Carbon - Record creation timestamp
+     * $this->attributes['updated_at'] - Carbon - Record last update timestamp
+     */
+
     protected $fillable = ['name'];
+
+
+    // Getters
+
+    public function getId(): int
+    {
+        return $this->attributes['id'];
+    }
+
+    public function getName(): string
+    {
+        return $this->attributes['name'];
+    }
+
+    // Setters 
+
+    public function setName(string $name): void
+    {
+        $this->attributes['name'] = $name;
+    }
+
+    // Relationships
 
     public function services(): HasMany
     {

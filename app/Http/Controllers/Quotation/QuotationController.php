@@ -25,7 +25,7 @@ class QuotationController extends Controller
         $selectedBusinessUnit = BusinessUnit::whereRaw('LOWER(name) = ?', [$businessUnitName])->first();
 
         if (! $selectedBusinessUnit) {
-            return redirect()->route('test.select.business_unit')->withErrors(['businessUnit' => 'No hay ninguna unidad de negocio con ese nombre']);
+            return redirect()->route('quotation.select.business_unit')->with('error', 'No hay ninguna unidad de negocio con ese nombre');
         }
 
         $gestionLineNames = GestionLine::pluck('name');
