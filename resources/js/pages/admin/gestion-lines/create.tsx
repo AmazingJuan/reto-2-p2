@@ -10,7 +10,7 @@ export default function Create() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    post(route('admin.lines.store'));
+    post(route('dashboard.lines.store'));
   };
 
   return (

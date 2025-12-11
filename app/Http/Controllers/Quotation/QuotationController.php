@@ -48,7 +48,7 @@ class QuotationController extends Controller
 
         $viewData['businessUnit'] = $selectedBusinessUnit->getName();
         $viewData['gestionLines'] = $gestionLineNames;
-        $viewData['services'] = $services;
+        $viewData['services'] = $formattedServices;
 
         return Inertia::render('nose', compact('viewData'));
     }
