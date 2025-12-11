@@ -1,19 +1,25 @@
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import Footer from '@/components/ui/footer';
 import GoHome from '@/components/ui/gohome';
 import Header from '@/components/ui/header';
 import { PageProps } from '@inertiajs/core';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 
-interface Props extends PageProps {
+type SelectPageProps = PageProps & {
     viewData: {
         businessUnits: string[];
     };
-    errors?: Record<string, string>;
-}
+    flash?: {
+        error?: string;
+    };
+};
 
-export default function SelectBusinessUnits({ viewData, errors = {} }: Props) {
+export default function SelectBusinessUnits() {
+    const { viewData, flash } = usePage<SelectPageProps>().props;
+    const error = flash?.error ?? '';
+    const [showError, setShowError] = useState(Boolean(error));
     return (
         <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-white to-slate-50">
             <Header />
@@ -28,8 +34,22 @@ export default function SelectBusinessUnits({ viewData, errors = {} }: Props) {
                         <h2 className="text-5xl font-bold leading-tight text-slate-900 md:text-5xl">Selecciona la unidad de negocio deseada</h2>
                     </div>
 
-                    {errors?.businessUnitName && (
-                        <div className="mb-4 rounded-lg border border-red-300 bg-red-100 p-3 text-red-700">{errors.businessUnitName}</div>
+                    {error && showError && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                            <div className="w-full max-w-md rounded-xl border border-red-200 bg-white p-6 shadow-xl">
+                                <div className="mb-4 text-lg font-semibold text-red-700">Error</div>
+                                <p className="mb-6 text-slate-800">{error}</p>
+                                <div className="flex justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowError(false)}
+                                        className="rounded bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-red-700"
+                                    >
+                                        Cerrar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     )}
 
                     {viewData.businessUnits.length === 0 ? (
