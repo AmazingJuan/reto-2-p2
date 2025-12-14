@@ -18,6 +18,8 @@ interface IndexPageProps extends Record<string, unknown> {
 
 export default function Index() {
     const { gestionLines } = usePage<IndexPageProps>().props;
+    const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+    
 
     // Acción: borrar línea de gestión
     const handleDelete = (id: number) => {
@@ -65,7 +67,7 @@ export default function Index() {
                         {gestionLines.map((line) => (
                             <tr key={line.id} className="hover:bg-gray-50">
                                 <td className="flex justify-center border-b px-4 py-2">{line.id}</td>
-                                <td className="border-b px-4 py-2 text-center">{line.name}</td>
+                                <td className="border-b px-4 py-2 text-center">{capitalize(line.name)}</td>
                                 <td className="border-b px-4 py-2">
                                     <div className="flex items-center justify-center gap-5">
                                         {/* Editar */}
