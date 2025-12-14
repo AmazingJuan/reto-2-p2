@@ -22,7 +22,7 @@ export default function Index() {
     const { businessUnits } = viewData;
 
     const handleDelete = (id: number) => {
-        if (confirm('¿Seguro que deseas borrar este servicio?')) {
+        if (confirm('¿Seguro que deseas borrar esta unidad de negocio?')) {
             router.delete(route('dashboard.business-unit.delete', id), {
                 onSuccess: () => {
                     alert('Servicio borrado correctamente.');

@@ -1,131 +1,77 @@
-import React, { useState } from 'react';
-import { router, usePage } from '@inertiajs/react';
-import { PageProps } from '@/types';
-
-interface FormData {
-  name: string;
-  needs_error: boolean;
-}
+import { Button } from '@/components/ui/button';
+import Footer from '@/components/ui/footer';
+import GoDashboard from '@/components/ui/godashboard';
+import Header from '@/components/ui/header';
+import { useForm, usePage } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 
 interface BusinessUnit {
-  id: number;
-  name: string;
+    id: number;
+    name: string;
 }
 
-type EditPageProps = PageProps & {
-  viewData: {
-    businessUnit: BusinessUnit;
-  };
-  errors?: Record<string, string>;
-  flash?: {
-    success?: string;
-    error?: string;
-  };
-};
+interface EditPageProps extends Record<string, unknown> {
+    auth: { user: any };
+    viewData: {
+        businessUnit: BusinessUnit;
+    };
+}
 
-export default function EditBusinessUnit() {
-  const { viewData, errors, flash } = usePage<EditPageProps>().props;
-  const validationErrors = errors ?? {};
-  const flashMessages = flash ?? {};
-  const businessUnit = viewData?.businessUnit;
+export default function Edit() {
+    const { viewData } = usePage<EditPageProps>().props;
+    const { businessUnit } = viewData;
 
-  const [form, setForm] = useState<FormData>({
-    name: businessUnit?.name ?? '',
-    needs_error: false,
-  });
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value, type, checked } = e.target as HTMLInputElement;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!businessUnit?.id) return;
-
-    router.put(route('dashboard.business-unit.update', businessUnit.id), {
-      ...form,
-      needs_error: form.needs_error ? 'true' : 'false',
+    const { data, setData, put, processing, errors } = useForm({
+        name: businessUnit.name ?? '',
     });
-  };
 
-  if (!businessUnit) {
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        put(route('dashboard.business-unit.update', businessUnit.id));
+    };
+
     return (
-      <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow mt-8">
-        <p className="text-red-600">Unidad de negocio no encontrada.</p>
-      </div>
+        <div className="flex min-h-screen flex-col bg-gray-50">
+            <Header />
+            <GoDashboard />
+
+            <main className="flex-grow px-4 py-12 sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-4xl">
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-bold text-slate-900">Editar Unidad de Negocio</h1>
+                        <p className="mt-2 text-sm text-gray-600">Modifique el campo necesario para actualizar la unidad de negocio</p>
+                    </div>
+
+                    <div className="rounded-lg border bg-white shadow-sm">
+                        <form onSubmit={handleSubmit} className="space-y-8 p-8">
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-gray-700">
+                                    Nombre <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={data.name}
+                                    onChange={(e) => setData('name', e.target.value)}
+                                    className="block w-full rounded-lg border px-4 py-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-500"
+                                />
+                                {errors.name && <p className="mt-2 text-sm text-red-600">{errors.name}</p>}
+                            </div>
+
+                            {/* Botones */}
+                            <div className="flex justify-end gap-3 border-t pt-6">
+                                <Button variant="training" onClick={() => window.history.back()} className="bg-red-600 hover:bg-red-700">
+                                    Cancelar
+                                </Button>
+                                <Button variant="training" disabled={processing} className="bg-emerald-600 hover:bg-emerald-700">
+                                    {processing ? 'Actualizando...' : 'Actualizar Unidad de Negocio'}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </main>
+
+            <Footer />
+        </div>
     );
-  }
-
-  return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow mt-8">
-      <h1 className="text-2xl font-bold mb-4">Editar Unidad de Negocio</h1>
-
-      {validationErrors.error && (
-        <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
-          {validationErrors.error}
-        </div>
-      )}
-
-      {flashMessages.success && (
-        <div className="mb-4 p-2 bg-green-100 text-green-700 rounded">
-          {flashMessages.success}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label htmlFor="name" className="block mb-1 font-medium">
-            Nombre de la unidad
-          </label>
-          <input
-            type="text"
-            name="name"
-            id="name"
-            value={form.name}
-            onChange={handleChange}
-            className="w-full border rounded p-2"
-          />
-          {validationErrors.name && (
-            <p className="text-red-600 text-sm mt-1">{validationErrors.name}</p>
-          )}
-        </div>
-
-        <div className="mb-4 flex items-center">
-          <input
-            type="checkbox"
-            name="needs_error"
-            id="needs_error"
-            checked={form.needs_error}
-            onChange={handleChange}
-            className="mr-2"
-          />
-          <label htmlFor="needs_error" className="font-medium">
-            Simular error de prueba
-          </label>
-        </div>
-
-        <div className="flex gap-2">
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Actualizar Unidad
-          </button>
-          <button
-            type="button"
-            onClick={() => router.visit(route('dashboard.business-unit.index'))}
-            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
-          >
-            Cancelar
-          </button>
-        </div>
-      </form>
-    </div>
-  );
 }
