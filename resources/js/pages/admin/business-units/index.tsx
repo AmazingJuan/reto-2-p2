@@ -20,6 +20,7 @@ interface IndexPageProps extends Record<string, unknown> {
 export default function Index() {
     const { viewData } = usePage<IndexPageProps>().props;
     const { businessUnits } = viewData;
+    const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
     const handleDelete = (id: number) => {
         if (confirm('¿Seguro que deseas borrar esta unidad de negocio?')) {
@@ -44,7 +45,7 @@ export default function Index() {
     return (
         <div className="flex min-h-screen flex-col bg-gray-50">
             <Header />
-            <GoDashboard />
+            <GoDashboard/>
 
             <main className="flex-1 p-6">
                 <h1 className="mb-6 text-center text-3xl font-bold leading-tight text-slate-900 md:text-3xl">Administrar Unidad de Negocio</h1>
@@ -70,12 +71,9 @@ export default function Index() {
                                 className="cursor-pointer hover:bg-gray-100"
                             >
                                 <td className="border-b px-4 py-2 text-center">{unit.id}</td>
-                                <td className="border-b px-4 py-2 text-center font-medium">{unit.name}</td>
+                                <td className="border-b px-4 py-2 text-center font-medium">{capitalize(unit.name)}</td>
 
-                                <td
-                                    className="border-b px-4 py-2"
-                                    onClick={(e) => e.stopPropagation()} 
-                                >
+                                <td className="border-b px-4 py-2" onClick={(e) => e.stopPropagation()}>
                                     <div className="flex justify-center gap-5">
                                         <button onClick={() => handleEdit(unit.id)} className="transition hover:scale-110">
                                             <Pencil className="h-6 w-6 text-emerald-500" />

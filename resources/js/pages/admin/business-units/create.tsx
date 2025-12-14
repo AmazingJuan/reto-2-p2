@@ -1,102 +1,67 @@
-import React, { useState } from 'react';
-import { router, usePage } from '@inertiajs/react';
-import { PageProps } from '@/types';
+import { Button } from '@/components/ui/button';
+import Footer from '@/components/ui/footer';
+import GoDashboard from '@/components/ui/godashboard';
+import Header from '@/components/ui/header';
+import { useForm } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 
-interface FormData {
-  name: string;
-  needs_error: boolean;
-}
-
-type CreatePageProps = PageProps & {
-  errors: Record<string, string>;
-  flash: {
-    success?: string;
-    error?: string;
-  };
-};
-
-export default function CreateBusinessUnit() {
-  const { errors, flash } = usePage<CreatePageProps>().props;
-  const validationErrors = errors ?? {};
-  const flashMessages = flash ?? {};
-  const [form, setForm] = useState<FormData>({
-    name: '',
-    needs_error: false,
-  });
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value, type, checked } = e.target as HTMLInputElement;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    router.post(route('dashboard.business-unit.store'), {
-      ...form,
-      needs_error: form.needs_error ? 'true' : 'false', // convierte a string para el backend
+export default function Create() {
+    const { data, setData, post, processing, errors } = useForm({
+        name: '',
     });
-  };
 
-  return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow mt-8">
-      <h1 className="text-2xl font-bold mb-4">Crear Unidad de Negocio</h1>
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        post(route('dashboard.business-unit.store'));
+    };
 
-      {validationErrors.error && (
-        <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
-          {validationErrors.error}
+    return (
+        <div className="flex min-h-screen flex-col bg-gray-50">
+            <Header />
+            <GoDashboard />
+
+            <main className="flex-grow px-4 py-12 sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-4xl">
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-bold text-slate-900">Crear Unidad de Negocio</h1>
+                        <p className="mt-2 text-sm text-gray-600">Complete el siguiente campo para crear una nueva unidad de negocio</p>
+                    </div>
+
+                    <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+                        <form onSubmit={handleSubmit} className="space-y-8 p-8">
+                            <div>
+                                <label htmlFor="name" className="mb-2 block text-sm font-medium text-gray-700">
+                                    Nombre <span className="text-red-500">*</span>
+                                </label>
+
+                                <input
+                                    id="name"
+                                    type="text"
+                                    value={data.name}
+                                    onChange={(e) => setData('name', e.target.value)}
+                                    className="block w-full rounded-lg border border-gray-300 px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Ingrese el nombre de la unidad de negocio"
+                                />
+
+                                {errors.name && <p className="mt-2 text-sm text-red-600">{errors.name}</p>}
+                            </div>
+
+                            {/* Botones */}
+                            <div className="flex justify-end gap-3 border-t border-gray-200 pt-6">
+                                <Button variant="training" onClick={() => window.history.back()} className="bg-red-600 hover:bg-red-700">
+                                    Cancelar
+                                </Button>
+
+                                <Button variant="training" disabled={processing} className="bg-emerald-600 hover:bg-emerald-700">
+                                    {processing ? 'Creando...' : 'Crear Unidad de Negocio'}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </main>
+
+            <Footer />
         </div>
-      )}
-
-      {flashMessages.success && (
-        <div className="mb-4 p-2 bg-green-100 text-green-700 rounded">
-          {flashMessages.success}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label htmlFor="name" className="block mb-1 font-medium">
-            Nombre de la unidad
-          </label>
-          <input
-            type="text"
-            name="name"
-            id="name"
-            value={form.name}
-            onChange={handleChange}
-            className="w-full border rounded p-2"
-          />
-          {validationErrors.name && (
-            <p className="text-red-600 text-sm mt-1">{validationErrors.name}</p>
-          )}
-        </div>
-
-        <div className="mb-4 flex items-center">
-          <input
-            type="checkbox"
-            name="needs_error"
-            id="needs_error"
-            checked={form.needs_error}
-            onChange={handleChange}
-            className="mr-2"
-          />
-          <label htmlFor="needs_error" className="font-medium">
-            Simular error de prueba
-          </label>
-        </div>
-
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Crear Unidad
-        </button>
-      </form>
-    </div>
-  );
+    );
 }

@@ -31,9 +31,8 @@ export default function Edit() {
     };
 
     return (
-        <div className="flex min-h-screen flex-col bg-gray-50">
+        <div className="mt-20 flex min-h-screen flex-col bg-gray-50">
             <Header />
-            <GoDashboard />
 
             <main className="flex-grow px-4 py-12 sm:px-6 lg:px-8">
                 <div className="mx-auto max-w-4xl">
@@ -52,7 +51,7 @@ export default function Edit() {
                                     type="text"
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
-                                    className="block w-full rounded-lg border px-4 py-3 focus:border-amber-500 focus:ring-2 focus:ring-amber-500"
+                                    className="block w-full rounded-lg border px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                                 />
                                 {errors.name && <p className="mt-2 text-sm text-red-600">{errors.name}</p>}
                             </div>
