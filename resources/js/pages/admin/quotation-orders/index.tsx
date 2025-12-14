@@ -1,98 +1,94 @@
-import { usePage } from "@inertiajs/react";
-import AdminLayout from "../../../layouts/admin-layout";
-import { Download } from "lucide-react";
-import { route } from "ziggy-js";
+import Footer from '@/components/ui/footer';
+import GoDashboard from '@/components/ui/godashboard';
+import Header from '@/components/ui/header';
+import { usePage } from '@inertiajs/react';
+import { Download } from 'lucide-react';
+import { route } from 'ziggy-js';
 
 interface QuotationOrder {
-  id: number;
-  is_generated: boolean;
-  quotation_url?: string;
+    id: number;
+    is_generated: boolean;
+    quotation_url?: string;
 }
 
 interface IndexPageProps extends Record<string, unknown> {
-  auth: { user: any };
-  viewData: {
-    quotationOrders: QuotationOrder[];
-  };
+    auth: { user: any };
+    viewData: {
+        quotationOrders: QuotationOrder[];
+    };
 }
 
 export default function Index() {
-  const { viewData } = usePage<IndexPageProps>().props;
-  const quotationOrders = viewData.quotationOrders;
+    const { viewData } = usePage<IndexPageProps>().props;
+    const quotationOrders = viewData.quotationOrders;
 
-  const handleDownload = (url: string) => {
-    window.open(url, "_blank"); // abre la URL de descarga en nueva pestaña
-  };
+    const handleDownload = (url: string) => {
+        window.open(url, '_blank'); // abre la URL de descarga en nueva pestaña
+    };
 
-  return (
-    <AdminLayout>
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Órdenes de Cotización</h1>
+    return (
+            <div className="p-6 bg-gray-50">
+                <Header />
+                <GoDashboard />
+                <h1 className="mb-6 text-center text-3xl font-bold leading-tight text-slate-900 md:text-3xl">Órdenes de Cotización</h1>
 
-        <table className="min-w-full bg-white border rounded-lg shadow">
-          <thead>
-            <tr className="bg-gray-100 text-left">
-              <th className="py-2 px-4 border-b">ID</th>
-              <th className="py-2 px-4 border-b">Estado</th>
-              <th className="py-2 px-4 border-b text-center">Descarga</th>
-            </tr>
-          </thead>
+                <table className="min-w-full rounded-lg border bg-white shadow">
+                    <thead>
+                        <tr className="bg-gray-100 text-left">
+                            <th className="border-b px-4 py-2">ID</th>
+                            <th className="border-b px-4 py-2">Estado</th>
+                            <th className="border-b px-4 py-2 text-center">Descarga</th>
+                        </tr>
+                    </thead>
 
-          <tbody>
-            {quotationOrders.length > 0 ? (
-              quotationOrders.map((order) => (
-                <tr
-                  key={order.id}
-                  className="hover:bg-gray-50 cursor-pointer"
-                  onClick={() =>
-                    (window.location.href = route(
-                      "admin.quotation-orders.show",
-                      order.id
-                    ))
-                  }
-                >
-                  <td className="py-2 px-4 border-b">{order.id}</td>
+                    <tbody>
+                        {quotationOrders.length > 0 ? (
+                            quotationOrders.map((order) => (
+                                <tr
+                                    key={order.id}
+                                    className="cursor-pointer hover:bg-gray-50"
+                                    onClick={() => (window.location.href = route('admin.quotation-orders.show', order.id))}
+                                >
+                                    <td className="border-b px-4 py-2">{order.id}</td>
 
-                  <td className="py-2 px-4 border-b">
-                    {order.is_generated ? (
-                      <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
-                        Generada
-                      </span>
-                    ) : (
-                      <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-semibold">
-                        Pendiente
-                      </span>
-                    )}
-                  </td>
+                                    <td className="border-b px-4 py-2">
+                                        {order.is_generated ? (
+                                            <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">Generada</span>
+                                        ) : (
+                                            <span className="rounded-full bg-yellow-100 px-3 py-1 text-sm font-semibold text-yellow-700">
+                                                Pendiente
+                                            </span>
+                                        )}
+                                    </td>
 
-                  <td className="py-2 px-4 border-b text-center">
-                    {order.is_generated && order.quotation_url ? (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation(); // evita redirección al hacer clic
-                          handleDownload(order.quotation_url!);
-                        }}
-                        className="text-blue-600 hover:text-blue-800 transition transform hover:scale-110"
-                        title="Descargar cotización"
-                      >
-                        <Download className="h-5 w-5 inline" />
-                      </button>
-                    ) : (
-                      <span className="text-gray-400 text-sm">—</span>
-                    )}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={3} className="text-center py-4 text-gray-500">
-                  No hay órdenes de cotización registradas.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </AdminLayout>
-  );
+                                    <td className="border-b px-4 py-2 text-center">
+                                        {order.is_generated && order.quotation_url ? (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation(); // evita redirección al hacer clic
+                                                    handleDownload(order.quotation_url!);
+                                                }}
+                                                className="transform text-blue-600 transition hover:scale-110 hover:text-blue-800"
+                                                title="Descargar cotización"
+                                            >
+                                                <Download className="inline h-5 w-5" />
+                                            </button>
+                                        ) : (
+                                            <span className="text-sm text-gray-400">—</span>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={3} className="py-4 text-center text-gray-500">
+                                    No hay órdenes de cotización registradas.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+                <Footer />
+            </div>
+    );
 }
