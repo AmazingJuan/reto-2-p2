@@ -11,17 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('condition_values', function (Blueprint $table) {
+        Schema::create('condition_ranges', function (Blueprint $table) {
             $table->id();
             $table->foreignId('condition_id')
-                ->constrained()
-                ->onDelete('cascade');
-            $table->foreignId('business_unit_id')->constrained();
-            $table->foreignId('next_condition_id')
-                ->nullable()
                 ->constrained('conditions')
-                ->onDelete('set null');
-            $table->string('value', 100);
+                ->onDelete('cascade');
+
+            $table->string('min_value');
+            $table->string('max_value');
         });
     }
 
@@ -30,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('condition_values');
+        Schema::dropIfExists('condition_ranges');
     }
 };

@@ -3,17 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
-class ConditionServiceType extends Model
+class ConditionRange extends Model
 {
     /**
      * Attributes:
      *
      * $this->attributes['id'] - int - Primary key identifier
      * $this->attributes['condition_id'] - int - Foreign key referencing conditions.id
-     * $this->attributes['service_type_id'] - string - Foreign key referencing service_types.id (string PK)
-     * $this->attributes['created_at'] - \Illuminate\Support\Carbon - Record creation timestamp
-     * $this->attributes['updated_at'] - \Illuminate\Support\Carbon - Record last update timestamp
+     * $this->attributes['min_value'] - string - Minimum value of the range
+     * $this->attributes['max_value'] - string - Maximum value of the range
      */
 
     /**
@@ -23,7 +23,8 @@ class ConditionServiceType extends Model
      */
     protected $fillable = [
         'condition_id',
-        'service_type_id',
+        'min_value',
+        'max_value',
     ];
 
     public $timestamps = false;
@@ -34,14 +35,12 @@ class ConditionServiceType extends Model
     |--------------------------------------------------------------------------
     */
 
-    public function condition()
+    /**
+     * A ConditionOption belongs to a Condition.
+     */
+    public function getCondition(): Collection
     {
-        return $this->belongsTo(Condition::class);
-    }
-
-    public function serviceType()
-    {
-        return $this->belongsTo(ServiceType::class, 'service_type_id', 'id');
+        return $this->belongsTo(Condition::class)->get();
     }
 
     /*
@@ -67,14 +66,25 @@ class ConditionServiceType extends Model
         $this->attributes['condition_id'] = $value;
     }
 
-    // Service Type ID
-    public function getServiceTypeId(): string
+    // Min Value
+    public function getMinValue(): string
     {
-        return $this->attributes['service_type_id'];
+        return $this->attributes['min_value'];
     }
 
-    public function setServiceTypeId(string $value): void
+    public function setMinValue(string $value): void
     {
-        $this->attributes['service_type_id'] = $value;
+        $this->attributes['min_value'] = $value;
+    }
+
+    // Max Value
+    public function getMaxValue(): string
+    {
+        return $this->attributes['max_value'];
+    }
+
+    public function setMaxValue(string $value): void
+    {
+        $this->attributes['max_value'] = $value;
     }
 }

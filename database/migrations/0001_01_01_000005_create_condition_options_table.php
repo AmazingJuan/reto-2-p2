@@ -11,14 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('business_units', function (Blueprint $table) {
+        Schema::create('condition_options', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->foreignId('initial_condition_id')
+            $table->string('label');
+
+            $table->foreignId('condition_id')
+                ->constrained()
+                ->onDelete('cascade');
+
+            $table->foreignId('next_condition_id')
                 ->nullable()
                 ->constrained('conditions')
                 ->onDelete('set null');
-            $table->timestamps();
+
+            $table->boolean('is_other')->default(false);
         });
     }
 
@@ -27,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('business_units');
+        Schema::dropIfExists('condition_options');
     }
 };
