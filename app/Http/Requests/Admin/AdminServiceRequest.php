@@ -25,7 +25,7 @@ class AdminServiceRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'service_type_id' => ['required', 'exists:service_types,id'],
+            'business_unit_id' => ['required', 'exists:business_unit,id'],
             'gestion_line_id' => ['required', 'exists:gestion_lines,id'],
         ];
     }
@@ -42,8 +42,8 @@ class AdminServiceRequest extends FormRequest
 
             'description.string' => 'La descripción debe ser un texto.',
 
-            'service_type_id.required' => 'El tipo de servicio es obligatorio.',
-            'service_type_id.exists' => 'El tipo de servicio seleccionado no es válido.',
+            'business_unit_id.required' => 'La unidad de negocio es obligatoria.',
+            'business_unit_id.exists' => 'La unidad de negocio seleccionada no es válida.',
 
             'gestion_line_id.required' => 'La línea de gestión es obligatoria.',
             'gestion_line_id.exists' => 'La línea de gestión seleccionada no es válida.',

@@ -20,6 +20,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         training : "rounded-xl bg-[#0693e3] px-8 py-6 text-lg text-white shadow-lg transition-all hover:bg-[#047ac0] hover:shadow-xl",
         admin : "rounded-xl bg-[#0693e3] text-lg text-white hover:bg-[#047ac0] hover:shadow-xl",
+        crear : "mt-5 mb-4 rounded bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 rounded-xl px-8 py-6 text-lg text-white shadow-lg transition-all hover:shadow-xl",
       },
       size: {
         default: "h-10 px-4 py-2",
