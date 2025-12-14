@@ -64,7 +64,11 @@ export default function Index() {
                         {services.map((service) => (
                             <tr key={service.id} className="hover:bg-gray-50">
                                 <td className="flex justify-center border-b px-4 py-2">{service.id}</td>
+<<<<<<< HEAD
                                 <td className="border-b px-4 py-2 text-center">{capitalize(service.name)}</td>
+=======
+                                <td className="border-b px-4 py-2 text-center">{service.name}</td>
+>>>>>>> development
 
                                 <td className="border-b px-4 py-2">
                                     <div className="flex items-center justify-center gap-5">
