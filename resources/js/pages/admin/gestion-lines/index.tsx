@@ -67,11 +67,7 @@ export default function Index() {
                         {gestionLines.map((line) => (
                             <tr key={line.id} className="hover:bg-gray-50">
                                 <td className="flex justify-center border-b px-4 py-2">{line.id}</td>
-<<<<<<< HEAD
                                 <td className="border-b px-4 py-2 text-center">{capitalize(line.name)}</td>
-=======
-                                <td className="border-b px-4 py-2 text-center">{line.name}</td>
->>>>>>> development
                                 <td className="border-b px-4 py-2">
                                     <div className="flex items-center justify-center gap-5">
                                         {/* Editar */}
