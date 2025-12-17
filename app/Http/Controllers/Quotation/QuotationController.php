@@ -31,14 +31,14 @@ class QuotationController extends Controller
 
         $gestionLineNames = GestionLine::pluck('name');
 
-        if($gestionLineNames->isEmpty()) {
+        if ($gestionLineNames->isEmpty()) {
             return redirect()->route('quotation.select.business_unit')->with('error', 'No existen líneas de gestión disponibles para cotizar.');
         }
 
         $services = Service::select('id', 'name', 'gestion_line_id')
             ->with('gestionLine:id,name')
             ->get();
-        
+
         if ($services->isEmpty()) {
             return redirect()->route('quotation.select.business_unit')->with('error', 'No existen servicios disponibles para cotizar.');
         }

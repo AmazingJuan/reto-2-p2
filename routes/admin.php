@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminGestionLineController;
 use App\Http\Controllers\Admin\AdminQuotationOrderController;
 use App\Http\Controllers\Admin\AdminServiceController;
+use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -46,4 +47,12 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
     Route::post('/unidad-negocio', [AdminBusinessUnitController::class, 'store'])->name('dashboard.business-unit.store');
     Route::get('/unidad-negocio/{id}/editar', [AdminBusinessUnitController::class, 'edit'])->where('id', '[0-9]+')->name('dashboard.business-unit.edit');
     Route::put('/unidad-negocio/{id}', [AdminBusinessUnitController::class, 'update'])->where('id', '[0-9]+')->name('dashboard.business-unit.update');
+
+    // Usuarios
+    Route::get('/usuarios', [AdminUserController::class, 'index'])->name('dashboard.users.index');
+    Route::delete('/usuarios/{id}', [AdminUserController::class, 'delete'])->name('dashboard.users.delete');
+    Route::get('/usuarios/crear', [AdminUserController::class, 'create'])->name('dashboard.users.create');
+    Route::post('/usuarios', [AdminUserController::class, 'store'])->name('dashboard.users.store');
+    Route::get('/usuarios/{id}/editar', [AdminUserController::class, 'edit'])->name('dashboard.users.edit');
+    Route::put('/usuarios/{id}', [AdminUserController::class, 'update'])->name('dashboard.users.update');
 });

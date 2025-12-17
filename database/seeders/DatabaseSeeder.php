@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Usuario de Prueba',
             'email' => 'test@example.com',
             'password' => Hash::make('1234'),
+            'phone'=> '1234567890',
         ]);
         /*
         $this->call(GestionLineTableSeeder::class);
