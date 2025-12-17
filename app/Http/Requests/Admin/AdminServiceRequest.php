@@ -25,7 +25,7 @@ class AdminServiceRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'business_unit_id' => ['required', 'exists:business_unit,id'],
+            'business_unit_id' => ['required', 'exists:business_units,id'],
             'gestion_line_id' => ['required', 'exists:gestion_lines,id'],
         ];
     }
