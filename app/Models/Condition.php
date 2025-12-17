@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
 class Condition extends Model
@@ -43,19 +45,44 @@ class Condition extends Model
     |--------------------------------------------------------------------------
     */
 
+    public function options(): HasMany
+    {
+        return $this->hasMany(ConditionOption::class);
+    }
+
     public function getOptions(): Collection
     {
-        return $this->hasMany(ConditionOption::class)->get();
+        return $this->options;
     }
 
-    public function getBusinessUnit(): Collection
+    public function businessUnit(): BelongsTo
     {
-        return $this->belongsTo(BusinessUnit::class)->get();
+        return $this->belongsTo(BusinessUnit::class, 'business_unit_id');
     }
 
-    public function getNextCondition(): Collection
+    public function getBusinessUnit(): BusinessUnit
     {
-        return $this->belongsTo(Condition::class, 'next_condition_id')->get();
+        return $this->businessUnit;
+    }
+
+    public function condition(): BelongsTo
+    {
+        return $this->belongsTo(Condition::class, 'next_condition_id');
+    }
+
+    public function getNextCondition(): Condition
+    {
+        return $this->condition;
+    }
+
+    public function ranges(): HasMany
+    {
+        return $this->hasMany(ConditionRange::class);
+    }
+
+    public function getRanges(): Collection
+    {
+        return $this->ranges;
     }
 
     /*
@@ -113,17 +140,6 @@ class Condition extends Model
     public function setObservation(?string $value): void
     {
         $this->attributes['observation'] = $value;
-    }
-
-    // Next Condition ID
-    public function getNextConditionId(): ?int
-    {
-        return $this->attributes['next_condition_id'] ?? null;
-    }
-
-    public function setNextConditionId(?int $value): void
-    {
-        $this->attributes['next_condition_id'] = $value;
     }
 
     // Allows Multiple Values

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
 
 class ConditionOption extends Model
@@ -40,17 +41,28 @@ class ConditionOption extends Model
     /**
      * A ConditionOption belongs to a Condition.
      */
-    public function getCondition(): Collection
+    public function condition(): BelongsTo
     {
-        return $this->belongsTo(Condition::class)->get();
+        return $this->belongsTo(Condition::class, 'condition_id');
+    }
+
+    public function getCondition(): Condition
+    {
+        return $this->condition;
     }
 
     /**
      * A ConditionOption may point to a next Condition.
      */
-    public function getNextCondition(): Collection
+
+    public function nextCondition(): BelongsTo
     {
-        return $this->belongsTo(Condition::class, 'next_condition_id')->get();
+        return $this->belongsTo(Condition::class, 'next_condition_id');
+    }
+
+    public function getNextCondition(): Condition
+    {
+        return $this->nextCondition;
     }
 
     /*

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
 
 class ConditionRange extends Model
@@ -38,9 +39,15 @@ class ConditionRange extends Model
     /**
      * A ConditionOption belongs to a Condition.
      */
-    public function getCondition(): Collection
+
+    public function condition(): BelongsTo
     {
-        return $this->belongsTo(Condition::class)->get();
+        return $this->belongsTo(Condition::class, 'condition_id');
+    }
+
+    public function getCondition(): Condition
+    {
+        return $this->condition;
     }
 
     /*

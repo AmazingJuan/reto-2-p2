@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 
 class BusinessUnit extends Model
@@ -17,6 +19,8 @@ class BusinessUnit extends Model
      * $this->attributes['services'] - Service[] - Services associated with the business unit
      */
     protected $fillable = ['name'];
+
+    // Relationships
 
     // Getters
 
@@ -39,8 +43,23 @@ class BusinessUnit extends Model
 
     // Relationships
 
+    public function services(): HasMany
+    {
+        return $this->hasMany(Service::class);
+    }
+
     public function getServices(): Collection
     {
-        return $this->hasMany(Service::class)->get();
+        return $this->services;
+    }
+
+    public function initialCondition(): HasOne
+    {
+        return $this->HasOne(Condition::class, 'initial_condition_id');
+    }
+
+    public function getInitialCondition(): Condition
+    {
+        return $this->initialCondition;
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BusinessUnit;
 use App\Models\GestionLine;
 use App\Models\Service;
+use App\Helpers\DecisionTreeHelper;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -43,12 +44,19 @@ class QuotationController extends Controller
             return redirect()->route('quotation.select.business_unit')->with('error', 'No existen servicios disponibles para cotizar.');
         }
 
+        $decisionTree = DecisionTreeHelper::buildTree($selectedBusinessUnit);
+
+        if (empty($decisionTree)) {
+            return redirect()->route('quotation.select.business_unit')->with('error', 'No existen condiciones definidas para la unidad de negocio seleccionada.');
+        }
+
         $formattedServices = $services->groupBy(fn ($s) => $s->gestionLine->name)
             ->map(fn ($group) => $group->map(fn ($s) => $s->name));
 
         $viewData['businessUnit'] = $selectedBusinessUnit->getName();
         $viewData['gestionLines'] = $gestionLineNames;
         $viewData['services'] = $formattedServices;
+        $viewData['conditions'] = $decisionTree;
 
         return Inertia::render('nose', compact('viewData'));
     }
