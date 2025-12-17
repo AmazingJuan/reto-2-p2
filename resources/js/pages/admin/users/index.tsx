@@ -51,7 +51,7 @@ export default function IndexUsers() {
 				<h1 className="mb-6 text-center text-3xl font-bold leading-tight text-slate-900 md:text-3xl">Administrar Usuarios</h1>
 
 				<div className="mb-4 flex justify-end">
-					<Button variant="crear" onClick={handleCreate}>
+					<Button variant="crear" onClick={handleCreate} className='bg-indigo-600 hover:bg-indigo-700' >
 						<Plus /> Crear usuario
 					</Button>
 				</div>
@@ -80,7 +80,7 @@ export default function IndexUsers() {
 											className="transform transition hover:scale-110"
 											title="Editar"
 										>
-											<Pencil className="h-5 w-5 text-emerald-500 hover:text-emerald-600" />
+											<Pencil className="h-5 w-5 text-indigo-600 hover:text-indigo-600" />
 										</button>
 
 										<button
