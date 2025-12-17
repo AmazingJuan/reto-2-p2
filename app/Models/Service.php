@@ -52,19 +52,19 @@ class Service extends Model
     */
 
     /**
-     * Get the ServiceType name.
+     * Get the BusinessUnit.
      */
-    public function getServiceTypeNameAttribute(): ?string
+    public function getBusinessUnit(): BusinessUnit
     {
-        return $this->serviceType->name ?? null;
+        return $this->businessUnit->get();
     }
 
     /**
-     * Get the GestionLine name.
+     * Get the Gestion Line.
      */
-    public function getGestionLineNameAttribute(): ?string
+    public function getGestionLine(): GestionLine
     {
-        return $this->gestionLine->name ?? null;
+        return $this->gestionLine->get();
     }
 
     /*
@@ -88,38 +88,5 @@ class Service extends Model
     public function setName(string $value): void
     {
         $this->attributes['name'] = $value;
-    }
-
-    // Description
-    public function getDescription(): ?string
-    {
-        return $this->attributes['description'];
-    }
-
-    public function setDescription(?string $value): void
-    {
-        $this->attributes['description'] = $value;
-    }
-
-    // Service Type ID
-    public function getServiceTypeId(): string
-    {
-        return $this->attributes['service_type_id'];
-    }
-
-    public function setServiceTypeId(string $value): void
-    {
-        $this->attributes['service_type_id'] = $value;
-    }
-
-    // Gestion Line ID
-    public function getGestionLineId(): string
-    {
-        return $this->attributes['gestion_line_id'];
-    }
-
-    public function setGestionLineId(string $value): void
-    {
-        $this->attributes['gestion_line_id'] = $value;
     }
 }
