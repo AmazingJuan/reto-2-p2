@@ -10,7 +10,7 @@ const Dashboard: React.FC = () => {
     const items = [
         {
             label: 'Usuarios',
-            name: 'home',
+            name: 'dashboard.users.index',
             desc: 'Gestiona cuentas, roles y permisos',
             icon: Users,
             accent: 'indigo',
