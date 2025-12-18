@@ -14,7 +14,7 @@ class AdminBusinessUnitController extends Controller
 {
     public function index(): InertiaResponse
     {
-        $businessUnits = BusinessUnit::select('id', 'name')->get();
+        $businessUnits = BusinessUnit::select('id', 'name')->orderBy('id')->get();
 
         $viewData['businessUnits'] = $businessUnits;
 
@@ -109,6 +109,7 @@ class AdminBusinessUnitController extends Controller
         }
 
         try {
+        
             $businessUnit->delete();
             $successMessage = 'La unidad de negocio: '.$businessUnit->name.', ha sido eliminada exitosamente.';
 

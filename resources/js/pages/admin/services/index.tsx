@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import FlashAlert from '@/components/ui/flashalert';
 import Footer from '@/components/ui/footer';
 import GoDashboard from '@/components/ui/godashboard';
 import Header from '@/components/ui/header';
@@ -13,21 +14,20 @@ interface Service {
 
 interface IndexPageProps extends Record<string, unknown> {
     auth: { user: any };
-    services: Service[];
+    viewData: {
+        services: Service[];
+    };
 }
 
 export default function Index() {
-    const { services } = usePage<IndexPageProps>().props;
+    const { viewData, flash } = usePage<IndexPageProps & { flash: Record<string, unknown> }>().props;
+    const { services } = viewData;
     const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
     // Acción: borrar servicio
     const handleDelete = (id: number) => {
         if (confirm('¿Seguro que deseas borrar este servicio?')) {
-            router.delete(route('dashboard.services.delete', id), {
-                onSuccess: () => {
-                    alert('Servicio borrado correctamente.');
-                },
-            });
+            router.delete(route('dashboard.services.delete', id));
         }
     };
 
@@ -42,12 +42,12 @@ export default function Index() {
     };
 
     return (
-      <div className="flex min-h-screen flex-col bg-gray-50">
+        <div className="flex min-h-screen flex-col bg-gray-50">
             <Header />
-          <GoDashboard />
+            <GoDashboard />
             <div className="p-6">
                 <h1 className="mb-6 text-center text-3xl font-bold leading-tight text-slate-900 md:text-3xl">Administrar Servicios</h1>
-
+                <FlashAlert flash={flash} duration={5000} />
                 <Button variant="crear" onClick={handleCreate}>
                     <Plus /> Crear servicio
                 </Button>

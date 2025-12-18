@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import FlashAlert from '@/components/ui/flashalert';
 import Footer from '@/components/ui/footer';
 import GoDashboard from '@/components/ui/godashboard';
 import Header from '@/components/ui/header';
@@ -13,31 +14,26 @@ interface GestionLine {
 
 interface IndexPageProps extends Record<string, unknown> {
     auth: { user: any };
-    gestionLines: GestionLine[];
+    viewData: {
+        gestionLines: GestionLine[];
+    };
 }
 
 export default function Index() {
-    const { gestionLines } = usePage<IndexPageProps>().props;
+    const { viewData, flash } = usePage<IndexPageProps & { flash: Record<string, unknown> }>().props;
+    const { gestionLines } = viewData;
     const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
-    
 
-    // Acción: borrar línea de gestión
     const handleDelete = (id: number) => {
         if (confirm('¿Seguro que deseas borrar esta línea de gestión?')) {
-            router.delete(route('dashboard.lines.delete', id), {
-                onSuccess: () => {
-                    alert('Linea de gestión borrada correctamente.');
-                },
-            });
+            router.delete(route('dashboard.lines.delete', id));
         }
     };
 
-    // Acción: ir a editar
     const handleEdit = (id: number) => {
         router.get(route('dashboard.lines.edit', { id }));
     };
 
-    // Acción: ir a crear
     const handleCreate = () => {
         router.get(route('dashboard.lines.create'));
     };
@@ -49,7 +45,7 @@ export default function Index() {
 
             <main className="flex-1 p-6">
                 <h1 className="mb-6 text-center text-3xl font-bold leading-tight text-slate-900 md:text-3xl">Administrar Líneas de Gestión</h1>
-
+                <FlashAlert flash={flash} duration={5000} />
                 <Button onClick={handleCreate} variant="crear" className="bg-amber-600 hover:bg-amber-600">
                     <Plus />
                     Crear línea de gestión
