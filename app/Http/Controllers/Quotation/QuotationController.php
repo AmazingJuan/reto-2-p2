@@ -50,6 +50,6 @@ class QuotationController extends Controller
         $viewData['gestionLines'] = $gestionLineNames;
         $viewData['services'] = $formattedServices;
 
-        return Inertia::render('nose', compact('viewData'));
+        return Inertia::render('quotation/index', compact('viewData'));
     }
 }
