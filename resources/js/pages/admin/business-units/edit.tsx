@@ -7,7 +7,7 @@ import { route } from 'ziggy-js';
 
 interface BusinessUnit {
     id: number;
-    name: string;
+    display_name: string;
 }
 
 interface EditPageProps extends Record<string, unknown> {
@@ -22,7 +22,7 @@ export default function Edit() {
     const { businessUnit } = viewData;
 
     const { data, setData, put, processing, errors } = useForm({
-        name: businessUnit.name ?? '',
+        display_name: businessUnit.display_name ?? '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -49,11 +49,11 @@ export default function Edit() {
                                 </label>
                                 <input
                                     type="text"
-                                    value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
+                                    value={data.display_name}
+                                    onChange={(e) => setData('display_name', e.target.value)}
                                     className="block w-full rounded-lg border px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                                 />
-                                {errors.name && <p className="mt-2 text-sm text-red-600">{errors.name}</p>}
+                                {errors.display_name && <p className="mt-2 text-sm text-red-600">{errors.display_name}</p>}
                             </div>
 
                             {/* Botones */}

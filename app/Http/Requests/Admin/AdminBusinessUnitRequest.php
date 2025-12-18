@@ -22,7 +22,7 @@ class AdminBusinessUnitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'display_name' => ['required', 'string', 'max:255'],
         ];
     }
 
@@ -32,9 +32,9 @@ class AdminBusinessUnitRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'El nombre es obligatorio.',
-            'name.string' => 'El nombre debe ser un texto.',
-            'name.max' => 'El nombre no puede superar los 255 caracteres.',
+            'display_name.required' => 'El nombre es obligatorio.',
+            'display_name.string' => 'El nombre debe ser un texto.',
+            'display_name.max' => 'El nombre no puede superar los 255 caracteres.',
         ];
     }
 }
