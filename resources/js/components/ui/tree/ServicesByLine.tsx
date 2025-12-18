@@ -13,9 +13,9 @@ export default function ServicesByLine({ line, services }: ServicesByLineProps) 
             {services.length > 0 ? (
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {services.map((service) => (
-                        <Card key={service} className="cursor-pointer border-2 border-slate-200 transition hover:border-blue-500 hover:bg-blue-50">
-                            <CardContent className="p-6">
-                                <p className="text-base font-medium text-slate-900">{service}</p>
+                        <Card key={service} className="cursor-pointer border-2 border-slate-200 transition hover:border-blue-500 hover:bg-blue-50 bg-white">
+                            <CardContent className="p-4">
+                                <p className="text-base font-medium text-slate-900 ">{service}</p>
                             </CardContent>
                         </Card>
                     ))}
