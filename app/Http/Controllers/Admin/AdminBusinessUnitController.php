@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AdminBusinessUnitRequest;
 use App\Models\BusinessUnit;
+use App\Utils\NameNormalizer;
 use Exception;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -14,7 +15,7 @@ class AdminBusinessUnitController extends Controller
 {
     public function index(): InertiaResponse
     {
-        $businessUnits = BusinessUnit::select('id', 'name')->get();
+        $businessUnits = BusinessUnit::select('id', 'display_name')->get();
 
         $viewData['businessUnits'] = $businessUnits;
 
@@ -23,7 +24,7 @@ class AdminBusinessUnitController extends Controller
 
     public function show(int $businessUnitId): InertiaResponse|RedirectResponse
     {
-        $businessUnit = BusinessUnit::where('id', $businessUnitId)->select('id', 'name')->first();
+        $businessUnit = BusinessUnit::where('id', $businessUnitId)->select('id', 'display_name')->first();
 
         if (! $businessUnit) {
             return redirect()->route('dashboard.business-unit.index')->with('error', 'Unidad de negocio con ID: '.$businessUnitId.' no encontrada.');
@@ -46,9 +47,9 @@ class AdminBusinessUnitController extends Controller
     {
         $validatedData = $request->validated();
         try {
-            if ($request->get('needs_error') == 'true') {
-                throw new Exception('Error de prueba en la creación de unidad de negocio.');
-            }
+            $displayName = $validatedData['display_name'];
+            $normalizedName = NameNormalizer::normalize($displayName);
+            $validatedData['name'] = $normalizedName;
 
             BusinessUnit::create($validatedData);
             $successMessage = 'La unidad de negocio: '.$validatedData['name'].', ha sido creada exitosamente.';
@@ -61,7 +62,7 @@ class AdminBusinessUnitController extends Controller
 
     public function edit(int $businessUnitId): InertiaResponse|RedirectResponse
     {
-        $businessUnit = BusinessUnit::where('id', $businessUnitId)->select('id', 'name')->first();
+        $businessUnit = BusinessUnit::where('id', $businessUnitId)->select('id', 'display_name')->first();
 
         if (! $businessUnit) {
             return redirect()->route('dashboard.business-unit.index')->with('error', 'Unidad de negocio con ID: '.$businessUnitId.' no encontrada.');
@@ -83,9 +84,9 @@ class AdminBusinessUnitController extends Controller
         $validatedData = $request->validated();
 
         try {
-            if ($request->get('needs_error') == 'true') {
-                throw new Exception('Error de prueba en la creación de unidad de negocio.');
-            }
+            $businessUnitName = $validatedData['display_name'];
+            $normalizedName = NameNormalizer::normalize($businessUnitName);
+            $validatedData['name'] = $normalizedName;
             $businessUnit->update($validatedData);
             $successMessage = 'La unidad de negocio: '.$validatedData['name'].', ha sido actualizada exitosamente.';
 

@@ -14,7 +14,7 @@ class QuotationController extends Controller
 {
     public function selectBusinessUnit(): InertiaResponse
     {
-        $businessUnitNames = BusinessUnit::pluck('name');
+        $businessUnitNames = BusinessUnit::select('name', 'display_name')->get();
 
         $viewData['businessUnits'] = $businessUnitNames;
 
@@ -23,7 +23,7 @@ class QuotationController extends Controller
 
     public function getQuoteForBusinessUnit(string $businessUnitName): InertiaResponse|RedirectResponse
     {
-        $selectedBusinessUnit = BusinessUnit::whereRaw('LOWER(name) = ?', [strtolower($businessUnitName)])->first();
+        $selectedBusinessUnit = BusinessUnit::where('name', $businessUnitName)->first();
 
         if (! $selectedBusinessUnit) {
             return redirect()->route('quotation.select.business_unit')->with('error', 'No hay ninguna unidad de negocio con ese nombre');

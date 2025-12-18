@@ -7,7 +7,7 @@ import { route } from 'ziggy-js';
 
 export default function Create() {
     const { data, setData, post, processing, errors } = useForm({
-        name: '',
+        display_name: '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -30,20 +30,20 @@ export default function Create() {
                     <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
                         <form onSubmit={handleSubmit} className="space-y-8 p-8">
                             <div>
-                                <label htmlFor="name" className="mb-2 block text-sm font-medium text-gray-700">
+                                <label htmlFor="display_name" className="mb-2 block text-sm font-medium text-gray-700">
                                     Nombre <span className="text-red-500">*</span>
                                 </label>
 
                                 <input
-                                    id="name"
+                                    id="display_name"
                                     type="text"
-                                    value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
+                                    value={data.display_name}
+                                    onChange={(e) => setData('display_name', e.target.value)}
                                     className="block w-full rounded-lg border border-gray-300 px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                                     placeholder="Ingrese el nombre de la unidad de negocio"
                                 />
 
-                                {errors.name && <p className="mt-2 text-sm text-red-600">{errors.name}</p>}
+                                {errors.display_name && <p className="mt-2 text-sm text-red-600">{errors.display_name}</p>}
                             </div>
 
                             {/* Botones */}

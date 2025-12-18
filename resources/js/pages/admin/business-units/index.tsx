@@ -7,7 +7,7 @@ import { Pencil, Plus, Trash2 } from 'lucide-react';
 
 interface BusinessUnit {
     id: number;
-    name: string;
+    display_name: string;
 }
 
 interface IndexPageProps extends Record<string, unknown> {
@@ -71,7 +71,7 @@ export default function Index() {
                                 className="cursor-pointer hover:bg-gray-100"
                             >
                                 <td className="border-b px-4 py-2 text-center">{unit.id}</td>
-                                <td className="border-b px-4 py-2 text-center font-medium">{capitalize(unit.name)}</td>
+                                <td className="border-b px-4 py-2 text-center font-medium">{capitalize(unit.display_name)}</td>
 
                                 <td className="border-b px-4 py-2" onClick={(e) => e.stopPropagation()}>
                                     <div className="flex justify-center gap-5">

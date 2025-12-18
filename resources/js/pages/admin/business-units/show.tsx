@@ -6,7 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 
 interface BusinessUnit {
     id: number;
-    name: string;
+    display_name: string;
 }
 
 interface Service {
@@ -49,7 +49,7 @@ export default function Show() {
                 <div className="mb-6 rounded-xl border bg-white p-6 shadow-sm">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-2xl font-semibold text-slate-800">{capitalize(businessUnit.name)}</h2>
+                            <h2 className="text-2xl font-semibold text-slate-800">{capitalize(businessUnit.display_name)}</h2>
                         </div>
 
                         <div className="rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700">ID #{businessUnit.id}</div>
@@ -57,7 +57,7 @@ export default function Show() {
                 </div>
 
                 <p className="mb-5 mt-1 text-sm text-gray-600">
-                    Servicios asociados a la unidad <strong>{businessUnit.name}</strong>
+                    Servicios asociados a la unidad <strong>{businessUnit.display_name}</strong>
                 </p>
 
                 <div className="rounded-lg border bg-white shadow">
