@@ -15,7 +15,7 @@ class AdminBusinessUnitController extends Controller
 {
     public function index(): InertiaResponse
     {
-        $businessUnits = BusinessUnit::select('id', 'name')->orderBy('id')->get();
+        $businessUnits = BusinessUnit::select('id', 'display_name')->orderBy('id')->get();
 
         $viewData['businessUnits'] = $businessUnits;
 
