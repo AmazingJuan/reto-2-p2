@@ -15,11 +15,11 @@ class AdminGestionLineController extends Controller
 {
     public function index(): InertiaResponse
     {
-        $viewData = [];
+    
         $gestionLines = GestionLine::select('id', 'name')->orderBy('id')->get();
         $viewData['gestionLines'] = $gestionLines;
 
-        return Inertia::render('admin/gestion-lines/index', $viewData);
+        return Inertia::render('admin/gestion-lines/index', compact('viewData'));
     }
 
     public function delete(int $id): RedirectResponse
@@ -50,7 +50,7 @@ class AdminGestionLineController extends Controller
         try {
             GestionLine::create($validatedData);
 
-            return redirect()->route('dashboard.lines.index');
+            return redirect()->route('dashboard.lines.index')->with('success', 'Linea de gestion creada correctamente.');
         } catch (Exception $e) {
             return redirect()->route('dashboard.lines.index')->with('error', 'Ha ocurrido un error al crear la línea de gestión.');
         }
