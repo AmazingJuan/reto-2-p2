@@ -50,7 +50,7 @@ class AdminGestionLineController extends Controller
         try {
             GestionLine::create($validatedData);
 
-            return redirect()->route('dashboard.lines.index')->with('success', 'Linea de gestion creada correctamente.');
+            return redirect()->route('dashboard.lines.index')->with('success', 'Línea de gestión creada correctamente.');
         } catch (Exception $e) {
             return redirect()->route('dashboard.lines.index')->with('error', 'Ha ocurrido un error al crear la línea de gestión.');
         }
