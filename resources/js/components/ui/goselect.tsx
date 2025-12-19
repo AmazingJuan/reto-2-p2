@@ -6,7 +6,7 @@ export default function GoSelect({ href = "/cotizar", label = "Volver" }) {
     return (
         <div className="ml-5 mt-24">
             <Link href={href}>
-                <Button variant="outline" className="flex items-center gap-2">
+                <Button variant="outline">
                     <ArrowLeft />
                     {label}
                 </Button>

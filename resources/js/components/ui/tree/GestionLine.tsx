@@ -25,7 +25,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
     const visibleLines = viewData.gestionLines.filter((line) => (viewData.services[line]?.length ?? 0) > 0);
 
     return (
-        <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-50 to-slate-100">
+        <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-50 to-gray-100">
             <Header />
             <GoSelect />
 
@@ -52,7 +52,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                                 key={line}
                                 onClick={() => setSelectedLine(line)}
                                 className={`cursor-pointer border transition-all ${
-                                    isSelected ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:border-blue-300'
+                                    isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white hover:border-blue-300'
                                 }`}
                             >
                                 <CardContent className="p-4">

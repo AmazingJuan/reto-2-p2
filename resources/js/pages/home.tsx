@@ -9,7 +9,7 @@ export default function Home() {
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
             <Header />
 
-            <main className="pt-40">
+            <main className="pt-20">
                 <section className="container mx-auto px-6 py-20">
                     <div className="mx-auto max-w-4xl space-y-6 text-center">
                         <Badge variant="secondary" className="mb-4 bg-slate-100 px-4 py-1 text-slate-700">
