@@ -23,12 +23,12 @@ interface GestionLine {
 interface EditPageProps extends Record<string, unknown> {
     auth: { user: any };
     service: Service;
-    businessUnit: BussinesUnit[];
+    businessUnits: BussinesUnit[];
     gestionLines: GestionLine[];
 }
 
 export default function Edit() {
-    const { service, businessUnit, gestionLines } = usePage<EditPageProps>().props;
+    const { service, businessUnits, gestionLines } = usePage<EditPageProps>().props;
 
     const { data, setData, put, processing, errors } = useForm({
         name: service.name || '',
@@ -94,7 +94,7 @@ export default function Edit() {
                                             className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 shadow-sm transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="">Seleccione un tipo</option>
-                                            {businessUnit.map((type) => (
+                                            {businessUnits.map((type) => (
                                                 <option key={type.id} value={type.id}>
                                                     {type.display_name}
                                                 </option>
