@@ -17,7 +17,6 @@ class AdminServiceController extends Controller
 {
     public function index(): InertiaResponse
     {
-        $viewData = [];
 
         $services = Service::select('id', 'name')
             ->orderBy('id')
@@ -25,7 +24,7 @@ class AdminServiceController extends Controller
 
         $viewData['services'] = $services;
 
-        return Inertia::render('admin/services/index', $viewData);
+        return Inertia::render('admin/services/index', compact('viewData'));
     }
 
     public function delete(int $id): RedirectResponse
@@ -65,7 +64,7 @@ class AdminServiceController extends Controller
         try {
             Service::create($validatedData);
 
-            return redirect()->route('dashboard.services.index');
+            return redirect()->route('dashboard.services.index')->with('success', 'Servicio creado correctamente.');
         } catch (Exception $e) {
             return redirect()->route('dashboard.services.index')->with('error', 'Ha ocurrido un error al crear el servicio.');
         }
