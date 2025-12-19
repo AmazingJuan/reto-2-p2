@@ -12,16 +12,13 @@ class Condition extends Model
      * Attributes:
      *
      * $this->attributes['id'] - int - Primary key identifier
-     * $this->attributes['name'] - string - Unique name of the condition
+     * $this->attributes['label'] - string - Unique name of the condition
+     * $this->attributes['interaction_type'] - string - Specifies what can the user do with the condition
      * $this->attributes['type'] - string - Input type (default: "text")
-     * $this->attributes['description'] - string|null - Description of the condition
+     * $this->attributes['observation'] - string|null - Description of the condition
      * $this->attributes['next_condition_id'] - int|null - ID of the next condition in sequence
-     * $this->attributes['is_fixed'] - bool - Whether the condition is fixed and cannot be changed
-     * $this->attributes['allows_other_values'] - bool - Whether the condition allows an "other" value
      * $this->attributes['allows_multiple_values'] - bool - Whether multiple values can be selected
-     * $this->attributes['is_boolean'] - bool - Whether the condition is a true/false type
-     * $this->attributes['created_at'] - \Illuminate\Support\Carbon - Record creation timestamp
-     * $this->attributes['updated_at'] - \Illuminate\Support\Carbon - Record last update timestamp
+     * $this->attributes['business_unit_id'] - int - ID of the associated business unit
      */
 
     /**

@@ -2,7 +2,7 @@ import Footer from '@/components/ui/footer';
 import GoHome from '@/components/ui/gohome';
 import Header from '@/components/ui/header';
 import { Link } from '@inertiajs/react';
-import { ChevronRight, GitBranch, ScrollText, Users, Wrench, BriefcaseBusiness } from 'lucide-react';
+import { BriefcaseBusiness, ChevronRight, GitBranch, Info, ScrollText, TreePalmIcon, TreePine, Users, Wrench } from 'lucide-react';
 import React from 'react';
 import { route } from 'ziggy-js';
 
@@ -43,6 +43,20 @@ const Dashboard: React.FC = () => {
             desc: 'Visualiza y gestiona las unidades de negocio',
             icon: BriefcaseBusiness,
             accent: 'emerald',
+        },
+        {
+            label: 'Mensajes masivos',
+            name: 'dashboard.emails.index', //dashboard.emails.index
+            desc: 'Mantén a tus clientes actualizados en todo momento',
+            icon: Info,
+            accent: 'amber',
+        },
+        {
+            label: 'Árbol de condiciones',
+            name: 'dashboard',
+            desc: 'Visualiza y gestiona las unidades de negocio',
+            icon: TreePine,
+            accent: 'indigo',
         },
     ] as const;
 

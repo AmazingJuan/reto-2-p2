@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\AdminGestionLineController;
 use App\Http\Controllers\Admin\AdminQuotationOrderController;
 use App\Http\Controllers\Admin\AdminServiceController;
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AdminEmailsController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -55,4 +56,9 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
     Route::post('/usuarios', [AdminUserController::class, 'store'])->name('dashboard.users.store');
     Route::get('/usuarios/{id}/editar', [AdminUserController::class, 'edit'])->name('dashboard.users.edit');
     Route::put('/usuarios/{id}', [AdminUserController::class, 'update'])->name('dashboard.users.update');
+
+    // Emails 
+
+    Route::get('/emails', [AdminEmailsController::class, 'index'])->name('dashboard.emails.index');
+    Route::post('/emails', [AdminEmailsController::class, 'store'])->name('dashboard.emails.store');
 });
