@@ -6,7 +6,7 @@ import { route } from 'ziggy-js';
 
 interface businessUnit {
     id: string;
-    name: string;
+    display_name: string;
 }
 
 interface GestionLine {
@@ -89,7 +89,7 @@ export default function Create() {
                                             <option value="">Seleccione unidad de negocio</option>
                                             {businessUnits.map((type) => (
                                                 <option key={type.id} value={type.id}>
-                                                    {capitalize(type.name)}
+                                                    {capitalize(type.display_name)}
                                                 </option>
                                             ))}
                                         </select>

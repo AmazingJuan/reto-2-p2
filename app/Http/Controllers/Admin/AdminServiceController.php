@@ -41,7 +41,7 @@ class AdminServiceController extends Controller
 
     public function create(): InertiaResponse|RedirectResponse
     {
-        $businessUnits = BusinessUnit::all(['id', 'name']);
+        $businessUnits = BusinessUnit::all(['id', 'display_name']);
         if ($businessUnits->isEmpty()) {
             return redirect()->route('dashboard.services.index')->with('error', 'No existen unidades de negocio con las cuales usted pueda asociar un nuevo servicio.');
         }
@@ -78,7 +78,7 @@ class AdminServiceController extends Controller
             return redirect()->route('dashboard.services.index')->with('error', 'Servicio con ID '.$id.' no encontrado.');
         }
 
-        $businessUnits = BusinessUnit::all(['id', 'name']);
+        $businessUnits = BusinessUnit::all(['id', 'display_name']);
         if ($businessUnits->isEmpty()) {
             return redirect()->route('dashboard.services.index')->with('error', 'No existen unidades de negocio con las cuales usted pueda asociar un nuevo servicio.');
         }
