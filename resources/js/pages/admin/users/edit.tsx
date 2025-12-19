@@ -32,7 +32,7 @@ export default function EditUser() {
 	};
 
 	return (
-		<div className="flex min-h-screen flex-col bg-gray-50">
+		<div className="mt-20 flex min-h-screen flex-col bg-gray-50">
 			<Header />
 
 			<main className="flex-grow px-4 py-12 sm:px-6 lg:px-8">
@@ -110,7 +110,7 @@ export default function EditUser() {
 								<Button type="button" onClick={() => window.history.back()} variant="crear" className="bg-red-600 hover:bg-red-700">
 									Cancelar
 								</Button>
-								<Button type="submit" disabled={processing} variant="crear" className="bg-blue-600 hover:bg-blue-700">
+								<Button type="submit" disabled={processing} variant="crear" className="bg-indigo-600 hover:bg-indigo-700">
 									{processing ? 'Actualizando...' : 'Actualizar Usuario'}
 								</Button>
 							</div>

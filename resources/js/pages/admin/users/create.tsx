@@ -96,7 +96,7 @@ export default function CreateUser() {
 								<Button type="button" onClick={() => window.history.back()} variant="crear" className="bg-red-600 hover:bg-red-700">
 									Cancelar
 								</Button>
-								<Button type="submit" disabled={processing} variant="crear" className="bg-emerald-600 hover:bg-emerald-700">
+								<Button type="submit" disabled={processing} variant="crear" className="bg-indigo-600 hover:bg-indigo-700">
 									{processing ? 'Guardando...' : 'Guardar Usuario'}
 								</Button>
 							</div>
