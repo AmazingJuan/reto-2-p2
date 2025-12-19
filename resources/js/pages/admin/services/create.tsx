@@ -22,7 +22,7 @@ interface CreatePageProps extends Record<string, unknown> {
 
 export default function Create() {
     const { businessUnits, gestionLines } = usePage<CreatePageProps>().props;
-
+    const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         business_unit_id: '',
@@ -89,7 +89,7 @@ export default function Create() {
                                             <option value="">Seleccione unidad de negocio</option>
                                             {businessUnits.map((type) => (
                                                 <option key={type.id} value={type.id}>
-                                                    {type.name}
+                                                    {capitalize(type.name)}
                                                 </option>
                                             ))}
                                         </select>
@@ -110,7 +110,7 @@ export default function Create() {
                                             <option value="">Seleccione una línea</option>
                                             {gestionLines.map((line) => (
                                                 <option key={line.id} value={line.id}>
-                                                    {line.name}
+                                                    {capitalize(line.name)}
                                                 </option>
                                             ))}
                                         </select>
