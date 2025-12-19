@@ -1,12 +1,10 @@
+import { Button } from '@/components/ui/button';
+import FlashAlert from '@/components/ui/flashalert';
 import Footer from '@/components/ui/footer';
+import GoDashboard from '@/components/ui/godashboard';
 import Header from '@/components/ui/header';
-import { useForm } from '@inertiajs/react';
-import React, { ChangeEvent, useState } from 'react';
-
-interface BreadcrumbItem {
-    title: string;
-    href: string;
-}
+import { useForm, usePage } from '@inertiajs/react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
 
 interface EmailListState {
     emailInput: string;
@@ -23,21 +21,34 @@ const SendEmailCampaign: React.FC = () => {
         emails: [] as string[],
     });
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     // Agregar correo a la lista
     const handleAddEmail = () => {
-        const email = state.emailInput.trim();
+        const input = state.emailInput.trim();
 
-        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            setState((prev) => ({ ...prev, error: 'Por favor ingresa un correo válido.' }));
+        if (!input) {
+            setState((prev) => ({ ...prev, error: 'Ingresa al menos un correo.' }));
             return;
         }
 
-        if (data.emails.includes(email)) {
-            setState((prev) => ({ ...prev, error: 'Este correo ya está en la lista.' }));
+        // Separar por comas
+        const emails = input
+            .split(',')
+            .map((email) => email.trim())
+            .filter((email) => email.length > 0);
+
+        // Validar correos
+        const validEmails = emails.filter((email) => emailRegex.test(email) && !data.emails.includes(email));
+
+        if (validEmails.length === 0) {
+            setState((prev) => ({
+                ...prev,
+                error: 'No se encontraron correos válidos o ya estaban en la lista.',
+            }));
             return;
         }
 
-        setData('emails', [...data.emails, email]);
+        setData('emails', [...data.emails, ...validEmails]);
         setState({
             emailInput: '',
             error: null,
@@ -72,30 +83,30 @@ const SendEmailCampaign: React.FC = () => {
         post(route('dashboard.emails.store'));
     };
 
+    const { flash } = usePage().props as unknown as {
+        flash: {
+            success?: string;
+            error?: string;
+        };
+    };
+
+    useEffect(() => {
+        if (flash?.success) {
+            setData('emails', []);
+        }
+    }, [flash?.success]);
 
     return (
-        <div className="px-4 py-8 mt-24">
+        <div className="bg-gray-50">
             <Header />
+            <GoDashboard />
             <div className="mx-auto max-w-6xl">
-                {/* Header */}
-                <div className="mb-8">
-                    <h1 className="mb-2 text-4xl font-bold text-gray-900">Enviar Campaña de Correos</h1>
-                    <p className="text-lg text-gray-600">Ingresa los correos a los que deseas enviar el mensaje</p>
-                </div>
+                <h1 className="mb-2 text-center text-3xl font-bold leading-tight text-slate-900 md:text-3xl">Enviar Campaña de Correos</h1>
+                <p className="mb-6 text-center text-base text-gray-600 sm:text-lg md:text-xl">
+                    Ingresa los correos a los que deseas enviar el mensaje
+                </p>
 
-                {/* Error Message */}
-                {state.error && (
-                    <div className="mb-6 flex items-start gap-3 rounded-lg border-l-4 border-red-500 bg-red-50 p-4 text-red-700">
-                        <svg className="mt-0.5 h-6 w-6 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path
-                                fillRule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                clipRule="evenodd"
-                            />
-                        </svg>
-                        <span className="text-sm font-medium">{state.error}</span>
-                    </div>
-                )}
+                <FlashAlert flash={flash} duration={5000}/>
 
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                     {/* Formulario - Izquierda */}
@@ -118,16 +129,17 @@ const SendEmailCampaign: React.FC = () => {
                                             placeholder="ejemplo@correo.com"
                                             className="rounded-lg border border-gray-300 px-4 py-3 text-sm transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                                         />
-                                        <button
+                                        <Button
                                             type="button"
                                             onClick={handleAddEmail}
+                                            variant="crear"
                                             className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
                                         >
                                             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                             </svg>
                                             Agregar
-                                        </button>
+                                        </Button>
                                     </div>
                                     <p className="mt-3 text-xs text-gray-500">
                                         💡 Presiona Enter para agregar rápidamente Por favor, tener paciencia si se envian a varios correos al mismo
@@ -249,30 +261,6 @@ const SendEmailCampaign: React.FC = () => {
                                     <p className="text-sm text-gray-400">Agrega correos para comenzar</p>
                                 </div>
                             )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Info Box */}
-                <div className="mx-auto mt-8 max-w-6xl">
-                    <div className="rounded-xl border border-blue-200 bg-blue-50 p-6">
-                        <h3 className="mb-3 flex items-center gap-2 font-bold text-blue-900">
-                            <span className="text-xl">💡</span>
-                            Información
-                        </h3>
-                        <div className="grid grid-cols-1 gap-4 text-sm text-blue-800 md:grid-cols-2">
-                            <div>
-                                <p>✓ Presiona Enter para agregar correos rápidamente</p>
-                            </div>
-                            <div>
-                                <p>✓ Valida automáticamente el formato del correo</p>
-                            </div>
-                            <div>
-                                <p>✓ Evita duplicados en la lista</p>
-                            </div>
-                            <div>
-                                <p>✓ Los correos se enviarán usando la plantilla configurada</p>
-                            </div>
                         </div>
                     </div>
                 </div>

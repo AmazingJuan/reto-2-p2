@@ -24,6 +24,7 @@ class AdminEmailsController extends Controller
             Mail::to($email)->send(new WelcomeEmail('https://www.trainingcorporation.com.co/'));
         }
 
-        return redirect('dashboard');
+        return redirect()->route('dashboard.emails.index')->with('success', 'Correos enviados correctamente');
+
     }
 }
