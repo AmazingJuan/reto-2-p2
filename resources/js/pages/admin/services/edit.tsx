@@ -12,7 +12,7 @@ interface Service {
 
 interface BussinesUnit {
     id: string;
-    name: string;
+    display_name: string;
 }
 
 interface GestionLine {
@@ -96,7 +96,7 @@ export default function Edit() {
                                             <option value="">Seleccione un tipo</option>
                                             {businessUnit.map((type) => (
                                                 <option key={type.id} value={type.id}>
-                                                    {type.name}
+                                                    {type.display_name}
                                                 </option>
                                             ))}
                                         </select>

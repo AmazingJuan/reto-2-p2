@@ -46,7 +46,7 @@ class QuotationController extends Controller
         $formattedServices = $services->groupBy(fn ($s) => $s->gestionLine->name)
             ->map(fn ($group) => $group->map(fn ($s) => $s->name));
 
-        $viewData['businessUnit'] = $selectedBusinessUnit->getName();
+        $viewData['businessUnit'] = $selectedBusinessUnit->getDisplayName();
         $viewData['gestionLines'] = $gestionLineNames;
         $viewData['services'] = $formattedServices;
 
