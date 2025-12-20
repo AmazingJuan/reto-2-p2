@@ -27,7 +27,7 @@ interface ConditionData {
 
 interface FlowPayload {
   initial_condition: number | null;
-  conditions: ConditionData[];
+  conditions: Record<number, ConditionData>;
 }
 
 // --------------------
@@ -35,14 +35,16 @@ interface FlowPayload {
 // --------------------
 
 export default function ConditionBuilder() {
-  const [conditions, setConditions] = useState<ConditionData[]>([]);
+  const [conditions, setConditions] = useState<Record<number, ConditionData>>({});
+  const [order, setOrder] = useState<number[]>([]);
   const [initialConditionId, setInitialConditionId] = useState<number | null>(null);
 
   const addCondition = () => {
     const id = Date.now();
-    setConditions((prev) => [
+
+    setConditions((prev) => ({
       ...prev,
-      {
+      [id]: {
         id,
         label: "",
         interaction_type: "input",
@@ -51,7 +53,9 @@ export default function ConditionBuilder() {
         allows_multiple_values: false,
         options: [],
       },
-    ]);
+    }));
+
+    setOrder((prev) => [...prev, id]);
 
     if (initialConditionId === null) {
       setInitialConditionId(id);
@@ -59,19 +63,20 @@ export default function ConditionBuilder() {
   };
 
   const updateCondition = (id: number, patch: Partial<ConditionData>) => {
-    setConditions((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, ...patch } : c))
-    );
+    setConditions((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], ...patch },
+    }));
   };
 
   const addOption = (conditionId: number) => {
-    setConditions((prev) =>
-      prev.map((c) =>
-        c.id === conditionId
-          ? { ...c, options: [...c.options, { label: "", is_alternative: false }] }
-          : c
-      )
-    );
+    setConditions((prev) => ({
+      ...prev,
+      [conditionId]: {
+        ...prev[conditionId],
+        options: [...prev[conditionId].options, { label: "", is_alternative: false }],
+      },
+    }));
   };
 
   const updateOption = (
@@ -79,24 +84,26 @@ export default function ConditionBuilder() {
     index: number,
     patch: Partial<OptionData>
   ) => {
-    setConditions((prev) =>
-      prev.map((c) => {
-        if (c.id !== conditionId) return c;
-        const options = [...c.options];
-        options[index] = { ...options[index], ...patch };
-        return { ...c, options };
-      })
-    );
+    setConditions((prev) => {
+      const condition = prev[conditionId];
+      const options = [...condition.options];
+      options[index] = { ...options[index], ...patch };
+
+      return {
+        ...prev,
+        [conditionId]: { ...condition, options },
+      };
+    });
   };
 
   const removeOption = (conditionId: number, index: number) => {
-    setConditions((prev) =>
-      prev.map((c) =>
-        c.id === conditionId
-          ? { ...c, options: c.options.filter((_, i) => i !== index) }
-          : c
-      )
-    );
+    setConditions((prev) => ({
+      ...prev,
+      [conditionId]: {
+        ...prev[conditionId],
+        options: prev[conditionId].options.filter((_, i) => i !== index),
+      },
+    }));
   };
 
   const conditionSelect = (
@@ -112,11 +119,12 @@ export default function ConditionBuilder() {
       onChange={(e) => onChange?.(e.target.value ? Number(e.target.value) : undefined)}
     >
       <option value="">— Seleccionar condición —</option>
-      {conditions
-        .filter((c) => c.id !== currentId)
-        .map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.label || "(sin etiqueta)"}{c.id === initialConditionId ? " ★ Inicial" : ""}
+      {order
+        .filter((id) => id !== currentId)
+        .map((id) => (
+          <option key={id} value={id}>
+            {conditions[id].label || "(sin etiqueta)"}
+            {id === initialConditionId ? " ★ Inicial" : ""}
           </option>
         ))}
     </select>
@@ -131,12 +139,13 @@ export default function ConditionBuilder() {
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       <h1 className="text-2xl font-semibold">Constructor de condiciones</h1>
 
-      {conditions.map((condition) => {
-        const isInitial = condition.id === initialConditionId;
+      {order.map((id) => {
+        const condition = conditions[id];
+        const isInitial = id === initialConditionId;
         const anyOptionLeads = condition.options.some((o) => o.next_condition !== undefined);
 
         return (
-          <div key={condition.id} className={`rounded-2xl border shadow-sm p-6 space-y-4 ${isInitial ? "border-green-500" : ""}`}>
+          <div key={id} className={`rounded-2xl border shadow-sm p-6 space-y-4 ${isInitial ? "border-green-500" : ""}`}>
             <div className="flex justify-between items-center">
               <h2 className="font-semibold text-lg flex items-center gap-2">
                 {isInitial && <Star className="w-4 h-4 text-green-600" />}
@@ -144,7 +153,7 @@ export default function ConditionBuilder() {
               </h2>
 
               <button
-                onClick={() => setInitialConditionId(condition.id)}
+                onClick={() => setInitialConditionId(id)}
                 className={`text-sm px-3 py-1 rounded-lg border ${isInitial ? "bg-green-50 border-green-400" : "hover:bg-gray-50"}`}
               >
                 {isInitial ? "Condición inicial" : "Marcar como inicial"}
@@ -156,14 +165,14 @@ export default function ConditionBuilder() {
                 className="border rounded-lg p-2"
                 placeholder="Etiqueta"
                 value={condition.label}
-                onChange={(e) => updateCondition(condition.id, { label: e.target.value })}
+                onChange={(e) => updateCondition(id, { label: e.target.value })}
               />
 
               <select
                 className="border rounded-lg p-2"
                 value={condition.interaction_type}
                 onChange={(e) =>
-                  updateCondition(condition.id, {
+                  updateCondition(id, {
                     interaction_type: e.target.value as InteractionType,
                     options: e.target.value === "options" ? condition.options : [],
                     next_condition: undefined,
@@ -178,7 +187,7 @@ export default function ConditionBuilder() {
               <select
                 className="border rounded-lg p-2"
                 value={condition.type}
-                onChange={(e) => updateCondition(condition.id, { type: e.target.value as ValueType })}
+                onChange={(e) => updateCondition(id, { type: e.target.value as ValueType })}
               >
                 <option value="text">Text</option>
                 <option value="number">Number</option>
@@ -189,7 +198,7 @@ export default function ConditionBuilder() {
                 className="border rounded-lg p-2"
                 placeholder="Observación"
                 value={condition.observation}
-                onChange={(e) => updateCondition(condition.id, { observation: e.target.value })}
+                onChange={(e) => updateCondition(id, { observation: e.target.value })}
               />
             </div>
 
@@ -197,7 +206,7 @@ export default function ConditionBuilder() {
               <input
                 type="checkbox"
                 checked={condition.allows_multiple_values}
-                onChange={(e) => updateCondition(condition.id, { allows_multiple_values: e.target.checked })}
+                onChange={(e) => updateCondition(id, { allows_multiple_values: e.target.checked })}
               />
               Permite múltiples valores
             </label>
@@ -205,14 +214,12 @@ export default function ConditionBuilder() {
             <div className="space-y-2">
               <label className="text-sm text-gray-600">Siguiente condición</label>
               {conditionSelect(
-                condition.id,
+                id,
                 condition.next_condition,
-                (v) => updateCondition(condition.id, { next_condition: v }),
+                (v) => updateCondition(id, { next_condition: v }),
                 anyOptionLeads
               )}
-              {anyOptionLeads && (
-                <p className="text-xs text-gray-500">Bloqueado porque una opción ya redirige</p>
-              )}
+              {anyOptionLeads && <p className="text-xs text-gray-500">Bloqueado porque una opción ya redirige</p>}
             </div>
 
             {condition.interaction_type === "options" && (
@@ -220,7 +227,7 @@ export default function ConditionBuilder() {
                 <div className="flex justify-between items-center">
                   <h3 className="font-medium">Opciones</h3>
                   <button
-                    onClick={() => addOption(condition.id)}
+                    onClick={() => addOption(id)}
                     className="flex items-center gap-1 text-sm px-3 py-1 rounded-lg border hover:bg-gray-50"
                   >
                     <Plus className="w-4 h-4" /> Agregar opción
@@ -233,13 +240,13 @@ export default function ConditionBuilder() {
                       className="border rounded-lg p-2"
                       placeholder="Label"
                       value={option.label}
-                      onChange={(e) => updateOption(condition.id, index, { label: e.target.value })}
+                      onChange={(e) => updateOption(id, index, { label: e.target.value })}
                     />
 
                     {conditionSelect(
-                      condition.id,
+                      id,
                       option.next_condition,
-                      (v) => updateOption(condition.id, index, { next_condition: v }),
+                      (v) => updateOption(id, index, { next_condition: v }),
                       condition.next_condition !== undefined
                     )}
 
@@ -247,13 +254,13 @@ export default function ConditionBuilder() {
                       <input
                         type="checkbox"
                         checked={option.is_alternative}
-                        onChange={(e) => updateOption(condition.id, index, { is_alternative: e.target.checked })}
+                        onChange={(e) => updateOption(id, index, { is_alternative: e.target.checked })}
                       />
                       Alternativa
                     </label>
 
                     <button
-                      onClick={() => removeOption(condition.id, index)}
+                      onClick={() => removeOption(id, index)}
                       className="p-2 rounded-lg hover:bg-red-50"
                     >
                       <Trash2 className="w-4 h-4" />
