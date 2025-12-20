@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminBusinessUnitController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminDecisionTreeController;
 use App\Http\Controllers\Admin\AdminGestionLineController;
 use App\Http\Controllers\Admin\AdminQuotationOrderController;
 use App\Http\Controllers\Admin\AdminServiceController;
@@ -47,4 +48,8 @@ Route::prefix('dashboard')->group(function () {
     Route::post('/unidad-negocio', [AdminBusinessUnitController::class, 'store'])->name('dashboard.business-unit.store');
     Route::get('/unidad-negocio/{id}/editar', [AdminBusinessUnitController::class, 'edit'])->where('id', '[0-9]+')->name('dashboard.business-unit.edit');
     Route::put('/unidad-negocio/{id}', [AdminBusinessUnitController::class, 'update'])->where('id', '[0-9]+')->name('dashboard.business-unit.update');
+
+    // Arbol de decision
+
+    Route::get('/arbol-decision', [AdminDecisionTreeController::class, 'index'])->where('businessUnitId', '[0-9]+')->name('dashboard.business-unit.decision-tree');
 });
