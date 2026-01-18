@@ -1,27 +1,27 @@
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import Footer from '@/components/ui/footer';
-import Header from '@/components/ui/header';
+import AdminLayout from '@/layouts/admin-layout';
 import { useForm, usePage } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 
-interface businessUnit {
-    id: string;
+interface BusinessUnit {
+    id: string | number;
     name: string;
 }
 
 interface GestionLine {
-    id: number;
+    id: string | number;
     name: string;
 }
 
 interface CreatePageProps extends Record<string, unknown> {
     auth: { user: any };
-    businessUnits: businessUnit[];
+    businessUnits: BusinessUnit[];
     gestionLines: GestionLine[];
 }
 
 export default function Create() {
-    const { businessUnits, gestionLines } = usePage<CreatePageProps>().props;
+    const { businessUnits, gestionLines } = (usePage().props as unknown) as CreatePageProps;
 
     const { data, setData, post, processing, errors } = useForm({
         name: '',
@@ -35,10 +35,8 @@ export default function Create() {
     };
 
     return (
-        <div className="flex min-h-screen flex-col bg-gray-50">
-            <Header />
-
-            <main className="mt-20 flex-grow px-4 py-12 sm:px-6 lg:px-8">
+        <AdminLayout>
+            <main className="mt-6 px-4">
                 <div className="mx-auto max-w-4xl">
                     {/* Header */}
                     <div className="mb-8">
@@ -124,7 +122,7 @@ export default function Create() {
                                 <Button type="button" onClick={() => window.history.back()} variant="crear" className="bg-red-600 hover:bg-red-700">
                                     Cancelar
                                 </Button>
-                                <Button type="submit" disabled={processing} variant="crear" className="bg-emerald-600 hover:bg-emerald-700">
+                                <Button type="submit" disabled={processing} variant="crear" className="bg-blue-600 hover:bg-blue-700">
                                     {processing ? 'Guardando...' : 'Guardar Servicio'}
                                 </Button>
                             </div>
@@ -132,8 +130,6 @@ export default function Create() {
                     </div>
                 </div>
             </main>
-
-            <Footer />
-        </div>
+        </AdminLayout>
     );
 }

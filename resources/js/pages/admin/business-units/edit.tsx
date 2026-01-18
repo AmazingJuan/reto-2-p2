@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
+import AdminLayout from '@/layouts/admin-layout';
 import { PageProps } from '@/types';
 
 interface FormData {
@@ -56,15 +57,18 @@ export default function EditBusinessUnit() {
 
   if (!businessUnit) {
     return (
-      <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow mt-8">
-        <p className="text-red-600">Unidad de negocio no encontrada.</p>
-      </div>
+      <AdminLayout>
+        <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow mt-2">
+          <p className="text-red-600">Unidad de negocio no encontrada.</p>
+        </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow mt-8">
-      <h1 className="text-2xl font-bold mb-4">Editar Unidad de Negocio</h1>
+    <AdminLayout>
+      <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow mt-2">
+        <h1 className="text-2xl font-bold mb-4">Editar Unidad de Negocio</h1>
 
       {validationErrors.error && (
         <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
@@ -126,6 +130,7 @@ export default function EditBusinessUnit() {
           </button>
         </div>
       </form>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }

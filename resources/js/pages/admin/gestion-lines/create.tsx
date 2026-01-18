@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button';
-import Footer from '@/components/ui/footer';
-import Header from '@/components/ui/header';
+import AdminLayout from '@/layouts/admin-layout';
 import { useForm } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 
@@ -15,11 +14,8 @@ export default function Create() {
     };
 
     return (
-        <div className="mt-20 flex min-h-screen flex-col bg-gray-50">
-            <Header />
-
-            <main className="flex-grow px-4 py-12 sm:px-6 lg:px-8">
-                <div className="mx-auto max-w-4xl">
+        <AdminLayout>
+            <div className="mt-6 mx-auto max-w-4xl px-4">
                     {/* Header */}
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold leading-tight text-slate-900 md:text-3xl">Crear Línea de Gestión</h1>
@@ -62,9 +58,7 @@ export default function Create() {
                         </form>
                     </div>
                 </div>
-            </main>
-
-            <Footer />
-        </div>
+            </div>
+        </AdminLayout>
     );
 }

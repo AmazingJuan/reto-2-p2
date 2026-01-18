@@ -1,6 +1,4 @@
-import Footer from '@/components/ui/footer';
-import GoHome from '@/components/ui/gohome';
-import Header from '@/components/ui/header';
+import AdminLayout from '@/layouts/admin-layout';
 import { Link } from '@inertiajs/react';
 import { ChevronRight, GitBranch, ScrollText, Users, Wrench, BriefcaseBusiness } from 'lucide-react';
 import React from 'react';
@@ -10,7 +8,7 @@ const Dashboard: React.FC = () => {
     const items = [
         {
             label: 'Usuarios',
-            name: 'home',
+            name: 'dashboard',
             desc: 'Gestiona cuentas, roles y permisos',
             icon: Users,
             accent: 'indigo',
@@ -36,7 +34,6 @@ const Dashboard: React.FC = () => {
             icon: ScrollText,
             accent: 'indigo',
         },
-
         {
             label: 'Unidad de negocio',
             name: 'dashboard.business-unit.index',
@@ -48,17 +45,14 @@ const Dashboard: React.FC = () => {
 
     const badgeClasses: Record<string, string> = {
         indigo: 'text-indigo-600 bg-indigo-50 group-hover:bg-indigo-100',
-        emerald: 'text-emerald-600 bg-emerald-50 group-hover:bg-emerald-100',
+        emerald: 'text-blue-600 bg-blue-50 group-hover:bg-blue-100',
         amber: 'text-amber-600 bg-amber-50 group-hover:bg-amber-100',
     };
 
     return (
-        <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-white to-slate-50">
-            <Header />
-            <GoHome />
-
-            <section className="mx-auto mb-10 mt-10 max-w-4xl text-center">
-                <h2 className="text-5xl font-bold leading-tight text-slate-900 md:text-4xl">Dashboard</h2>
+        <AdminLayout>
+            <section className="mx-auto mb-10 mt-6 max-w-4xl text-center">
+                <h2 className="text-4xl font-bold leading-tight text-slate-900">Dashboard</h2>
                 <p className="mt-2 text-gray-600">Acceso rápido a los recursos de administración</p>
             </section>
 
@@ -84,9 +78,7 @@ const Dashboard: React.FC = () => {
                     </Link>
                 ))}
             </section>
-
-            <Footer />
-        </div>
+        </AdminLayout>
     );
 };
 

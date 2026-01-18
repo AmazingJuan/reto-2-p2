@@ -51,5 +51,6 @@ Route::prefix('dashboard')->group(function () {
 
     // Arbol de decision
 
-    Route::get('/arbol-decision', [AdminDecisionTreeController::class, 'index'])->where('businessUnitId', '[0-9]+')->name('dashboard.business-unit.decision-tree');
+    Route::get('/arbol-decision', [AdminDecisionTreeController::class, 'index'])->name('dashboard.business-unit.decision-tree');
+    Route::post('/arbol-decision', [AdminDecisionTreeController::class, 'update'])->name('dashboard.business-unit.decision-tree.update');
 });

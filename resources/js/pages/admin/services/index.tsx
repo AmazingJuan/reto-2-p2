@@ -1,7 +1,5 @@
 import { Button } from '@/components/ui/button';
-import Footer from '@/components/ui/footer';
-import GoDashboard from '@/components/ui/godashboard';
-import Header from '@/components/ui/header';
+import AdminLayout from '@/layouts/admin-layout';
 import { router, usePage } from '@inertiajs/react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { route } from 'ziggy-js';
@@ -40,16 +38,14 @@ export default function Index() {
         router.get(route('dashboard.services.create'));
     };
 
-    return (
-      <div className="flex min-h-screen flex-col bg-gray-50">
-            <Header />
-          <GoDashboard />
-            <div className="p-6">
-                <h1 className="mb-6 text-center text-3xl font-bold leading-tight text-slate-900 md:text-3xl">Administrar Servicios</h1>
+        return (
+            <AdminLayout>
+                <div className="p-6">
+                        <h1 className="mb-6 text-center text-3xl font-bold leading-tight text-slate-900 md:text-3xl">Administrar Servicios</h1>
 
-                <Button variant="crear" onClick={handleCreate}>
-                    <Plus /> Crear servicio
-                </Button>
+                        <Button variant="crear" onClick={handleCreate}>
+                                <Plus /> Crear servicio
+                        </Button>
 
                 <table className="min-w-full rounded-lg border bg-white shadow">
                     <thead>
@@ -73,7 +69,8 @@ export default function Index() {
                                             className="transform transition hover:scale-110"
                                             title="Editar"
                                         >
-                                            <Pencil className="h-6 w-6 text-emerald-500 hover:text-emerald-600" />
+                                            <Pencil className="h-6 w-6 text-blue-500 hover:text-blue-600" />
+
                                         </button>
 
                                         {/* Borrar */}
@@ -99,7 +96,6 @@ export default function Index() {
                     </tbody>
                 </table>
             </div>
-            <Footer />
-        </div>
+        </AdminLayout>
     );
 }

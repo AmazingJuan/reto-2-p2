@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 
 class BusinessUnit extends Model
@@ -21,6 +21,26 @@ class BusinessUnit extends Model
     protected $fillable = ['name'];
 
     // Relationships
+
+    public function initialCondition(): BelongsTo | null
+    {
+         return $this->belongsTo(Condition::class, 'initial_condition_id');
+    }
+
+    public function getInitialCondition(): Condition | null
+    {
+        return $this->initialCondition;
+    }
+
+    public function conditions(): HasMany
+    {
+        return $this->hasMany(Condition::class);
+    }
+
+    public function getConditions(): Collection
+    {
+        return $this->conditions;
+    }
 
     // Getters
 
@@ -53,13 +73,4 @@ class BusinessUnit extends Model
         return $this->services;
     }
 
-    public function initialCondition(): HasOne
-    {
-        return $this->HasOne(Condition::class, 'initial_condition_id');
-    }
-
-    public function getInitialCondition(): Condition
-    {
-        return $this->initialCondition;
-    }
 }

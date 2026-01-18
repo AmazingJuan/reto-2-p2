@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
@@ -57,7 +58,7 @@ class Condition extends Model
 
     public function businessUnit(): BelongsTo
     {
-        return $this->belongsTo(BusinessUnit::class, 'business_unit_id');
+        return $this->belongsTo(BusinessUnit::class);
     }
 
     public function getBusinessUnit(): BusinessUnit
@@ -73,16 +74,6 @@ class Condition extends Model
     public function getNextCondition(): Condition
     {
         return $this->condition;
-    }
-
-    public function ranges(): HasMany
-    {
-        return $this->hasMany(ConditionRange::class);
-    }
-
-    public function getRanges(): Collection
-    {
-        return $this->ranges;
     }
 
     /*

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
+import AdminLayout from '@/layouts/admin-layout';
 import { PageProps } from '@/types';
 
 interface FormData {
@@ -43,7 +44,8 @@ export default function CreateBusinessUnit() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow mt-8">
+    <AdminLayout>
+      <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow mt-2">
       <h1 className="text-2xl font-bold mb-4">Crear Unidad de Negocio</h1>
 
       {validationErrors.error && (
@@ -97,6 +99,7 @@ export default function CreateBusinessUnit() {
           Crear Unidad
         </button>
       </form>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }
