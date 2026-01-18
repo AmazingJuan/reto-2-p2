@@ -21,7 +21,7 @@ class AdminDecisionTreeController extends Controller
             $viewData['decisionTrees'][] = [
                 $businessUnit->getId() => [
                     'conditions' => DecisionTreeHelper::buildTree($businessUnit),
-                    'initial_condition_id' => $businessUnit->getInitialCondition()->getId(),
+                    'initial_condition_id' => $businessUnit->getInitialCondition()?->getId() ?? null,
                 ]
             ];
         }
