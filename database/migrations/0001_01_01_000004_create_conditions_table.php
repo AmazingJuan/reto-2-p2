@@ -50,6 +50,18 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // First remove the foreign key/column added to business_units
+        Schema::table('business_units', function (Blueprint $table) {
+            if (Schema::hasColumn('business_units', 'initial_condition_id')) {
+                if (method_exists($table, 'dropConstrainedForeignId')) {
+                    $table->dropConstrainedForeignId('initial_condition_id');
+                } else {
+                    $table->dropForeign(['initial_condition_id']);
+                    $table->dropColumn('initial_condition_id');
+                }
+            }
+        });
+
         Schema::dropIfExists('conditions');
     }
 };

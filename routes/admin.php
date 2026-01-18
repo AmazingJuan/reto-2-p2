@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\AdminDecisionTreeController;
 use App\Http\Controllers\Admin\AdminGestionLineController;
 use App\Http\Controllers\Admin\AdminQuotationOrderController;
 use App\Http\Controllers\Admin\AdminServiceController;
+use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -15,9 +16,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/perfil', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// ->middleware(['auth', 'verified'])
 
-Route::prefix('dashboard')->group(function () {
+Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     // Services

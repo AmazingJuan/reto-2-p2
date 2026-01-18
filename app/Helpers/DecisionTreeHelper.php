@@ -39,7 +39,7 @@ class DecisionTreeHelper
                 'interaction_type' => $currentCondition->getInteractionType(),
                 'type' => $currentCondition->getType(),
                 'observation' => $currentCondition->getObservation(),
-                'allows_multiple_values' => $currentCondition->getAllowsMultipleValues(),
+                'allows_multiple_values' => $currentCondition->allowsMultipleValues(),
             ];
 
             if ($next = $currentCondition->getNextCondition()) {
@@ -76,8 +76,9 @@ class DecisionTreeHelper
 
             $conditions[$conditionId] = $conditionData;
         }
-
+        
         return $conditions;
+        
     }
 
     /**

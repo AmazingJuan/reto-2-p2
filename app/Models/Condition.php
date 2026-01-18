@@ -71,7 +71,7 @@ class Condition extends Model
         return $this->belongsTo(Condition::class, 'next_condition_id');
     }
 
-    public function getNextCondition(): Condition
+    public function getNextCondition(): ?Condition
     {
         return $this->condition;
     }

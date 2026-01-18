@@ -49,10 +49,51 @@ export default function DecisionTreePage() {
 
     const rawTrees: any[] = viewData.decisionTrees ?? [];
     const trees: Record<number, ConditionData[]> = {};
+    // collect any initial_condition_id provided inside the tree entries
+    const initialFromTrees: Record<number, number | null> = {};
+
     rawTrees.forEach((entry: any) => {
       const key = Object.keys(entry)[0];
       const id = Number(key);
-      trees[id] = entry[key] ?? [];
+      const payload = entry[key] ?? {};
+
+      // payload can be either the raw conditions collection or an object with { conditions, initial_condition_id }
+      let raw = payload;
+      if (payload && typeof payload === 'object' && payload.conditions !== undefined) {
+        raw = payload.conditions;
+        initialFromTrees[id] = payload.initial_condition_id !== undefined && payload.initial_condition_id !== null ? Number(payload.initial_condition_id) : null;
+      }
+
+      if (Array.isArray(raw)) {
+        trees[id] = raw.map((c: any, i: number) => ({
+          id: typeof c.id === 'number' ? c.id : Date.now() + i,
+          label: c.label ?? '',
+          interaction_type: (c.interaction_type as InteractionType) ?? 'input',
+          type: (c.type as ValueType) ?? 'text',
+          observation: c.observation ?? '',
+          allows_multiple_values: !!c.allows_multiple_values,
+          next_condition: c.next_condition !== undefined && c.next_condition !== null ? Number(c.next_condition) : undefined,
+          options: Array.isArray(c.options)
+            ? c.options.map((o: any) => ({ label: o.label ?? '', next_condition: o.next_condition !== undefined && o.next_condition !== null ? Number(o.next_condition) : undefined, is_alternative: !!o.is_alternative }))
+            : [],
+        }));
+      } else if (raw && typeof raw === 'object') {
+        // received as an object keyed by condition id -> convert to array
+        trees[id] = Object.entries(raw).map(([cid, c]: any) => ({
+          id: Number(cid),
+          label: c.label ?? '',
+          interaction_type: (c.interaction_type as InteractionType) ?? 'input',
+          type: (c.type as ValueType) ?? 'text',
+          observation: c.observation ?? '',
+          allows_multiple_values: !!c.allows_multiple_values,
+          next_condition: c.next_condition !== undefined && c.next_condition !== null ? Number(c.next_condition) : undefined,
+          options: Array.isArray(c.options)
+            ? c.options.map((o: any) => ({ label: o.label ?? '', next_condition: o.next_condition !== undefined && o.next_condition !== null ? Number(o.next_condition) : undefined, is_alternative: !!o.is_alternative }))
+            : [],
+        }));
+      } else {
+        trees[id] = [];
+      }
     });
 
     // Ensure we have an entry for each business unit
@@ -66,6 +107,12 @@ export default function DecisionTreePage() {
     const rawInitials: Record<string, any> = viewData.initial_condition_id ?? {};
     const initMap: Record<number, number | null> = {};
     bus.forEach((b) => {
+      // prefer initial condition provided inside the tree payload if present
+      const fromTree = (initialFromTrees as any)[b.id];
+      if (fromTree !== undefined) {
+        initMap[b.id] = fromTree;
+        return;
+      }
       const val = rawInitials[String(b.id)];
       initMap[b.id] = val !== undefined && val !== null ? Number(val) : null;
     });
@@ -117,7 +164,14 @@ export default function DecisionTreePage() {
       allows_multiple_values: false,
       options: [],
     };
-    setConditionsByBU((prev) => ({ ...prev, [buId]: [...(prev[buId] ?? []), newCond] }));
+    setConditionsByBU((prev) => {
+      const prevList = prev[buId] ?? [];
+      const list = [...prevList, newCond];
+      // open the newly created condition in edit mode and populate editing values
+      setEditingIdx(list.length - 1);
+      setEditingValues({ label: newCond.label, observation: newCond.observation });
+      return { ...prev, [buId]: list };
+    });
   };
 
   const setInitialConditionForBU = (buId: number | null, conditionId: number) => {
@@ -167,8 +221,61 @@ export default function DecisionTreePage() {
         }
 
         if (!Array.isArray(c.options)) {
-          errors.push(`Unidad ${buId} condición[${idx}]: 'options' debe ser arreglo`);
-        } else {
+
+    // Detect cycles per BU: build a directed graph where edges are next_condition references
+    Object.entries(payload).forEach(([buId, data]) => {
+      const graph: Record<number, number[]> = {};
+      data.conditions.forEach((c) => {
+        graph[c.id] = [];
+      });
+      data.conditions.forEach((c) => {
+        // edges from condition -> next_condition (if any)
+        if (c.next_condition !== undefined && c.next_condition !== null) {
+          graph[c.id].push(c.next_condition);
+        }
+        // edges from options -> next_condition
+        (c.options || []).forEach((o) => {
+          if (o.next_condition !== undefined && o.next_condition !== null) {
+            graph[c.id].push(o.next_condition);
+          }
+        });
+      });
+
+      const visited = new Set<number>();
+      const onStack = new Set<number>();
+      const stack: number[] = [];
+      let found: (number | null)[] | null = null;
+
+      const dfs = (u: number): boolean => {
+        visited.add(u);
+        onStack.add(u);
+        stack.push(u);
+        for (const v of graph[u] || []) {
+          if (!visited.has(v)) {
+            if (dfs(v)) return true;
+          } else if (onStack.has(v)) {
+            const start = stack.indexOf(v);
+            found = stack.slice(start).concat(v);
+            return true;
+          }
+        }
+        onStack.delete(u);
+        stack.pop();
+        return false;
+      };
+
+      for (const node of Object.keys(graph).map((k) => Number(k))) {
+        if (!visited.has(node)) {
+          if (dfs(node)) break;
+        }
+      }
+
+      if (found) {
+        errors.push(`Unidad ${buId}: ciclo detectado entre condiciones: ${(found as (number | null)[]).join(' -> ')}`);
+      }
+    });
+
+    return errors;
           c.options.forEach((o, oi) => {
             if (typeof o.label !== 'string') errors.push(`Unidad ${buId} condición[${idx}] opción[${oi}]: 'label' debe ser texto`);
             if (typeof o.is_alternative !== 'boolean') errors.push(`Unidad ${buId} condición[${idx}] opción[${oi}]: 'is_alternative' debe ser booleano`);
@@ -195,6 +302,13 @@ export default function DecisionTreePage() {
     const url = (window as any).route ? (window as any).route('dashboard.business-unit.decision-tree.update') : '/dashboard/arbol-decision';
     router.post(url, payload as any);
   };
+
+  // run validation reactively when local state changes
+  useEffect(() => {
+    const payload = buildPayload();
+    const errors = validatePayload(payload);
+    setSubmitErrors(errors);
+  }, [conditionsByBU, initialConditionByBU]);
 
   const deleteCondition = (buId: number, index: number) => {
     setConditionsByBU((prev) => {
@@ -301,6 +415,17 @@ export default function DecisionTreePage() {
           </select>
         </div>
 
+        {submitErrors.length > 0 && (
+          <div className="rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-800">
+            <strong>Errores de validación:</strong>
+            <ul className="mt-2 list-disc pl-5">
+              {submitErrors.map((err, i) => (
+                <li key={i}>{err}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div>
           {selectedBU === null ? (
             <p className="text-sm text-gray-500">Seleccione una unidad de negocio para ver su árbol de decisión.</p>
@@ -353,7 +478,8 @@ export default function DecisionTreePage() {
                           <select
                             className="border rounded-lg p-2 w-full"
                             value={c.interaction_type}
-                            onChange={(e) => updateConditionForBU(Number(selectedBU), idx, { interaction_type: e.target.value as InteractionType, options: e.target.value === 'options' ? c.options ?? [] : [], next_condition: undefined })}
+                            disabled={editingIdx !== idx}
+                            onChange={(e) => editingIdx === idx && updateConditionForBU(Number(selectedBU), idx, { interaction_type: e.target.value as InteractionType, options: e.target.value === 'options' ? c.options ?? [] : [], next_condition: undefined })}
                           >
                             <option value="input">Entrada</option>
                             <option value="range">Rango</option>
@@ -363,7 +489,7 @@ export default function DecisionTreePage() {
 
                         <div>
                           <label className="mb-2 block text-sm font-medium text-gray-700">Tipo de valor</label>
-                          <select className="border rounded-lg p-2 w-full" value={c.type} onChange={(e) => updateConditionForBU(Number(selectedBU), idx, { type: e.target.value as ValueType })}>
+                          <select className="border rounded-lg p-2 w-full" value={c.type} disabled={editingIdx !== idx} onChange={(e) => editingIdx === idx && updateConditionForBU(Number(selectedBU), idx, { type: e.target.value as ValueType })}>
                             <option value="text">Texto</option>
                             <option value="number">Número</option>
                             <option value="date">Fecha</option>
@@ -371,32 +497,25 @@ export default function DecisionTreePage() {
                         </div>
                       </div>
 
-                      <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">Etiqueta</label>
-                        {editingIdx === idx ? (
-                          <input className="border rounded-lg p-2 w-full" value={editingValues.label} onChange={(e) => setEditingValues((v) => ({ ...v, label: e.target.value }))} />
-                        ) : (
-                          <input className="border rounded-lg p-2 w-full" value={c.label} onChange={(e) => updateConditionForBU(Number(selectedBU), idx, { label: e.target.value })} />
-                        )}
-                      </div>
+                      {/* La etiqueta se edita en el encabezado; input duplicado eliminado */}
 
                       <div>
                         <label className="mb-2 block text-sm font-medium text-gray-700">Observación</label>
                         {editingIdx === idx ? (
                           <input className="border rounded-lg p-2 w-full" value={editingValues.observation} onChange={(e) => setEditingValues((v) => ({ ...v, observation: e.target.value }))} />
                         ) : (
-                          <input className="border rounded-lg p-2 w-full" value={c.observation} onChange={(e) => updateConditionForBU(Number(selectedBU), idx, { observation: e.target.value })} />
+                          <input className="border rounded-lg p-2 w-full" value={c.observation} disabled />
                         )}
                       </div>
 
                       <label className="flex items-center gap-2 text-sm">
-                        <input type="checkbox" checked={c.allows_multiple_values} onChange={(e) => updateConditionForBU(Number(selectedBU), idx, { allows_multiple_values: e.target.checked })} />
+                        <input type="checkbox" checked={c.allows_multiple_values} disabled={editingIdx !== idx} onChange={(e) => editingIdx === idx && updateConditionForBU(Number(selectedBU), idx, { allows_multiple_values: e.target.checked })} />
                         Permite múltiples valores
                       </label>
 
                       <div className="space-y-3">
                         <label className="text-sm text-gray-600">Siguiente condición</label>
-                        {conditionSelectForBU(Number(selectedBU), idx, c.next_condition, (v) => updateConditionForBU(Number(selectedBU), idx, { next_condition: v }), anyOptionLeads)}
+                        {conditionSelectForBU(Number(selectedBU), idx, c.next_condition, (v) => editingIdx === idx && updateConditionForBU(Number(selectedBU), idx, { next_condition: v }), (editingIdx !== idx) || anyOptionLeads)}
                         {anyOptionLeads && <p className="text-xs text-gray-500">Bloqueado porque una opción ya redirige</p>}
                       </div>
 
@@ -404,24 +523,24 @@ export default function DecisionTreePage() {
                         <div className="space-y-3">
                           <div className="flex justify-between items-center">
                             <h3 className="font-medium">Opciones</h3>
-                            <button onClick={() => addOptionForBU(Number(selectedBU), idx)} className="flex items-center gap-1 text-sm px-3 py-1 rounded-lg border hover:bg-gray-50">
+                            <button disabled={editingIdx !== idx} onClick={() => editingIdx === idx && addOptionForBU(Number(selectedBU), idx)} className="flex items-center gap-1 text-sm px-3 py-1 rounded-lg border hover:bg-gray-50">
                               <Plus className="w-4 h-4" /> Agregar opción
                             </button>
                           </div>
 
                           {(c.options ?? []).map((option, optIdx) => (
                             <div key={optIdx} className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
-                                  <input className="border rounded-lg p-2 md:col-span-1" placeholder="Etiqueta" value={option.label} onChange={(e) => updateOptionForBU(Number(selectedBU), idx, optIdx, { label: e.target.value })} />
+                                  <input disabled={editingIdx !== idx} className="border rounded-lg p-2 md:col-span-1" placeholder="Etiqueta" value={option.label} onChange={(e) => editingIdx === idx && updateOptionForBU(Number(selectedBU), idx, optIdx, { label: e.target.value })} />
 
-                              <div className="md:col-span-2">{conditionSelectForBU(Number(selectedBU), idx, option.next_condition, (v) => updateOptionForBU(Number(selectedBU), idx, optIdx, { next_condition: v }), c.next_condition !== undefined)}</div>
+                              <div className="md:col-span-2">{conditionSelectForBU(Number(selectedBU), idx, option.next_condition, (v) => editingIdx === idx && updateOptionForBU(Number(selectedBU), idx, optIdx, { next_condition: v }), (editingIdx !== idx) || (c.next_condition !== undefined))}</div>
 
                               <label className="flex items-center gap-2 text-sm">
-                                <input type="checkbox" checked={option.is_alternative} onChange={(e) => updateOptionForBU(Number(selectedBU), idx, optIdx, { is_alternative: e.target.checked })} />
+                                <input type="checkbox" checked={option.is_alternative} disabled={editingIdx !== idx} onChange={(e) => editingIdx === idx && updateOptionForBU(Number(selectedBU), idx, optIdx, { is_alternative: e.target.checked })} />
                                 Alternativa
                               </label>
 
                               <div>
-                                <button onClick={() => removeOptionForBU(Number(selectedBU), idx, optIdx)} className="p-2 rounded-lg hover:bg-red-50">
+                                <button disabled={editingIdx !== idx} onClick={() => editingIdx === idx && removeOptionForBU(Number(selectedBU), idx, optIdx)} className="p-2 rounded-lg hover:bg-red-50">
                                   <Trash2 className="w-4 h-4" />
                                 </button>
                               </div>
@@ -460,7 +579,7 @@ export default function DecisionTreePage() {
         </div>
 
         <div className="flex justify-end mt-4">
-          <Button variant="crear" size="sm" onClick={handleSaveAll}>
+          <Button variant="crear" size="sm" onClick={handleSaveAll} disabled={submitErrors.length > 0} title={submitErrors.length > 0 ? submitErrors.join('\n') : undefined}>
             Guardar todo
           </Button>
         </div>

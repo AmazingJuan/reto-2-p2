@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Footer from '@/components/admin/footer';
 import { Link, usePage } from '@inertiajs/react';
 import { route } from 'ziggy-js';
@@ -19,6 +19,25 @@ const navItems = [
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { url } = usePage();
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  const openSidebar = () => {
+    setSidebarOpen(true);
+    // move focus into the sidebar for screen readers
+    setTimeout(() => {
+      const firstLink = document.querySelector('aside a');
+      (firstLink as HTMLElement | null)?.focus();
+    }, 50);
+  };
+
+  const closeSidebar = () => {
+    setSidebarOpen(false);
+    // return focus to the menu button to avoid leaving focus inside an aria-hidden element
+    setTimeout(() => {
+      menuButtonRef.current?.focus();
+    }, 0);
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -28,7 +47,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           className={`fixed inset-y-0 left-0 z-40 w-64 shrink-0 border-r bg-white transform transition-transform duration-200 ease-in-out md:static md:translate-x-0 md:block ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
           }`}
-          aria-hidden={!sidebarOpen && 'true'}
+          aria-hidden={!sidebarOpen}
         >
           <div className="h-full sticky top-0 flex flex-col justify-between">
             <div>
@@ -46,7 +65,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                   <button
                     type="button"
                     aria-label="Cerrar menú"
-                    onClick={() => setSidebarOpen(false)}
+                    onClick={closeSidebar}
                     className="md:hidden p-2 rounded-md text-slate-500 hover:bg-slate-50"
                   >
                     <X className="w-5 h-5" />
@@ -56,8 +75,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
               <nav className="p-4">
                 <ul className="space-y-1">
-                  {(() => {
-                    const { url } = usePage();
+                  {navItems.map((item) => {
+                    const Icon = item.icon;
 
                     const currentPath = (() => {
                       try {
@@ -71,33 +90,30 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                       try {
                         return new URL(to, window.location.origin).pathname;
                       } catch {
-                        return to;
+                        return to as string;
                       }
                     };
 
-                    return navItems.map((item) => {
-                      const Icon = item.icon;
-                      const toPath = normalize(item.to as string);
-                      const isActive = currentPath === toPath || currentPath.startsWith(toPath + '/');
+                    const toPath = normalize(item.to as string);
+                    const isActive = currentPath === toPath || currentPath.startsWith(toPath + '/');
 
-                        return (
-                          <li key={item.label}>
-                            <Link
-                              href={item.to}
-                              onClick={() => setSidebarOpen(false)}
-                              className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
-                                isActive
-                                  ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
-                                  : 'hover:bg-slate-50 hover:text-blue-600'
-                              }`}
-                            >
-                              <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
-                              <span>{item.label}</span>
-                            </Link>
-                          </li>
-                        );
-                    });
-                  })()}
+                    return (
+                      <li key={item.label}>
+                        <Link
+                          href={item.to}
+                          onClick={() => setSidebarOpen(false)}
+                          className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
+                            isActive
+                              ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
+                              : 'hover:bg-slate-50 hover:text-blue-600'
+                          }`}
+                        >
+                          <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
+                          <span>{item.label}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
                 </ul>
               </nav>
             </div>
@@ -117,9 +133,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         {/* Content area */}
         <div className="flex-1 min-h-screen">
           {/* Mobile topbar */}
-          <div className="md:hidden flex items-center justify-between border-b bg-white px-4 py-3">
+            <div className="md:hidden flex items-center justify-between border-b bg-white px-4 py-3">
             <button
-              onClick={() => setSidebarOpen(true)}
+              ref={menuButtonRef}
+              onClick={openSidebar}
               className="p-2 rounded-md text-slate-700 hover:bg-slate-50"
               aria-label="Abrir menú"
             >
@@ -146,7 +163,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       </div>
 
       {/** Overlay for mobile when sidebar is open */}
-      {sidebarOpen && <div className="fixed inset-0 z-30 bg-black/40 md:hidden" onClick={() => setSidebarOpen(false)} />}
+      {sidebarOpen && <div className="fixed inset-0 z-30 bg-black/40 md:hidden" onClick={closeSidebar} />}
 
       <Footer />
     </div>

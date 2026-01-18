@@ -13,13 +13,16 @@ class AdminDecisionTreeController extends Controller
 {
     public function index()
     {
-        $businessUnits = BusinessUnit::select('id', 'name')->get();
+        $businessUnits = BusinessUnit::select('id', 'display_name', 'initial_condition_id')->get();
         $viewData['businessUnits'] = [];
         foreach ($businessUnits as $businessUnit) {
             $viewData['businessUnits'][] = [$businessUnit->getId() => $businessUnit['display_name']];
 
             $viewData['decisionTrees'][] = [
-                $businessUnit->getId() => DecisionTreeHelper::buildTree($businessUnit)
+                $businessUnit->getId() => [
+                    'conditions' => DecisionTreeHelper::buildTree($businessUnit),
+                    'initial_condition_id' => $businessUnit->getInitialCondition()->getId(),
+                ]
             ];
         }
         

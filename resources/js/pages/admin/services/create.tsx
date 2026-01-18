@@ -4,9 +4,9 @@ import AdminLayout from '@/layouts/admin-layout';
 import { useForm, usePage } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 
-interface BusinessUnit {
-    id: string | number;
-    name: string;
+interface businessUnit {
+    id: string;
+    display_name: string;
 }
 
 interface GestionLine {
@@ -16,13 +16,13 @@ interface GestionLine {
 
 interface CreatePageProps extends Record<string, unknown> {
     auth: { user: any };
-    businessUnits: BusinessUnit[];
+    businessUnits: businessUnit[];
     gestionLines: GestionLine[];
 }
 
 export default function Create() {
-    const { businessUnits, gestionLines } = (usePage().props as unknown) as CreatePageProps;
-
+    const { businessUnits, gestionLines } = usePage<CreatePageProps>().props;
+    const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         business_unit_id: '',
@@ -87,7 +87,7 @@ export default function Create() {
                                             <option value="">Seleccione unidad de negocio</option>
                                             {businessUnits.map((type) => (
                                                 <option key={type.id} value={type.id}>
-                                                    {type.name}
+                                                    {capitalize(type.display_name)}
                                                 </option>
                                             ))}
                                         </select>
@@ -108,7 +108,7 @@ export default function Create() {
                                             <option value="">Seleccione una línea</option>
                                             {gestionLines.map((line) => (
                                                 <option key={line.id} value={line.id}>
-                                                    {line.name}
+                                                    {capitalize(line.name)}
                                                 </option>
                                             ))}
                                         </select>

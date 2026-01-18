@@ -5,11 +5,16 @@ import GoHome from '@/components/ui/gohome';
 import Header from '@/components/ui/header';
 import { PageProps } from '@inertiajs/core';
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+interface BusinessUnit {
+    name: string;
+    display_name: string;
+}
 
 type SelectPageProps = PageProps & {
     viewData: {
-        businessUnits: string[];
+        businessUnits: BusinessUnit[];
     };
     flash?: {
         error?: string;
@@ -19,7 +24,13 @@ type SelectPageProps = PageProps & {
 export default function SelectBusinessUnits() {
     const { viewData, flash } = usePage<SelectPageProps>().props;
     const error = flash?.error ?? '';
-    const [showError, setShowError] = useState(Boolean(error));
+    const [showError, setShowError] = useState(false);
+
+    useEffect(() => {
+        if (error) {
+            setShowError(true);
+        }
+    }, [error]);
     return (
         <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-white to-slate-50">
             <Header />
@@ -59,13 +70,13 @@ export default function SelectBusinessUnits() {
                     ) : (
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
                             {viewData.businessUnits.map((unit, i) => (
-                                <Link key={i} href={route('quotation.quote.business_unit', unit)}>
+                                <Link key={i} href={route('quotation.quote.business_unit', unit.name)}>
                                     <Card className="group relative h-44 rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl">
                                         <div className="absolute inset-0 rounded-2xl border border-transparent transition-all group-hover:border-[#0693e3]" />
 
                                         <CardContent className="flex h-full flex-col items-center justify-center px-4 text-center">
                                             <CardTitle className="text-2xl font-semibold tracking-wide text-slate-800 transition-colors group-hover:text-[#0693e3]">
-                                                {unit.charAt(0).toUpperCase() + unit.slice(1).toLowerCase()}
+                                                {unit.display_name}
                                             </CardTitle>
                                         </CardContent>
                                     </Card>

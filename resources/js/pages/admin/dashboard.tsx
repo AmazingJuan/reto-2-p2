@@ -1,6 +1,6 @@
 import AdminLayout from '@/layouts/admin-layout';
 import { Link } from '@inertiajs/react';
-import { ChevronRight, GitBranch, ScrollText, Users, Wrench, BriefcaseBusiness } from 'lucide-react';
+import { ChevronRight, GitBranch, ScrollText, Users, Wrench, BriefcaseBusiness, Trees } from 'lucide-react';
 import React from 'react';
 import { route } from 'ziggy-js';
 
@@ -40,6 +40,13 @@ const Dashboard: React.FC = () => {
             desc: 'Visualiza y gestiona las unidades de negocio',
             icon: BriefcaseBusiness,
             accent: 'emerald',
+        },
+        {
+            label: 'Árbol de cotización',
+            name: 'dashboard.business-unit.decision-tree',
+            desc: 'Configura el árbol de decisión para cotizaciones',
+            icon: Trees,
+            accent: 'amber',
         },
     ] as const;
 
