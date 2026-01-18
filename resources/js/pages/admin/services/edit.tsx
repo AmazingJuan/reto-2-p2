@@ -1,7 +1,6 @@
 import { useForm, usePage } from '@inertiajs/react';
 import { route } from 'ziggy-js';
-import Footer from '../../../components/admin/footer';
-import Header from '../../../components/admin/header';
+import AdminLayout from '@/layouts/admin-layout';
 
 interface Service {
     id: number;
@@ -42,9 +41,7 @@ export default function Edit() {
     };
 
     return (
-        <div className="flex min-h-screen flex-col bg-gray-50">
-            <Header />
-
+        <AdminLayout>
             <main className="flex-grow px-4 py-12 sm:px-6 lg:px-8">
                 <div className="mx-auto max-w-4xl">
                     {/* Header */}
@@ -147,8 +144,6 @@ export default function Edit() {
                     </div>
                 </div>
             </main>
-
-            <Footer />
-        </div>
+        </AdminLayout>
     );
 }

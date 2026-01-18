@@ -4,17 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Collection;
 
-class ConditionValue extends Model
+class ConditionOption extends Model
 {
     /**
      * Attributes:
      *
      * $this->attributes['id'] - int - Primary key identifier
+     * $this->attributes['label'] - string - Label or name of the option
      * $this->attributes['condition_id'] - int - Foreign key referencing conditions.id
-     * $this->attributes['service_type_id'] - string|null - Foreign key referencing service_types.id
      * $this->attributes['next_condition_id'] - int|null - Foreign key referencing conditions.id (next condition)
-     * $this->attributes['value'] - string - Option or value for the condition
+     * $this->attributes['is_other'] - boolean - Indicates if this option represents an "other" choice
      */
 
     /**
@@ -23,10 +24,10 @@ class ConditionValue extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'label',
         'condition_id',
-        'service_type_id',
         'next_condition_id',
-        'value',
+        'is_other',
     ];
 
     public $timestamps = false;
@@ -38,27 +39,30 @@ class ConditionValue extends Model
     */
 
     /**
-     * A ConditionValue belongs to a Condition.
+     * A ConditionOption belongs to a Condition.
      */
     public function condition(): BelongsTo
     {
-        return $this->belongsTo(Condition::class);
+        return $this->belongsTo(Condition::class, 'condition_id');
     }
 
-    /**
-     * A ConditionValue may belong to a ServiceType.
-     */
-    public function serviceType(): BelongsTo
+    public function getCondition(): Condition
     {
-        return $this->belongsTo(ServiceType::class, 'service_type_id', 'id');
+        return $this->condition;
     }
 
     /**
-     * A ConditionValue may point to a next Condition.
+     * A ConditionOption may point to a next Condition.
      */
+
     public function nextCondition(): BelongsTo
     {
         return $this->belongsTo(Condition::class, 'next_condition_id');
+    }
+
+    public function getNextCondition(): ?Condition
+    {
+        return $this->nextCondition;
     }
 
     /*
@@ -73,6 +77,18 @@ class ConditionValue extends Model
         return $this->attributes['id'];
     }
 
+    // Label
+
+    public function getLabel(): string
+    {
+        return $this->attributes['label'];
+    }
+
+    public function setLabel(string $value): void
+    {
+        $this->attributes['label'] = $value;
+    }
+
     // Condition ID
     public function getConditionId(): int
     {
@@ -82,17 +98,6 @@ class ConditionValue extends Model
     public function setConditionId(int $value): void
     {
         $this->attributes['condition_id'] = $value;
-    }
-
-    // Service Type ID
-    public function getServiceTypeId(): ?string
-    {
-        return $this->attributes['service_type_id'] ?? null;
-    }
-
-    public function setServiceTypeId(?string $value): void
-    {
-        $this->attributes['service_type_id'] = $value;
     }
 
     // Next Condition ID
@@ -106,14 +111,14 @@ class ConditionValue extends Model
         $this->attributes['next_condition_id'] = $value;
     }
 
-    // Value
-    public function getValue(): string
+    // is_other
+    public function getIsOther(): bool
     {
-        return $this->attributes['value'];
+        return $this->attributes['is_other'];
     }
 
-    public function setValue(string $value): void
+    public function setIsOther(bool $value): void
     {
-        $this->attributes['value'] = $value;
+        $this->attributes['is_other'] = $value;
     }
 }

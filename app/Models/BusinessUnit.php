@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
 class BusinessUnit extends Model
@@ -16,7 +18,29 @@ class BusinessUnit extends Model
      * $this->attributes['updated_at'] - Carbon - Record last update timestamp
      * $this->attributes['services'] - Service[] - Services associated with the business unit
      */
-    protected $fillable = ['name', 'display_name'];
+    protected $fillable = ['name', 'display_name', 'initial_condition_id'];
+
+    // Relationships
+
+    public function initialCondition(): BelongsTo
+    {
+         return $this->belongsTo(Condition::class, 'initial_condition_id');
+    }
+
+    public function getInitialCondition(): ?Condition
+    {
+        return $this->initialCondition;
+    }
+
+    public function conditions(): HasMany
+    {
+        return $this->hasMany(Condition::class);
+    }
+
+    public function getConditions(): Collection
+    {
+        return $this->conditions;
+    }
 
     // Getters
 
@@ -49,8 +73,14 @@ class BusinessUnit extends Model
 
     // Relationships
 
+    public function services(): HasMany
+    {
+        return $this->hasMany(Service::class);
+    }
+
     public function getServices(): Collection
     {
-        return $this->hasMany(Service::class)->get();
+        return $this->services;
     }
+
 }

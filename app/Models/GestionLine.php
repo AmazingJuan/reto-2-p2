@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class GestionLine extends Model
 {
@@ -24,6 +25,22 @@ class GestionLine extends Model
     ];
 
     public $timestamps = false;
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
+    public function services(): HasMany
+    {
+        return $this->hasMany(Service::class);
+    }
+
+    public function getServices()
+    {
+        return $this->services()->get();
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -48,10 +65,4 @@ class GestionLine extends Model
         $this->attributes['name'] = $value;
     }
 
-    // Relationship
-
-    public function getServices()
-    {
-        return $this->hasMany(Service::class)->get();
-    }
 }

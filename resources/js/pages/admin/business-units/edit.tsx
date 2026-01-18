@@ -1,7 +1,5 @@
 import { Button } from '@/components/ui/button';
-import Footer from '@/components/ui/footer';
-import GoDashboard from '@/components/ui/godashboard';
-import Header from '@/components/ui/header';
+import AdminLayout from '@/layouts/admin-layout';
 import { useForm, usePage } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 
@@ -31,10 +29,8 @@ export default function Edit() {
     };
 
     return (
-        <div className="mt-20 flex min-h-screen flex-col bg-gray-50">
-            <Header />
-
-            <main className="flex-grow px-4 py-12 sm:px-6 lg:px-8">
+        <AdminLayout>
+            <div className="p-6">
                 <div className="mx-auto max-w-4xl">
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold text-slate-900">Editar Unidad de Negocio</h1>
@@ -68,9 +64,7 @@ export default function Edit() {
                         </form>
                     </div>
                 </div>
-            </main>
-
-            <Footer />
-        </div>
+            </div>
+        </AdminLayout>
     );
 }

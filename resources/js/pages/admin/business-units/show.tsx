@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button';
-import Footer from '@/components/ui/footer';
-import Header from '@/components/ui/header';
+import AdminLayout from '@/layouts/admin-layout';
 import { Link, usePage } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 
@@ -28,18 +27,17 @@ export default function Show() {
     const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
     return (
-        <div className="flex min-h-screen flex-col bg-gray-50">
-            <Header />
-            <div className="ml-5 mt-24">
-                <Link href={'/dashboard/unidad-negocio'}>
-                    <Button variant="outline" className="flex items-center gap-2">
-                        <ArrowLeft />
-                        {'Volver'}
-                    </Button>
-                </Link>
-            </div>
+        <AdminLayout>
+            <div className="p-6">
+                <div className="ml-5 mt-4">
+                    <Link href={'/dashboard/unidad-negocio'}>
+                        <Button variant="outline" className="flex items-center gap-2">
+                            <ArrowLeft />
+                            {'Volver'}
+                        </Button>
+                    </Link>
+                </div>
 
-            <main className="flex-1 p-6">
                 <div className="mb-6 flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-bold text-slate-900">Unidad de Negocio</h1>
@@ -87,9 +85,7 @@ export default function Show() {
                         </tbody>
                     </table>
                 </div>
-            </main>
-
-            <Footer />
-        </div>
+            </div>
+        </AdminLayout>
     );
 }

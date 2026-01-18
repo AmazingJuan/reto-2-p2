@@ -1,8 +1,6 @@
 import { Button } from '@/components/ui/button';
 import FlashAlert from '@/components/ui/flashalert';
-import Footer from '@/components/ui/footer';
-import GoDashboard from '@/components/ui/godashboard';
-import Header from '@/components/ui/header';
+import AdminLayout from '@/layouts/admin-layout';
 import { router, usePage } from '@inertiajs/react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { route } from 'ziggy-js';
@@ -39,11 +37,8 @@ export default function Index() {
     };
 
     return (
-        <div className="flex min-h-screen flex-col bg-gray-50">
-            <Header />
-            <GoDashboard />
-
-            <main className="flex-1 p-6">
+        <AdminLayout>
+            <div className="p-6">
                 <h1 className="mb-6 text-center text-3xl font-bold leading-tight text-slate-900 md:text-3xl">Administrar Líneas de Gestión</h1>
                 <FlashAlert flash={flash} duration={5000} />
                 <Button onClick={handleCreate} variant="crear" className="bg-amber-600 hover:bg-amber-600">
@@ -89,9 +84,7 @@ export default function Index() {
                         )}
                     </tbody>
                 </table>
-            </main>
-
-            <Footer />
-        </div>
+            </div>
+        </AdminLayout>
     );
 }
