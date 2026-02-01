@@ -8,6 +8,7 @@ use App\Models\GestionLine;
 use App\Models\Service;
 use App\Helpers\DecisionTreeHelper;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -57,7 +58,16 @@ class QuotationController extends Controller
         $viewData['gestionLines'] = $gestionLineNames;
         $viewData['services'] = $formattedServices;
         $viewData['conditions'] = $decisionTree;
+        $viewData['initial_condition_id'] = $selectedBusinessUnit->getInitialCondition()?->getId() ?? null;
 
         return Inertia::render('quotation/index', compact('viewData'));
+    }
+
+    public function storeQuotationProposal(Request $request): RedirectResponse
+    {
+        $quotationData = $request->all();
+
+        dd($quotationData);
+        return redirect()->route('quotation.select.business_unit')->with('success', 'Su cotización ha sido procesada exitosamente.');
     }
 }

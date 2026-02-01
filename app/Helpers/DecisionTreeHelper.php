@@ -5,7 +5,6 @@ namespace App\Helpers;
 use App\Models\BusinessUnit;
 use App\Models\Condition;
 use App\Models\ConditionOption;
-use App\Models\ConditionRange;
 use Illuminate\Support\Facades\DB;
 
 class DecisionTreeHelper
@@ -64,16 +63,6 @@ class DecisionTreeHelper
                 }
             }
 
-            if ($currentCondition->getInteractionType() === 'range') {
-                $conditionData['ranges'] = [];
-                foreach ($currentCondition->getRanges() as $range) {
-                    $conditionData['ranges'][] = [
-                        'min_value' => $range->getMinValue(),
-                        'max_value' => $range->getMaxValue(),
-                    ];
-                }
-            }
-
             $conditions[$conditionId] = $conditionData;
         }
         
@@ -98,7 +87,6 @@ class DecisionTreeHelper
             }
 
             DB::transaction(function () use ($businessUnit, $treeData) {
-                // Remove existing conditions (cascade will remove options and ranges)
                 $businessUnit->conditions()->delete();
 
                 $conditions = $treeData['conditions'] ?? [];
