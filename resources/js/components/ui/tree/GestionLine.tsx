@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle2, GitBranch } from 'lucide-react';
+import { CheckCircle2, GitBranch, Layers } from 'lucide-react';
 import { useState } from 'react';
 import Footer from '../footer';
 import GoSelect from '../goselect';
@@ -155,47 +155,65 @@ export default function GestionLine({ viewData }: GestionLineProps) {
 
     // when user selects a service, initialize the condition stepper id
     React.useEffect(() => {
-        if (selectedServices && selectedServices.length === 1) {
+        if (selectedServices && selectedServices.length >= 1) {
             setConditionInitialId(viewData.initial_condition_id ?? null);
         }
     }, [selectedServices, viewData.initial_condition_id]);
 
     return (
-        <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-50 to-slate-100">
+        <div className="flex min-h-screen flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-white to-slate-50">
+            {/* Blobs decorativos */}
+            <div className="blob pointer-events-none fixed -right-40 -top-40 h-96 w-96 rounded-full bg-[#0693e3]/10 blur-3xl" />
+            <div className="blob pointer-events-none fixed -bottom-40 -left-40 h-96 w-96 rounded-full bg-emerald-500/10 blur-3xl" style={{ animationDelay: '-4s' }} />
+            
             <Header />
             <GoSelect />
 
-            <main className="container mx-auto flex-1 px-4 pb-12 pt-4">
+            <main className="container mx-auto flex-1 px-4 pb-24 pt-4">
                 {/* Título */}
-                <div className="mb-8 text-center">
-                    <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-                        <GitBranch className="h-5 w-5 text-blue-600" />
+                <div className="mb-10 text-center">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0693e3]/20 to-emerald-500/20 shadow-lg shadow-[#0693e3]/10">
+                        <GitBranch className="h-8 w-8 text-[#0693e3]" />
                     </div>
 
-                    <h2 className="mb-2 text-3xl font-bold text-slate-900 md:text-4xl">{capitalize(viewData.businessUnit)}</h2>
+                    <h2 className="mb-3 text-3xl font-bold text-slate-900 md:text-4xl">
+                        <span className="text-gradient">{capitalize(viewData.businessUnit)}</span>
+                    </h2>
 
-                    <p className="mx-auto max-w-xl text-m text-slate-600">Selecciona una línea de gestión para ver sus servicios</p>
+                    <p className="mx-auto max-w-xl text-slate-600">Selecciona una línea de gestión para ver sus servicios</p>
                 </div>
 
                 {/* Cards */}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {visibleLines.map((line) => {
+                <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {visibleLines.map((line, index) => {
                         const isSelected = selectedLine === line;
-                        const servicesCount = viewData.services[line].length;
 
                         return (
                             <Card
                                 key={line}
                                 onClick={() => { setSelectedLine(line); setSelectedServices([]); }}
-                                className={`cursor-pointer border transition-all ${
-                                    isSelected ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:border-blue-300'
+                                className={`animate-slide-up stagger-${index + 1} card-shine hover-lift group cursor-pointer overflow-hidden rounded-2xl border-2 transition-all duration-300 ${
+                                    isSelected 
+                                        ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-white shadow-lg shadow-emerald-500/20' 
+                                        : 'border-slate-200 bg-white hover:border-[#0693e3]/50 hover:shadow-lg'
                                 }`}
                             >
-                                <CardContent className="p-4">
-                                    <div className="mb-2 flex items-center justify-between">
-                                        <h3 className="text-base font-medium text-slate-900">{capitalize(line)}</h3>
+                                <CardContent className="p-6">
+                                    <div className="flex items-center gap-4">
+                                        {/* Icono */}
+                                        <div className={`flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-300 ${
+                                            isSelected 
+                                                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' 
+                                                : 'bg-slate-100 text-slate-600 group-hover:bg-[#0693e3]/10 group-hover:text-[#0693e3]'
+                                        }`}>
+                                            <Layers className="h-6 w-6" />
+                                        </div>
+                                        
+                                        <div className="flex-1">
+                                            <h3 className="text-lg font-semibold text-slate-900">{capitalize(line)}</h3>
+                                        </div>
 
-                                        {isSelected && <CheckCircle2 className="h-4 w-4 text-blue-600" />}
+                                        {isSelected && <CheckCircle2 className="h-6 w-6 text-emerald-500" />}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -221,15 +239,14 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                 )}
 
                 {/* Condiciones para el servicio seleccionado (si vienen en viewData) */}
-                {/** show conditions only when exactly one service is selected */}
+                {/** show conditions when at least one service is selected */}
                 {(() => {
-                    const singleService = selectedServices && selectedServices.length === 1 ? selectedServices[0] : null;
-                    if (!singleService) return null;
+                    if (!selectedServices || selectedServices.length === 0) return null;
 
                     return (
                         <div className="mt-10">
                             <h3 className="mb-2 text-center text-2xl font-bold leading-tight text-slate-900 md:text-2xl">
-                                Condiciones para {singleService}
+                                Condiciones para {selectedServices.length === 1 ? selectedServices[0] : `${selectedServices.length} servicios seleccionados`}
                             </h3>
                             <p className="mb-6 text-center text-slate-600">Responde las condiciones una a una</p>
 
@@ -331,7 +348,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                         {showSavedDetails && savedSnapshot && (
                             <div className="mt-4 max-h-48 overflow-auto rounded border p-3 bg-slate-50">
                                 <h4 className="mb-2 text-sm font-semibold">Resumen previo</h4>
-                                <p className="text-sm text-slate-700"><strong>Línea:</strong> {savedSnapshot.selectedLine || '-'} </p>
+                                <p className="text-sm text-slate-700"><strong>Línea de Gestión:</strong> {savedSnapshot.selectedLine || '-'} </p>
                                 <p className="text-sm text-slate-700"><strong>Servicio(s):</strong> {Array.isArray(savedSnapshot.selectedServices) && savedSnapshot.selectedServices.length > 0 ? savedSnapshot.selectedServices.join(', ') : '-'} </p>
                                 <div className="mt-2 text-sm">
                                     <strong>Respuestas:</strong>

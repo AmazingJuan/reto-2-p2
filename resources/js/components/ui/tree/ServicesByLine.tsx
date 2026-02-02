@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, FileText } from 'lucide-react';
 
 interface ServicesByLineProps {
     line: string;
@@ -11,27 +11,44 @@ interface ServicesByLineProps {
 export default function ServicesByLine({ line, services, selected, onToggle }: ServicesByLineProps) {
     return (
         <div className="mt-10">
-            <h3 className="mb-6 text-center text-2xl font-bold leading-tight text-slate-900 md:text-2xl">Servicios de {line}</h3>
-            <p className="mb-6 text-center text-slate-600">Selecciona una servicio asociado</p>
+            <h3 className="mb-3 text-center text-2xl font-bold leading-tight text-slate-900 md:text-3xl">
+                Servicios de <span className="text-gradient">{line}</span>
+            </h3>
+            <p className="mb-8 text-center text-slate-600">Selecciona un servicio asociado</p>
             {services.length > 0 ? (
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {services.map((service) => {
+                <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {services.map((service, index) => {
                         const isSelected = Array.isArray(selected) && selected.includes(service);
                         return (
                             <Card
                                 key={service}
                                 onClick={() => onToggle?.(service)}
-                                className={`cursor-pointer border-2 transition bg-white ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-blue-500 hover:bg-blue-50'}`}>
-                                <CardContent className="p-4 flex items-center justify-between h-24">
-                                    <p className="text-base font-medium text-slate-900 truncate">{service}</p>
-                                    {isSelected && <CheckCircle2 className="h-4 w-4 text-blue-600" />}
+                                className={`animate-slide-up stagger-${index + 1} hover-lift group cursor-pointer overflow-hidden rounded-2xl border-2 transition-all duration-300 ${
+                                    isSelected 
+                                        ? 'border-[#0693e3] bg-gradient-to-br from-[#0693e3]/5 to-white shadow-lg shadow-[#0693e3]/20' 
+                                        : 'border-slate-200 bg-white hover:border-[#0693e3]/50 hover:shadow-md'
+                                }`}
+                            >
+                                <CardContent className="flex h-24 items-center gap-4 p-4">
+                                    {/* Icono */}
+                                    <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-all duration-300 ${
+                                        isSelected 
+                                            ? 'bg-[#0693e3] text-white shadow-lg shadow-[#0693e3]/30' 
+                                            : 'bg-slate-100 text-slate-500 group-hover:bg-[#0693e3]/10 group-hover:text-[#0693e3]'
+                                    }`}>
+                                        <FileText className="h-6 w-6" />
+                                    </div>
+                                    
+                                    <p className="flex-1 text-base font-medium text-slate-900">{service}</p>
+                                    
+                                    {isSelected && <CheckCircle2 className="h-6 w-6 shrink-0 text-[#0693e3]" />}
                                 </CardContent>
                             </Card>
                         );
                     })}
                 </div>
             ) : (
-                <p className="text-slate-500">No hay servicios disponibles para esta línea.</p>
+                <p className="text-center text-slate-500">No hay servicios disponibles para esta línea.</p>
             )}
         </div>
     );
