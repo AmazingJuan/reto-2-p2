@@ -38,7 +38,6 @@ class DecisionTreeHelper
                 'interaction_type' => $currentCondition->getInteractionType(),
                 'type' => $currentCondition->getType(),
                 'observation' => $currentCondition->getObservation(),
-                'allows_multiple_values' => $currentCondition->allowsMultipleValues(),
             ];
 
             if ($next = $currentCondition->getNextCondition()) {
@@ -52,6 +51,7 @@ class DecisionTreeHelper
                 foreach ($currentCondition->getOptions() as $option) {
                     $optionData = [
                         'label' => $option->getLabel(),
+                        'is_other' => $option->isOther(),
                     ];
 
                     if ($next = $option->getNextCondition()) {
@@ -75,7 +75,7 @@ class DecisionTreeHelper
      * Expected payload shape per business unit:
      * {
      *   initial_condition_id: <tempId|null>,
-     *   conditions: [ { id: <tempId>, label, interaction_type, type, observation, allows_multiple_values, options: [...], next_condition }, ... ]
+    *   conditions: [ { id: <tempId>, label, interaction_type, type, observation, options: [...], next_condition }, ... ]
      * }
      */
     public static function updateTrees(array $treesPayload)
@@ -102,7 +102,6 @@ class DecisionTreeHelper
                         'interaction_type' => $c['interaction_type'] ?? 'input',
                         'type' => $c['type'] ?? 'text',
                         'observation' => $c['observation'] ?? null,
-                        'allows_multiple_values' => !empty($c['allows_multiple_values']),
                         'business_unit_id' => $businessUnit->getId(),
                     ]);
 
@@ -128,7 +127,7 @@ class DecisionTreeHelper
                                 'label' => $opt['label'] ?? '',
                                 'condition_id' => $newId,
                                 'next_condition_id' => (! empty($opt['next_condition']) ? ($idMap[$opt['next_condition']] ?? null) : null),
-                                'is_other' => ! empty($opt['is_alternative']),
+                                'is_other' => ! empty($opt['is_other']),
                             ]);
                         }
                     }

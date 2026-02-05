@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle2, GitBranch, Layers } from 'lucide-react';
 import { useState } from 'react';
+import { useRef } from 'react';
 import Footer from '../footer';
 import GoSelect from '../goselect';
 import Header from '../header';
@@ -20,7 +21,6 @@ interface ViewData {
             interaction_type: string;
             type: string;
             observation?: string | null;
-            allows_multiple_values: boolean;
             next_condition?: number;
         };
     };
@@ -45,6 +45,10 @@ export default function GestionLine({ viewData }: GestionLineProps) {
     const [showSavedDetails, setShowSavedDetails] = useState(false);
     const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
     const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+    // refs for auto-scroll
+    const servicesRef = useRef<HTMLDivElement>(null);
+    const conditionsRef = useRef<HTMLDivElement>(null);
 
     const visibleLines = viewData.gestionLines.filter((line) => (viewData.services[line]?.length ?? 0) > 0);
 
@@ -77,8 +81,17 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                 let valueDisplay: string;
                 if (cond && cond.interaction_type === 'options') {
                     const opts = Array.isArray((cond as any).options) ? (cond as any).options : [];
-                    if (typeof v === 'number' && opts[v]) valueDisplay = opts[v].label || String(v);
-                    else valueDisplay = String(v);
+                    if (typeof v === 'object' && v !== null && 'optionIndex' in (v as Record<string, unknown>)) {
+                        const optionIndex = (v as { optionIndex: number }).optionIndex;
+                        const textValue = (v as { text?: string }).text;
+                        valueDisplay = textValue && textValue.trim() !== ''
+                            ? textValue
+                            : (opts[optionIndex]?.label || String(optionIndex));
+                    } else if (typeof v === 'number' && opts[v]) {
+                        valueDisplay = opts[v].label || String(v);
+                    } else {
+                        valueDisplay = String(v);
+                    }
                 } else if (cond && cond.interaction_type === 'range') {
                     const isRange = typeof v === 'object' && v !== null && 'min' in (v as Record<string, unknown>) && 'max' in (v as Record<string, unknown>);
                     const min = isRange ? (v as { min: any; max: any }).min : '';
@@ -160,6 +173,49 @@ export default function GestionLine({ viewData }: GestionLineProps) {
         }
     }, [selectedServices, viewData.initial_condition_id]);
 
+    // smooth scroll helper with easing
+    const smoothScrollTo = (element: HTMLElement, duration = 600) => {
+        const targetPosition = element.getBoundingClientRect().top + window.scrollY - 100;
+        const startPosition = window.scrollY;
+        const distance = targetPosition - startPosition;
+        let startTime: number | null = null;
+
+        const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+        const step = (currentTime: number) => {
+            if (startTime === null) startTime = currentTime;
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = easeInOutCubic(progress);
+
+            window.scrollTo(0, startPosition + distance * eased);
+
+            if (progress < 1) {
+                requestAnimationFrame(step);
+            }
+        };
+
+        requestAnimationFrame(step);
+    };
+
+    // auto-scroll to services when a line is selected
+    React.useEffect(() => {
+        if (selectedLine && servicesRef.current) {
+            const el = servicesRef.current;
+            const frameId = requestAnimationFrame(() => smoothScrollTo(el, 500));
+            return () => cancelAnimationFrame(frameId);
+        }
+    }, [selectedLine]);
+
+    // auto-scroll to conditions when a service is selected
+    React.useEffect(() => {
+        if (selectedServices.length > 0 && conditionsRef.current) {
+            const el = conditionsRef.current;
+            const frameId = requestAnimationFrame(() => smoothScrollTo(el, 500));
+            return () => cancelAnimationFrame(frameId);
+        }
+    }, [selectedServices]);
+
     return (
         <div className="flex min-h-screen flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-white to-slate-50">
             {/* Blobs decorativos */}
@@ -223,7 +279,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
 
                 {/* Servicios */}
                 {selectedLine && (
-                    <div className="animate-fade-in mt-10">
+                    <div ref={servicesRef} className="animate-fade-in mt-10 scroll-mt-24">
                         <ServicesByLine
                             line={selectedLine}
                             services={viewData.services[selectedLine]}
@@ -244,7 +300,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                     if (!selectedServices || selectedServices.length === 0) return null;
 
                     return (
-                        <div className="mt-10">
+                        <div ref={conditionsRef} className="mt-10 scroll-mt-24">
                             <h3 className="mb-2 text-center text-2xl font-bold leading-tight text-slate-900 md:text-2xl">
                                 Condiciones para {selectedServices.length === 1 ? selectedServices[0] : `${selectedServices.length} servicios seleccionados`}
                             </h3>
@@ -360,8 +416,17 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                                                 let valueDisplay: string;
                                                 if (cond && cond.interaction_type === 'options') {
                                                     const opts = Array.isArray((cond as any).options) ? (cond as any).options : [];
-                                                    if (typeof v === 'number' && opts[v]) valueDisplay = opts[v].label || String(v);
-                                                    else valueDisplay = String(v);
+                                                    if (typeof v === 'object' && v !== null && 'optionIndex' in (v as Record<string, unknown>)) {
+                                                        const optionIndex = (v as { optionIndex: number }).optionIndex;
+                                                        const textValue = (v as { text?: string }).text;
+                                                        valueDisplay = textValue && textValue.trim() !== ''
+                                                            ? textValue
+                                                            : (opts[optionIndex]?.label || String(optionIndex));
+                                                    } else if (typeof v === 'number' && opts[v]) {
+                                                        valueDisplay = opts[v].label || String(v);
+                                                    } else {
+                                                        valueDisplay = String(v);
+                                                    }
                                                 } else if (cond && cond.interaction_type === 'range') {
                                                     // expect v to be { min, max }
                                                     const min = typeof v === 'object' && v !== null && 'min' in (v as Record<string, unknown>) ? (v as { min: any }).min : '';
@@ -473,21 +538,47 @@ function ConditionStepper({
 
         if (cond.interaction_type === 'options') {
             const opts = Array.isArray((cond as any).options) ? (cond as any).options : [];
+            const currentAnswer = answers[String(currentId)];
+            const selectedIndex = typeof currentAnswer === 'number'
+                ? currentAnswer
+                : (typeof currentAnswer === 'object' && currentAnswer !== null && 'optionIndex' in currentAnswer)
+                    ? (currentAnswer as { optionIndex: number }).optionIndex
+                    : null;
+            const selectedText = typeof currentAnswer === 'object' && currentAnswer !== null && 'text' in currentAnswer
+                ? (currentAnswer as { text?: string }).text ?? ''
+                : '';
+
             return (
-                <div className="space-y-2">
+                <div className="space-y-3">
                     {opts.map((o: any, i: number) => (
-                        <label key={i} className="flex items-center gap-2">
-                            <input
-                                type="radio"
-                                name={`opt-${currentId}`}
-                                checked={answers[String(currentId)] === i}
-                                onChange={() => {
-                                    onAnswer(String(currentId), i);
-                                    setSelectedOption(i);
-                                }}
-                            />
-                            <span>{o.label || '(sin etiqueta)'}</span>
-                        </label>
+                        <div key={i} className="space-y-2">
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="radio"
+                                    name={`opt-${currentId}`}
+                                    checked={selectedIndex === i}
+                                    onChange={() => {
+                                        if (o.is_other) {
+                                            onAnswer(String(currentId), { optionIndex: i, text: '' });
+                                        } else {
+                                            onAnswer(String(currentId), i);
+                                        }
+                                        setSelectedOption(i);
+                                    }}
+                                />
+                                <span>{o.label || '(sin etiqueta)'}</span>
+                            </label>
+
+                            {o.is_other && selectedIndex === i && (
+                                <input
+                                    className="w-full rounded-lg border p-2"
+                                    type="text"
+                                    placeholder="Escribe tu respuesta"
+                                    value={selectedText}
+                                    onChange={(e) => onAnswer(String(currentId), { optionIndex: i, text: e.target.value })}
+                                />
+                            )}
+                        </div>
                     ))}
                 </div>
             );
@@ -501,7 +592,13 @@ function ConditionStepper({
         const opts = Array.isArray((cond as any).options) ? (cond as any).options : [];
         const sel = answers[String(currentId)];
         if (sel === undefined || sel === null) return cond.next_condition ?? null;
-        const opt = opts[sel];
+        const selectedIndex = typeof sel === 'number'
+            ? sel
+            : (typeof sel === 'object' && sel !== null && 'optionIndex' in sel)
+                ? (sel as { optionIndex: number }).optionIndex
+                : null;
+        if (selectedIndex === null) return cond.next_condition ?? null;
+        const opt = opts[selectedIndex];
         return opt && opt.next_condition ? Number(opt.next_condition) : cond.next_condition ?? null;
     };
 
@@ -544,7 +641,12 @@ function ConditionStepper({
 
         if (cond.interaction_type === 'options') {
             const sel = answers[String(currentId)];
-            if (sel === undefined || sel === null) setValidationError('Selecciona una opción');
+            if (sel === undefined || sel === null) {
+                setValidationError('Selecciona una opción');
+            } else if (typeof sel === 'object' && sel !== null && 'text' in sel) {
+                const textValue = (sel as { text?: string }).text ?? '';
+                if (String(textValue).trim() === '') setValidationError('Escribe tu respuesta');
+            }
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [answers, currentId]);

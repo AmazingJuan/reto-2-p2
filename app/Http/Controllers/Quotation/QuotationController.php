@@ -7,8 +7,11 @@ use App\Models\BusinessUnit;
 use App\Models\GestionLine;
 use App\Models\Service;
 use App\Helpers\DecisionTreeHelper;
+use App\Http\Requests\StoreQuotationProposal;
+use App\Models\QuotationProposalOrder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -63,11 +66,21 @@ class QuotationController extends Controller
         return Inertia::render('quotation/index', compact('viewData'));
     }
 
-    public function storeQuotationProposal(Request $request): RedirectResponse
+    public function storeQuotationProposal(StoreQuotationProposal $request): RedirectResponse
     {
-        $quotationData = $request->all();
+        $quotationProposalData = $request->validated();
+        $quotationProposalId = (string) Str::uuid();
 
-        dd($quotationData);
-        return redirect()->route('quotation.select.business_unit')->with('success', 'Su cotización ha sido procesada exitosamente.');
+        QuotationProposalOrder::create([
+            'id' => $quotationProposalId,
+            'contact_info' => $quotationProposalData['contact'],
+            'services' => $quotationProposalData['services'],
+            'business_unit' => $quotationProposalData['businessUnit'],
+            'answers' => $quotationProposalData['answers'],
+        ]);
+
+        // enviar correo de confirmación al usuario y a training
+
+        return redirect()->route('home')->with('success', 'Su cotización ha sido procesada exitosamente.');
     }
 }

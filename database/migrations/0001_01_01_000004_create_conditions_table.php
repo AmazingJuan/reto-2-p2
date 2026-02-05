@@ -27,8 +27,6 @@ return new class extends Migration
 
             $table->text('observation')->nullable();
 
-            $table->boolean('allows_multiple_values')->default(false);
-
             $table->foreignId('next_condition_id')
                 ->nullable()
                 ->constrained('conditions')
