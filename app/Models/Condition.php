@@ -19,7 +19,6 @@ class Condition extends Model
      * $this->attributes['type'] - string - Input type (default: "text")
      * $this->attributes['observation'] - string|null - Description of the condition
      * $this->attributes['next_condition_id'] - int|null - ID of the next condition in sequence
-     * $this->attributes['allows_multiple_values'] - bool - Whether multiple values can be selected
      * $this->attributes['business_unit_id'] - int - ID of the associated business unit
      */
 
@@ -34,7 +33,6 @@ class Condition extends Model
         'type',
         'observation',
         'next_condition_id',
-        'allows_multiple_values',
         'business_unit_id',
     ];
 
@@ -133,14 +131,4 @@ class Condition extends Model
         $this->attributes['observation'] = $value;
     }
 
-    // Allows Multiple Values
-    public function allowsMultipleValues(): bool
-    {
-        return (bool) ($this->attributes['allows_multiple_values'] ?? false);
-    }
-
-    public function setAllowsMultipleValues(bool $value): void
-    {
-        $this->attributes['allows_multiple_values'] = $value;
-    }
 }

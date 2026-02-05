@@ -112,7 +112,7 @@ class ConditionOption extends Model
     }
 
     // is_other
-    public function getIsOther(): bool
+    public function isOther(): bool
     {
         return $this->attributes['is_other'];
     }

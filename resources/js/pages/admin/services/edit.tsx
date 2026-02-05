@@ -42,12 +42,10 @@ export default function Edit() {
 
     return (
         <AdminLayout>
-            <main className="flex-grow px-4 py-12 sm:px-6 lg:px-8">
-                <div className="mx-auto max-w-4xl">
-                    {/* Header */}
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-semibold text-gray-900">Editar Servicio</h1>
-                        <p className="mt-2 text-sm text-gray-600">Modifique los campos necesarios para actualizar el servicio</p>
+            <div>
+                <h1 className="text-3xl font-bold text-slate-900">Editar Servicio</h1>
+                <p className="mt-2 text-sm text-gray-600">Modifique los campos necesarios para actualizar el servicio</p>
+            </div>
                     </div>
 
                     {/* Form Card */}
@@ -142,8 +140,6 @@ export default function Edit() {
                             </div>
                         </form>
                     </div>
-                </div>
-            </main>
         </AdminLayout>
     );
 }

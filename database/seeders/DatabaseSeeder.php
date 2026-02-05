@@ -19,11 +19,16 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('1234'),
             'phone'=> '1234567890',
         ]);
-        /*
-        $this->call(GestionLineTableSeeder::class);
-        $this->call(ServiceTypesTableSeeder::class);
-        $this->call(ConditionsTableSeeder::class);
-        $this->call(ServicesTableSeeder::class);
-        */
+
+        User::create([
+            'name' => 'Diego',
+            'email' => 'diego@example.com',
+            'password' => Hash::make('diegogonzalez'),
+            'phone' => '0987654321',
+        ]);
+
+        // Datos de ejemplo porque me dió mucha pereza crearlos manualmente
+    
+        $this->call(ExampleDataSeeder::class);
     }
 }

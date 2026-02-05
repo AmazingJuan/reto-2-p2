@@ -11,7 +11,7 @@ type ValueType = 'number' | 'date' | 'text';
 interface OptionData {
   label: string;
   next_condition?: number;
-  is_alternative: boolean;
+  is_other: boolean;
 }
 
 interface ConditionData {
@@ -20,7 +20,6 @@ interface ConditionData {
   interaction_type: InteractionType;
   type: ValueType;
   observation: string;
-  allows_multiple_values: boolean;
   next_condition?: number;
   options: OptionData[];
 }
@@ -71,10 +70,9 @@ export default function DecisionTreePage() {
           interaction_type: (c.interaction_type as InteractionType) ?? 'input',
           type: (c.type as ValueType) ?? 'text',
           observation: c.observation ?? '',
-          allows_multiple_values: !!c.allows_multiple_values,
           next_condition: c.next_condition !== undefined && c.next_condition !== null ? Number(c.next_condition) : undefined,
           options: Array.isArray(c.options)
-            ? c.options.map((o: any) => ({ label: o.label ?? '', next_condition: o.next_condition !== undefined && o.next_condition !== null ? Number(o.next_condition) : undefined, is_alternative: !!o.is_alternative }))
+            ? c.options.map((o: any) => ({ label: o.label ?? '', next_condition: o.next_condition !== undefined && o.next_condition !== null ? Number(o.next_condition) : undefined, is_other: !!o.is_other }))
             : [],
         }));
       } else if (raw && typeof raw === 'object') {
@@ -85,10 +83,9 @@ export default function DecisionTreePage() {
           interaction_type: (c.interaction_type as InteractionType) ?? 'input',
           type: (c.type as ValueType) ?? 'text',
           observation: c.observation ?? '',
-          allows_multiple_values: !!c.allows_multiple_values,
           next_condition: c.next_condition !== undefined && c.next_condition !== null ? Number(c.next_condition) : undefined,
           options: Array.isArray(c.options)
-            ? c.options.map((o: any) => ({ label: o.label ?? '', next_condition: o.next_condition !== undefined && o.next_condition !== null ? Number(o.next_condition) : undefined, is_alternative: !!o.is_alternative }))
+            ? c.options.map((o: any) => ({ label: o.label ?? '', next_condition: o.next_condition !== undefined && o.next_condition !== null ? Number(o.next_condition) : undefined, is_other: !!o.is_other }))
             : [],
         }));
       } else {
@@ -161,7 +158,6 @@ export default function DecisionTreePage() {
       interaction_type: 'input',
       type: 'text',
       observation: '',
-      allows_multiple_values: false,
       options: [],
     };
     setConditionsByBU((prev) => {
@@ -214,7 +210,6 @@ export default function DecisionTreePage() {
         if (!allowedInteraction.includes(c.interaction_type)) errors.push(`Unidad ${buId} condición[${idx}]: 'interaction_type' inválido`);
         if (!allowedTypes.includes(c.type)) errors.push(`Unidad ${buId} condición[${idx}]: 'type' inválido`);
         if (typeof c.observation !== 'string') errors.push(`Unidad ${buId} condición[${idx}]: 'observation' debe ser texto`);
-        if (typeof c.allows_multiple_values !== 'boolean') errors.push(`Unidad ${buId} condición[${idx}]: 'allows_multiple_values' debe ser booleano`);
 
         if (c.next_condition !== undefined && c.next_condition !== null && !ids.includes(c.next_condition)) {
           errors.push(`Unidad ${buId} condición[${idx}]: 'next_condition' (${c.next_condition}) no pertenece a las condiciones`);
@@ -278,7 +273,7 @@ export default function DecisionTreePage() {
     return errors;
           c.options.forEach((o, oi) => {
             if (typeof o.label !== 'string') errors.push(`Unidad ${buId} condición[${idx}] opción[${oi}]: 'label' debe ser texto`);
-            if (typeof o.is_alternative !== 'boolean') errors.push(`Unidad ${buId} condición[${idx}] opción[${oi}]: 'is_alternative' debe ser booleano`);
+            if (typeof o.is_other !== 'boolean') errors.push(`Unidad ${buId} condición[${idx}] opción[${oi}]: 'is_other' debe ser booleano`);
             if (o.next_condition !== undefined && o.next_condition !== null && !ids.includes(o.next_condition)) {
               errors.push(`Unidad ${buId} condición[${idx}] opción[${oi}]: 'next_condition' (${o.next_condition}) no pertenece a las condiciones`);
             }
@@ -340,7 +335,7 @@ export default function DecisionTreePage() {
     setConditionsByBU((prev) => {
       const list = [...(prev[buId] ?? [])];
       const cond = { ...list[index] };
-      cond.options = [...(cond.options ?? []), { label: '', is_alternative: false }];
+      cond.options = [...(cond.options ?? []), { label: '', is_other: false }];
       list[index] = cond;
       return { ...prev, [buId]: list };
     });
@@ -508,11 +503,6 @@ export default function DecisionTreePage() {
                         )}
                       </div>
 
-                      <label className="flex items-center gap-2 text-sm">
-                        <input type="checkbox" checked={c.allows_multiple_values} disabled={editingIdx !== idx} onChange={(e) => editingIdx === idx && updateConditionForBU(Number(selectedBU), idx, { allows_multiple_values: e.target.checked })} />
-                        Permite múltiples valores
-                      </label>
-
                       <div className="space-y-3">
                         <label className="text-sm text-gray-600">Siguiente condición</label>
                         {conditionSelectForBU(Number(selectedBU), idx, c.next_condition, (v) => editingIdx === idx && updateConditionForBU(Number(selectedBU), idx, { next_condition: v }), (editingIdx !== idx) || anyOptionLeads)}
@@ -535,8 +525,8 @@ export default function DecisionTreePage() {
                               <div className="md:col-span-2">{conditionSelectForBU(Number(selectedBU), idx, option.next_condition, (v) => editingIdx === idx && updateOptionForBU(Number(selectedBU), idx, optIdx, { next_condition: v }), (editingIdx !== idx) || (c.next_condition !== undefined))}</div>
 
                               <label className="flex items-center gap-2 text-sm">
-                                <input type="checkbox" checked={option.is_alternative} disabled={editingIdx !== idx} onChange={(e) => editingIdx === idx && updateOptionForBU(Number(selectedBU), idx, optIdx, { is_alternative: e.target.checked })} />
-                                Alternativa
+                                <input type="checkbox" checked={option.is_other} disabled={editingIdx !== idx} onChange={(e) => editingIdx === idx && updateOptionForBU(Number(selectedBU), idx, optIdx, { is_other: e.target.checked })} />
+                                Otro
                               </label>
 
                               <div>

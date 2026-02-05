@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle2, GitBranch } from 'lucide-react';
+import { CheckCircle2, GitBranch, Layers } from 'lucide-react';
 import { useState } from 'react';
+import { useRef } from 'react';
 import Footer from '../footer';
 import GoSelect from '../goselect';
 import Header from '../header';
@@ -20,7 +21,6 @@ interface ViewData {
             interaction_type: string;
             type: string;
             observation?: string | null;
-            allows_multiple_values: boolean;
             next_condition?: number;
         };
     };
@@ -45,6 +45,10 @@ export default function GestionLine({ viewData }: GestionLineProps) {
     const [showSavedDetails, setShowSavedDetails] = useState(false);
     const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
     const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+    // refs for auto-scroll
+    const servicesRef = useRef<HTMLDivElement>(null);
+    const conditionsRef = useRef<HTMLDivElement>(null);
 
     const visibleLines = viewData.gestionLines.filter((line) => (viewData.services[line]?.length ?? 0) > 0);
 
@@ -77,8 +81,17 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                 let valueDisplay: string;
                 if (cond && cond.interaction_type === 'options') {
                     const opts = Array.isArray((cond as any).options) ? (cond as any).options : [];
-                    if (typeof v === 'number' && opts[v]) valueDisplay = opts[v].label || String(v);
-                    else valueDisplay = String(v);
+                    if (typeof v === 'object' && v !== null && 'optionIndex' in (v as Record<string, unknown>)) {
+                        const optionIndex = (v as { optionIndex: number }).optionIndex;
+                        const textValue = (v as { text?: string }).text;
+                        valueDisplay = textValue && textValue.trim() !== ''
+                            ? textValue
+                            : (opts[optionIndex]?.label || String(optionIndex));
+                    } else if (typeof v === 'number' && opts[v]) {
+                        valueDisplay = opts[v].label || String(v);
+                    } else {
+                        valueDisplay = String(v);
+                    }
                 } else if (cond && cond.interaction_type === 'range') {
                     const isRange = typeof v === 'object' && v !== null && 'min' in (v as Record<string, unknown>) && 'max' in (v as Record<string, unknown>);
                     const min = isRange ? (v as { min: any; max: any }).min : '';
@@ -155,47 +168,108 @@ export default function GestionLine({ viewData }: GestionLineProps) {
 
     // when user selects a service, initialize the condition stepper id
     React.useEffect(() => {
-        if (selectedServices && selectedServices.length === 1) {
+        if (selectedServices && selectedServices.length >= 1) {
             setConditionInitialId(viewData.initial_condition_id ?? null);
         }
     }, [selectedServices, viewData.initial_condition_id]);
 
+    // smooth scroll helper with easing
+    const smoothScrollTo = (element: HTMLElement, duration = 600) => {
+        const targetPosition = element.getBoundingClientRect().top + window.scrollY - 100;
+        const startPosition = window.scrollY;
+        const distance = targetPosition - startPosition;
+        let startTime: number | null = null;
+
+        const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+        const step = (currentTime: number) => {
+            if (startTime === null) startTime = currentTime;
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = easeInOutCubic(progress);
+
+            window.scrollTo(0, startPosition + distance * eased);
+
+            if (progress < 1) {
+                requestAnimationFrame(step);
+            }
+        };
+
+        requestAnimationFrame(step);
+    };
+
+    // auto-scroll to services when a line is selected
+    React.useEffect(() => {
+        if (selectedLine && servicesRef.current) {
+            const el = servicesRef.current;
+            const frameId = requestAnimationFrame(() => smoothScrollTo(el, 500));
+            return () => cancelAnimationFrame(frameId);
+        }
+    }, [selectedLine]);
+
+    // auto-scroll to conditions when a service is selected
+    React.useEffect(() => {
+        if (selectedServices.length > 0 && conditionsRef.current) {
+            const el = conditionsRef.current;
+            const frameId = requestAnimationFrame(() => smoothScrollTo(el, 500));
+            return () => cancelAnimationFrame(frameId);
+        }
+    }, [selectedServices]);
+
     return (
-        <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-50 to-slate-100">
+        <div className="flex min-h-screen flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-white to-slate-50">
+            {/* Blobs decorativos */}
+            <div className="blob pointer-events-none fixed -right-40 -top-40 h-96 w-96 rounded-full bg-[#0693e3]/10 blur-3xl" />
+            <div className="blob pointer-events-none fixed -bottom-40 -left-40 h-96 w-96 rounded-full bg-emerald-500/10 blur-3xl" style={{ animationDelay: '-4s' }} />
+            
             <Header />
             <GoSelect />
 
-            <main className="container mx-auto flex-1 px-4 pb-12 pt-4">
+            <main className="container mx-auto flex-1 px-4 pb-24 pt-4">
                 {/* Título */}
-                <div className="mb-8 text-center">
-                    <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-                        <GitBranch className="h-5 w-5 text-blue-600" />
+                <div className="mb-10 text-center">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0693e3]/20 to-emerald-500/20 shadow-lg shadow-[#0693e3]/10">
+                        <GitBranch className="h-8 w-8 text-[#0693e3]" />
                     </div>
 
-                    <h2 className="mb-2 text-3xl font-bold text-slate-900 md:text-4xl">{capitalize(viewData.businessUnit)}</h2>
+                    <h2 className="mb-3 text-3xl font-bold text-slate-900 md:text-4xl">
+                        <span className="text-gradient">{capitalize(viewData.businessUnit)}</span>
+                    </h2>
 
-                    <p className="mx-auto max-w-xl text-m text-slate-600">Selecciona una línea de gestión para ver sus servicios</p>
+                    <p className="mx-auto max-w-xl text-slate-600">Selecciona una línea de gestión para ver sus servicios</p>
                 </div>
 
                 {/* Cards */}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {visibleLines.map((line) => {
+                <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {visibleLines.map((line, index) => {
                         const isSelected = selectedLine === line;
-                        const servicesCount = viewData.services[line].length;
 
                         return (
                             <Card
                                 key={line}
                                 onClick={() => { setSelectedLine(line); setSelectedServices([]); }}
-                                className={`cursor-pointer border transition-all ${
-                                    isSelected ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:border-blue-300'
+                                className={`animate-slide-up stagger-${index + 1} card-shine hover-lift group cursor-pointer overflow-hidden rounded-2xl border-2 transition-all duration-300 ${
+                                    isSelected 
+                                        ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-white shadow-lg shadow-emerald-500/20' 
+                                        : 'border-slate-200 bg-white hover:border-[#0693e3]/50 hover:shadow-lg'
                                 }`}
                             >
-                                <CardContent className="p-4">
-                                    <div className="mb-2 flex items-center justify-between">
-                                        <h3 className="text-base font-medium text-slate-900">{capitalize(line)}</h3>
+                                <CardContent className="p-6">
+                                    <div className="flex items-center gap-4">
+                                        {/* Icono */}
+                                        <div className={`flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-300 ${
+                                            isSelected 
+                                                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' 
+                                                : 'bg-slate-100 text-slate-600 group-hover:bg-[#0693e3]/10 group-hover:text-[#0693e3]'
+                                        }`}>
+                                            <Layers className="h-6 w-6" />
+                                        </div>
+                                        
+                                        <div className="flex-1">
+                                            <h3 className="text-lg font-semibold text-slate-900">{capitalize(line)}</h3>
+                                        </div>
 
-                                        {isSelected && <CheckCircle2 className="h-4 w-4 text-blue-600" />}
+                                        {isSelected && <CheckCircle2 className="h-6 w-6 text-emerald-500" />}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -205,7 +279,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
 
                 {/* Servicios */}
                 {selectedLine && (
-                    <div className="animate-fade-in mt-10">
+                    <div ref={servicesRef} className="animate-fade-in mt-10 scroll-mt-24">
                         <ServicesByLine
                             line={selectedLine}
                             services={viewData.services[selectedLine]}
@@ -221,15 +295,14 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                 )}
 
                 {/* Condiciones para el servicio seleccionado (si vienen en viewData) */}
-                {/** show conditions only when exactly one service is selected */}
+                {/** show conditions when at least one service is selected */}
                 {(() => {
-                    const singleService = selectedServices && selectedServices.length === 1 ? selectedServices[0] : null;
-                    if (!singleService) return null;
+                    if (!selectedServices || selectedServices.length === 0) return null;
 
                     return (
-                        <div className="mt-10">
+                        <div ref={conditionsRef} className="mt-10 scroll-mt-24">
                             <h3 className="mb-2 text-center text-2xl font-bold leading-tight text-slate-900 md:text-2xl">
-                                Condiciones para {singleService}
+                                Condiciones para {selectedServices.length === 1 ? selectedServices[0] : `${selectedServices.length} servicios seleccionados`}
                             </h3>
                             <p className="mb-6 text-center text-slate-600">Responde las condiciones una a una</p>
 
@@ -331,7 +404,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                         {showSavedDetails && savedSnapshot && (
                             <div className="mt-4 max-h-48 overflow-auto rounded border p-3 bg-slate-50">
                                 <h4 className="mb-2 text-sm font-semibold">Resumen previo</h4>
-                                <p className="text-sm text-slate-700"><strong>Línea:</strong> {savedSnapshot.selectedLine || '-'} </p>
+                                <p className="text-sm text-slate-700"><strong>Línea de Gestión:</strong> {savedSnapshot.selectedLine || '-'} </p>
                                 <p className="text-sm text-slate-700"><strong>Servicio(s):</strong> {Array.isArray(savedSnapshot.selectedServices) && savedSnapshot.selectedServices.length > 0 ? savedSnapshot.selectedServices.join(', ') : '-'} </p>
                                 <div className="mt-2 text-sm">
                                     <strong>Respuestas:</strong>
@@ -343,8 +416,17 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                                                 let valueDisplay: string;
                                                 if (cond && cond.interaction_type === 'options') {
                                                     const opts = Array.isArray((cond as any).options) ? (cond as any).options : [];
-                                                    if (typeof v === 'number' && opts[v]) valueDisplay = opts[v].label || String(v);
-                                                    else valueDisplay = String(v);
+                                                    if (typeof v === 'object' && v !== null && 'optionIndex' in (v as Record<string, unknown>)) {
+                                                        const optionIndex = (v as { optionIndex: number }).optionIndex;
+                                                        const textValue = (v as { text?: string }).text;
+                                                        valueDisplay = textValue && textValue.trim() !== ''
+                                                            ? textValue
+                                                            : (opts[optionIndex]?.label || String(optionIndex));
+                                                    } else if (typeof v === 'number' && opts[v]) {
+                                                        valueDisplay = opts[v].label || String(v);
+                                                    } else {
+                                                        valueDisplay = String(v);
+                                                    }
                                                 } else if (cond && cond.interaction_type === 'range') {
                                                     // expect v to be { min, max }
                                                     const min = typeof v === 'object' && v !== null && 'min' in (v as Record<string, unknown>) ? (v as { min: any }).min : '';
@@ -456,21 +538,47 @@ function ConditionStepper({
 
         if (cond.interaction_type === 'options') {
             const opts = Array.isArray((cond as any).options) ? (cond as any).options : [];
+            const currentAnswer = answers[String(currentId)];
+            const selectedIndex = typeof currentAnswer === 'number'
+                ? currentAnswer
+                : (typeof currentAnswer === 'object' && currentAnswer !== null && 'optionIndex' in currentAnswer)
+                    ? (currentAnswer as { optionIndex: number }).optionIndex
+                    : null;
+            const selectedText = typeof currentAnswer === 'object' && currentAnswer !== null && 'text' in currentAnswer
+                ? (currentAnswer as { text?: string }).text ?? ''
+                : '';
+
             return (
-                <div className="space-y-2">
+                <div className="space-y-3">
                     {opts.map((o: any, i: number) => (
-                        <label key={i} className="flex items-center gap-2">
-                            <input
-                                type="radio"
-                                name={`opt-${currentId}`}
-                                checked={answers[String(currentId)] === i}
-                                onChange={() => {
-                                    onAnswer(String(currentId), i);
-                                    setSelectedOption(i);
-                                }}
-                            />
-                            <span>{o.label || '(sin etiqueta)'}</span>
-                        </label>
+                        <div key={i} className="space-y-2">
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="radio"
+                                    name={`opt-${currentId}`}
+                                    checked={selectedIndex === i}
+                                    onChange={() => {
+                                        if (o.is_other) {
+                                            onAnswer(String(currentId), { optionIndex: i, text: '' });
+                                        } else {
+                                            onAnswer(String(currentId), i);
+                                        }
+                                        setSelectedOption(i);
+                                    }}
+                                />
+                                <span>{o.label || '(sin etiqueta)'}</span>
+                            </label>
+
+                            {o.is_other && selectedIndex === i && (
+                                <input
+                                    className="w-full rounded-lg border p-2"
+                                    type="text"
+                                    placeholder="Escribe tu respuesta"
+                                    value={selectedText}
+                                    onChange={(e) => onAnswer(String(currentId), { optionIndex: i, text: e.target.value })}
+                                />
+                            )}
+                        </div>
                     ))}
                 </div>
             );
@@ -484,7 +592,13 @@ function ConditionStepper({
         const opts = Array.isArray((cond as any).options) ? (cond as any).options : [];
         const sel = answers[String(currentId)];
         if (sel === undefined || sel === null) return cond.next_condition ?? null;
-        const opt = opts[sel];
+        const selectedIndex = typeof sel === 'number'
+            ? sel
+            : (typeof sel === 'object' && sel !== null && 'optionIndex' in sel)
+                ? (sel as { optionIndex: number }).optionIndex
+                : null;
+        if (selectedIndex === null) return cond.next_condition ?? null;
+        const opt = opts[selectedIndex];
         return opt && opt.next_condition ? Number(opt.next_condition) : cond.next_condition ?? null;
     };
 
@@ -527,7 +641,12 @@ function ConditionStepper({
 
         if (cond.interaction_type === 'options') {
             const sel = answers[String(currentId)];
-            if (sel === undefined || sel === null) setValidationError('Selecciona una opción');
+            if (sel === undefined || sel === null) {
+                setValidationError('Selecciona una opción');
+            } else if (typeof sel === 'object' && sel !== null && 'text' in sel) {
+                const textValue = (sel as { text?: string }).text ?? '';
+                if (String(textValue).trim() === '') setValidationError('Escribe tu respuesta');
+            }
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [answers, currentId]);

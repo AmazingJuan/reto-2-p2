@@ -9,7 +9,6 @@ interface ConditionData {
     interaction_type : string;
     type : string; 
     observation : string; 
-    allows_multiple_values : string; 
     options? : Options[];
 }
 
