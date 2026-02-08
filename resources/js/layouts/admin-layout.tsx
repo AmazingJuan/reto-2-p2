@@ -13,7 +13,7 @@ const navItems = [
   { to: route('dashboard.lines.index'), label: 'Líneas de gestión', icon: Layers },
   { to: route('dashboard.business-unit.index'), label: 'Unidades de negocio', icon: Trees },
   { to: route('dashboard.business-unit.decision-tree'), label: 'Árbol de decisión', icon: Trees },
-  { to: route('dashboard.quotation-orders.index'), label: 'Órdenes', icon: FileText },
+  { to: route('dashboard.quotation-orders.index'), label: 'Cotizaciones', icon: FileText },
   //{ to: route('dashboard.users.index'), label: 'Usuarios', icon: Users },
 ];
 
