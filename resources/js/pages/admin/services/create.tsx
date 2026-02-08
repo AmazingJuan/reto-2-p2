@@ -43,8 +43,11 @@ export default function Create() {
 
     return (
         <AdminLayout>
-            <main className="mt-6 px-4">
-                <div className="mx-auto max-w-4xl">
+            <div>
+                <h1 className="text-3xl font-bold text-slate-900">Crear Servicio</h1>
+                <p className="mt-2 text-sm text-gray-600">Complete los siguientes campos para crear un nuevo servicio</p>
+            </div>
+
                     {/* Form Card */}
                     <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
                         <form onSubmit={handleSubmit} className="space-y-8 p-8">
@@ -129,8 +132,6 @@ export default function Create() {
                             </div>
                         </form>
                     </div>
-                </div>
-            </main>
         </AdminLayout>
     );
 }

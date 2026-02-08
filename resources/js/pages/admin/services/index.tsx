@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import FlashAlert from '@/components/ui/flashalert';
+import GoDashboard from '@/components/ui/godashboard';
 import { router, usePage } from '@inertiajs/react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { route } from 'ziggy-js';
@@ -52,84 +53,51 @@ export default function Index() {
         router.get(route('dashboard.services.create'));
     };
 
-        return (
-                <AdminLayout>
-                        <div className="p-6">
-                <h1 className="mb-6 text-center text-3xl font-bold leading-tight text-slate-900 md:text-3xl">Administrar Servicios</h1>
-                <FlashAlert flash={flash} duration={5000} />
-                <div className="mb-4 flex items-center justify-between">
-                    <Button variant="crear" onClick={handleCreate}>
-                        <Plus /> Crear servicio
-                    </Button>
-                    <div className="flex items-center gap-2">
-                        <label htmlFor="business-unit-filter" className="text-sm font-medium text-gray-700">
-                            Filtrar por Unidad de Negocio:
-                        </label>
-                        <select
-                            id="business-unit-filter"
-                            value={selectedBusinessUnit}
-                            onChange={(e) => setSelectedBusinessUnit(e.target.value)}
-                            className="rounded-lg border border-gray-300 bg-white px-4 py-2 shadow-sm transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="all">Todas</option>
-                            {businessUnits.map((unit) => (
-                                <option key={unit.id} value={unit.id}>
-                                    {unit.display_name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
+    return (
+        <AdminLayout>
+            <h1 className="mb-6 text-3xl font-bold text-slate-900">Administrar Servicios</h1>
+            <FlashAlert flash={flash} duration={5000} />
+            
+            <div className="mb-6">
+                <Button variant="crear" onClick={handleCreate}>
+                    <Plus className="w-4 h-4" /> Crear servicio
+                </Button>
+            </div>
 
-                <table className="min-w-full rounded-lg border bg-white shadow">
+            <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+                <table className="w-full">
                     <thead>
-                        <tr className="bg-gray-100">
-                            <th className="border-b px-4 py-2">ID</th>
-                            <th className="border-b px-4 py-2">Nombre</th>
-                            <th className="border-b px-4 py-2">Acciones</th>
+                        <tr className="border-b bg-gray-50">
+                            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">ID</th>
+                            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Nombre</th>
+                            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {filteredServices.map((service) => (
-                            <tr key={service.id} className="hover:bg-gray-50">
-                                <td className="flex justify-center border-b px-4 py-2">{service.id}</td>
-                                <td className="border-b px-4 py-2 text-center">{capitalize(service.name)}</td>
-
-                                <td className="border-b px-4 py-2">
-                                    <div className="flex items-center justify-center gap-5">
-                                        {/* Editar */}
-                                        <button
-                                            onClick={() => handleEdit(service.id)}
-                                            className="transform transition hover:scale-110"
-                                            title="Editar"
-                                        >
-                                            <Pencil className="h-6 w-6 text-blue-500 hover:text-blue-600" />
-
+                    <tbody className="divide-y">
+                        {services.map((service) => (
+                            <tr key={service.id} className="hover:bg-gray-50 transition-colors">
+                                <td className="px-6 py-4 text-sm text-gray-900">{service.id}</td>
+                                <td className="px-6 py-4 text-sm text-gray-900">{capitalize(service.name)}</td>
+                                <td className="px-6 py-4 text-sm">
+                                    <div className="flex items-center gap-3">
+                                        <button onClick={() => handleEdit(service.id)} className="text-blue-600 hover:text-blue-800 transition-colors" title="Editar">
+                                            <Pencil className="h-5 w-5" />
                                         </button>
-
-                                        {/* Borrar */}
-                                        <button
-                                            onClick={() => handleDelete(service.id)}
-                                            className="transform transition hover:scale-110"
-                                            title="Borrar"
-                                        >
-                                            <Trash2 className="h-6 w-6 text-red-600 hover:text-red-700" />
+                                        <button onClick={() => handleDelete(service.id)} className="text-red-600 hover:text-red-800 transition-colors" title="Borrar">
+                                            <Trash2 className="h-5 w-5" />
                                         </button>
                                     </div>
                                 </td>
                             </tr>
                         ))}
-
-                        {filteredServices.length === 0 && (
+                        {services.length === 0 && (
                             <tr>
-                                <td colSpan={3} className="py-4 text-center">
-                                    {selectedBusinessUnit === 'all' ? 'No hay servicios registrados.' : 'No hay servicios para la unidad de negocio seleccionada.'}
-                                </td>
+                                <td colSpan={3} className="px-6 py-8 text-center text-gray-500">No hay servicios registrados.</td>
                             </tr>
                         )}
                     </tbody>
                 </table>
-                        </div>
-                </AdminLayout>
+            </div>
+        </AdminLayout>
     );
 }
