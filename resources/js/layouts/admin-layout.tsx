@@ -14,7 +14,6 @@ const navItems = [
   { to: route('dashboard.business-unit.index'), label: 'Unidades de negocio', icon: Trees },
   { to: route('dashboard.business-unit.decision-tree'), label: 'Árbol de decisión', icon: Trees },
   { to: route('dashboard.quotation-orders.index'), label: 'Cotizaciones', icon: FileText },
-  //{ to: route('dashboard.users.index'), label: 'Usuarios', icon: Users },
 ];
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
@@ -148,7 +147,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             <div />
           </div>
 
-          <main className="max-w-7xl mx-auto p-4 md:p-6">
+          <main className="max-w-7xl mx-auto p-4 md:p-6 pt-[96px]">
             <div className="mb-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Link href={route('dashboard')} className="hidden md:inline-flex items-center gap-2 rounded bg-white px-3 py-2 text-sm shadow-sm">

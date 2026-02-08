@@ -6,7 +6,7 @@ export default function Footer() {
             
             <div className="container mx-auto flex h-16 items-center justify-center px-6">
                 <div className="flex items-center gap-2 text-sm text-slate-600">
-                    <span>© 2025 Training Corporation.</span>
+                    <span>© 2026 Training Corporation.</span>
                     <span className="hidden text-slate-400 sm:inline">|</span>
                     <span className="hidden sm:inline">Todos los derechos reservados.</span>
                 </div>

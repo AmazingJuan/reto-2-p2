@@ -1,7 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle2, GitBranch, Layers } from 'lucide-react';
 import { useState } from 'react';
-import Footer from '../footer';
 import GoSelect from '../goselect';
 import Header from '../header';
 import ServicesByLine from './ServicesByLine';
@@ -391,8 +390,6 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                     </div>
                 </div>
             )}
-
-            <Footer />
         </div>
     );
 }

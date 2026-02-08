@@ -1,4 +1,3 @@
-import Footer from '@/components/ui/footer';
 import Header from '@/components/ui/header';
 import { Link } from '@inertiajs/react';
 import { ArrowRight } from 'lucide-react';

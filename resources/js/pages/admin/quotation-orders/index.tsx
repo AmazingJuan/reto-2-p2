@@ -1,6 +1,4 @@
-import Footer from '@/components/ui/footer';
-import GoDashboard from '@/components/ui/godashboard';
-import Header from '@/components/ui/header';
+import AdminLayout from '@/layouts/admin-layout';
 import { usePage } from '@inertiajs/react';
 import { Download } from 'lucide-react';
 import { route } from 'ziggy-js';
@@ -27,9 +25,8 @@ export default function Index() {
     };
 
     return (
-            <div className="p-6 bg-gray-50">
-                <Header />
-                <GoDashboard />
+        <AdminLayout>
+            <div className="p-6">
                 <h1 className="mb-6 text-center text-3xl font-bold leading-tight text-slate-900 md:text-3xl">Órdenes de Cotización</h1>
 
                 <table className="min-w-full rounded-lg border bg-white shadow">
@@ -88,7 +85,7 @@ export default function Index() {
                         )}
                     </tbody>
                 </table>
-                <Footer />
             </div>
+        </AdminLayout>
     );
 }

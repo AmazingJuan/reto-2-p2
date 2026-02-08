@@ -40,16 +40,17 @@ export default function Edit() {
         put(route('dashboard.services.update', service.id));
     };
 
+    // Breadcrumbs for admin/services/edit
+    const breadcrumbs = [
+        { label: 'Admin', href: route('dashboard') },
+        { label: 'Servicios', href: route('dashboard.services.index') },
+        { label: 'Editar', href: null }
+    ];
+
     return (
         <AdminLayout>
             <main className="flex-grow px-4 py-12 sm:px-6 lg:px-8">
                 <div className="mx-auto max-w-4xl">
-                    {/* Header */}
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-semibold text-gray-900">Editar Servicio</h1>
-                        <p className="mt-2 text-sm text-gray-600">Modifique los campos necesarios para actualizar el servicio</p>
-                    </div>
-
                     {/* Form Card */}
                     <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
                         <form onSubmit={handleSubmit} className="space-y-8 p-8">
@@ -82,7 +83,7 @@ export default function Edit() {
                                     {/* Tipo de servicio */}
                                     <div>
                                         <label htmlFor="business_unit_id" className="mb-2 block text-sm font-medium text-gray-700">
-                                            Tipo de Servicio <span className="text-red-500">*</span>
+                                            Unidad de Negocio <span className="text-red-500">*</span>
                                         </label>
                                         <select
                                             id="business_unit_id"
