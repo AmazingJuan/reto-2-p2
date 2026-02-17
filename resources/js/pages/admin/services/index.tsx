@@ -81,12 +81,13 @@ export default function Index() {
                     </div>
                 </div>
 
-                <table className="min-w-full rounded-lg border bg-white shadow">
+            <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+                <table className="w-full">
                     <thead>
-                        <tr className="bg-gray-100">
-                            <th className="border-b px-4 py-2">ID</th>
-                            <th className="border-b px-4 py-2">Nombre</th>
-                            <th className="border-b px-4 py-2">Acciones</th>
+                        <tr className="border-b bg-gray-50">
+                            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">ID</th>
+                            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Nombre</th>
+                            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -106,14 +107,8 @@ export default function Index() {
                                             <Pencil className="h-6 w-6 text-blue-500 hover:text-blue-600" />
 
                                         </button>
-
-                                        {/* Borrar */}
-                                        <button
-                                            onClick={() => handleDelete(service.id)}
-                                            className="transform transition hover:scale-110"
-                                            title="Borrar"
-                                        >
-                                            <Trash2 className="h-6 w-6 text-red-600 hover:text-red-700" />
+                                        <button onClick={() => handleDelete(service.id)} className="text-red-600 hover:text-red-800 transition-colors" title="Borrar">
+                                            <Trash2 className="h-5 w-5" />
                                         </button>
                                     </div>
                                 </td>

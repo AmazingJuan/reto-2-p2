@@ -39,7 +39,7 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
     // Ordenes de cotización
     Route::get('/ordenes-cotizacion', [AdminQuotationOrderController::class, 'index'])->name('dashboard.quotation-orders.index');
     Route::get('/ordenes-cotizacion/{id}', [AdminQuotationOrderController::class, 'show'])->name('dashboard.quotation-orders.show');
-
+    Route::post('/ordenes-cotizacion/{id}/upload-quotation-url', [AdminQuotationOrderController::class, 'uploadQuotationUrl'])->name('dashboard.quotation-orders.upload-quotation-url');
     // Unidades de negocio
     Route::get('/unidad-negocio', [AdminBusinessUnitController::class, 'index'])->name('dashboard.business-unit.index');
     Route::get('/unidad-negocio/{id}', [AdminBusinessUnitController::class, 'show'])->where('id', '[0-9]+')->name('dashboard.business-unit.show');

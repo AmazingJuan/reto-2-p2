@@ -3,6 +3,14 @@ import { Link } from '@inertiajs/react';
 import { ArrowRight } from 'lucide-react';
 
 export default function Home() {
+    const { props } = usePage<PageProps<{ flash?: { success?: string } }>>();
+    const successMessage = props.flash?.success;
+    const [showSuccess, setShowSuccess] = useState(false);
+
+    useEffect(() => {
+        if (successMessage) setShowSuccess(true);
+    }, [successMessage]);
+
     return (
         <div className="min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-slate-50">
             {/* Blobs decorativos */}

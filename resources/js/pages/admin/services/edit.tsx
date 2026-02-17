@@ -143,8 +143,6 @@ export default function Edit() {
                             </div>
                         </form>
                     </div>
-                </div>
-            </main>
         </AdminLayout>
     );
 }

@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Admin;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Http\FormRequest;
 
-class AdminBusinessUnitRequest extends FormRequest
+class AdminUpdateQuotationUrlRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,19 +23,22 @@ class AdminBusinessUnitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'display_name' => ['required', 'string', 'max:255'],
+            'quotation_url' => ['required', 'string', 'max:2048', 'url'],
         ];
     }
 
     /**
-     * Mensajes de validación en español.
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
      */
     public function messages(): array
     {
         return [
-            'display_name.required' => 'El nombre es obligatorio.',
-            'display_name.string' => 'El nombre debe ser un texto.',
-            'display_name.max' => 'El nombre no puede superar los 255 caracteres.',
+            'quotation_url.required' => 'La URL de la cotización es obligatoria.',
+            'quotation_url.string' => 'La URL debe ser una cadena de texto.',
+            'quotation_url.max' => 'La URL no puede exceder los 2048 caracteres.',
+            'quotation_url.url' => 'La URL debe ser una dirección válida.',
         ];
     }
 }
