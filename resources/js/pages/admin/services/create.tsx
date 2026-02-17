@@ -129,6 +129,8 @@ export default function Create() {
                             </div>
                         </form>
                     </div>
+                </div>
+            </main>
         </AdminLayout>
     );
 }
