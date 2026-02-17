@@ -32,7 +32,8 @@ export default function Index() {
 
     return (
         <AdminLayout>
-            <h1 className="mb-6 text-3xl font-bold text-slate-900">Órdenes de Cotización</h1>
+            <div className="p-6">
+                <h1 className="mb-6 text-center text-3xl font-bold leading-tight text-slate-900 md:text-3xl">Órdenes de Cotización</h1>
 
             <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
                 <table className="w-full">
@@ -89,5 +90,5 @@ export default function Index() {
                 </table>
             </div>
         </AdminLayout>
-        );
-    }
+    );
+}

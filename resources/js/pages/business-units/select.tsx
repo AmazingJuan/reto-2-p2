@@ -1,6 +1,5 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
-import Footer from '@/components/ui/footer';
 import GoHome from '@/components/ui/gohome';
 import Header from '@/components/ui/header';
 import { PageProps } from '@inertiajs/core';
@@ -143,8 +142,6 @@ export default function SelectBusinessUnits() {
                     )}
                 </div>
             </main>
-
-            <Footer />
         </div>
     );
 }

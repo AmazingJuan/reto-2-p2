@@ -126,6 +126,7 @@ class ExampleDataSeeder extends Seeder
             'interaction_type' => 'range',
             'type' => 'date',
             'observation' => 'Seleccione el rango de fechas preferido para la auditoría',
+            'allows_multiple_values' => false,
             'business_unit_id' => $auditoria->id,
             'next_condition_id' => null,
         ]);
@@ -136,6 +137,7 @@ class ExampleDataSeeder extends Seeder
             'interaction_type' => 'input',
             'type' => 'text',
             'observation' => 'Ingrese cualquier información adicional relevante',
+            'allows_multiple_values' => false,
             'business_unit_id' => $auditoria->id,
             'next_condition_id' => $condFechas->id,
         ]);
@@ -146,6 +148,7 @@ class ExampleDataSeeder extends Seeder
             'interaction_type' => 'options',
             'type' => 'number',
             'observation' => null,
+            'allows_multiple_values' => false,
             'business_unit_id' => $auditoria->id,
             'next_condition_id' => null, // Se define por opciones
         ]);
@@ -162,6 +165,7 @@ class ExampleDataSeeder extends Seeder
             'interaction_type' => 'options',
             'type' => 'number',
             'observation' => null,
+            'allows_multiple_values' => false,
             'business_unit_id' => $auditoria->id,
             'next_condition_id' => null,
         ]);
@@ -176,6 +180,7 @@ class ExampleDataSeeder extends Seeder
             'interaction_type' => 'options',
             'type' => 'text',
             'observation' => null,
+            'allows_multiple_values' => false,
             'business_unit_id' => $auditoria->id,
             'next_condition_id' => null,
         ]);
@@ -198,6 +203,7 @@ class ExampleDataSeeder extends Seeder
             'interaction_type' => 'range',
             'type' => 'date',
             'observation' => 'Indique la fecha estimada de inicio del proyecto',
+            'allows_multiple_values' => false,
             'business_unit_id' => $consultoria->id,
             'next_condition_id' => null,
         ]);
@@ -208,6 +214,7 @@ class ExampleDataSeeder extends Seeder
             'interaction_type' => 'options',
             'type' => 'text',
             'observation' => null,
+            'allows_multiple_values' => false,
             'business_unit_id' => $consultoria->id,
             'next_condition_id' => null,
         ]);
@@ -224,6 +231,7 @@ class ExampleDataSeeder extends Seeder
             'interaction_type' => 'options',
             'type' => 'text',
             'observation' => null,
+            'allows_multiple_values' => false,
             'business_unit_id' => $consultoria->id,
             'next_condition_id' => null,
         ]);
@@ -243,6 +251,7 @@ class ExampleDataSeeder extends Seeder
             'interaction_type' => 'options',
             'type' => 'text',
             'observation' => null,
+            'allows_multiple_values' => false,
             'business_unit_id' => $consultoria->id,
             'next_condition_id' => null,
         ]);
@@ -266,6 +275,7 @@ class ExampleDataSeeder extends Seeder
             'interaction_type' => 'range',
             'type' => 'date',
             'observation' => 'Indique el rango de fechas preferido',
+            'allows_multiple_values' => false,
             'business_unit_id' => $formacion->id,
             'next_condition_id' => null,
         ]);
@@ -276,6 +286,7 @@ class ExampleDataSeeder extends Seeder
             'interaction_type' => 'options',
             'type' => 'text',
             'observation' => null,
+            'allows_multiple_values' => false,
             'business_unit_id' => $formacion->id,
             'next_condition_id' => null,
         ]);
@@ -291,6 +302,7 @@ class ExampleDataSeeder extends Seeder
             'interaction_type' => 'options',
             'type' => 'number',
             'observation' => null,
+            'allows_multiple_values' => false,
             'business_unit_id' => $formacion->id,
             'next_condition_id' => null,
         ]);
@@ -306,6 +318,7 @@ class ExampleDataSeeder extends Seeder
             'interaction_type' => 'options',
             'type' => 'text',
             'observation' => null,
+            'allows_multiple_values' => false,
             'business_unit_id' => $formacion->id,
             'next_condition_id' => null,
         ]);

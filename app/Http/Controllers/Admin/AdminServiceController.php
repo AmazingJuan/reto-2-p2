@@ -18,11 +18,14 @@ class AdminServiceController extends Controller
     public function index(): InertiaResponse
     {
 
-        $services = Service::select('id', 'name')
+        $services = Service::select('id', 'name', 'business_unit_id')
             ->orderBy('id')
             ->get();
 
+        $businessUnits = BusinessUnit::all(['id', 'display_name']);
+
         $viewData['services'] = $services;
+        $viewData['businessUnits'] = $businessUnits;
 
         return Inertia::render('admin/services/index', compact('viewData'));
     }
