@@ -32,6 +32,6 @@ class AdminDecisionTreeController extends Controller
     public function update(Request $request){
         $treesData = $request->all();
         DecisionTreeHelper::updateTrees($treesData);
-        return redirect()->route('dashboard')->with('success', 'Los árboles de decisión han sido actualizados exitosamente.');
+        return redirect()->route('dashboard.business-unit.decision-tree')->with('success', 'Los árboles de decisión han sido actualizados exitosamente.');
     }
 }
