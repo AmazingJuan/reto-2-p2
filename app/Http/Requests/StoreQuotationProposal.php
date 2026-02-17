@@ -28,6 +28,7 @@ class StoreQuotationProposal extends FormRequest
             'contact.company' => ['nullable', 'string', 'max:255'],
             'contact.email' => ['required', 'email', 'max:255'],
             'contact.phone' => ['required', 'string', 'max:30', 'regex:/^[0-9+\s().-]{7,30}$/'],
+            'contact.role' => ['required', 'string', 'max:255'],
 
             'businessUnit' => ['required', 'string', 'max:255'],
             'gestionLine' => ['required', 'string', 'max:255'],

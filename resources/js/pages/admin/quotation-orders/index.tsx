@@ -10,6 +10,7 @@ interface QuotationOrder {
         email: string;
         company?: string | null;
         phone?: string;
+        role?: string;
     };
     is_generated: boolean;
     quotation_url?: string;
@@ -43,6 +44,7 @@ export default function Index() {
                             <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Nombre</th>
                             <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Email</th>
                             <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Empresa</th>
+                            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Cargo</th>
                             <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Estado</th>
                             <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Abrir propuesta</th>
                         </tr>
@@ -56,6 +58,7 @@ export default function Index() {
                                     <td className="px-6 py-4 text-sm text-gray-900">{order.contact_info?.name || '—'}</td>
                                     <td className="px-6 py-4 text-sm text-gray-900">{order.contact_info?.email || '—'}</td>
                                     <td className="px-6 py-4 text-sm text-gray-900">{order.contact_info?.company || '—'}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-900">{order.contact_info?.role || '—'}</td>
                                     <td className="px-6 py-4 text-sm">
                                         {order.is_generated ? (
                                             <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">Generada</span>
@@ -88,6 +91,7 @@ export default function Index() {
                         )}
                     </tbody>
                 </table>
+            </div>
             </div>
         </AdminLayout>
     );

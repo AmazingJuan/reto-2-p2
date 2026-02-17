@@ -1,11 +1,10 @@
 import { Card, CardContent } from '@/components/ui/card';
+import { router } from '@inertiajs/react';
 import { CheckCircle2, GitBranch, Layers } from 'lucide-react';
-import { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import GoSelect from '../goselect';
 import Header from '../header';
 import ServicesByLine from './ServicesByLine';
-import React from 'react';
-import { router } from '@inertiajs/react';
 
 interface ViewData {
     businessUnit: string;
@@ -38,8 +37,8 @@ export default function GestionLine({ viewData }: GestionLineProps) {
     const [savedSnapshot, setSavedSnapshot] = useState<any | null>(null);
     const [showContactModal, setShowContactModal] = useState(false);
 
-    // contact form state
-    const [contact, setContact] = useState({ name: '', company: '', email: '', phone: '' });
+    // contact form state (agregado campo 'role')
+    const [contact, setContact] = useState({ name: '', company: '', role: '', email: '', phone: '' });
     const [showSavedDetails, setShowSavedDetails] = useState(false);
     const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
     const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
@@ -55,6 +54,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
         // basic validation (inline)
         const errors: Record<string, string[]> = {};
         if (!contact.name.trim()) errors.name = ['Por favor ingresa nombre.'];
+        if (!contact.role.trim()) errors.role = ['Por favor ingresa el cargo.'];
         if (!contact.email.trim()) errors.email = ['Por favor ingresa correo.'];
         else {
             const emailOk = /\S+@\S+\.\S+/.test(contact.email);
@@ -82,16 +82,15 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                     if (typeof v === 'object' && v !== null && 'optionIndex' in (v as Record<string, unknown>)) {
                         const optionIndex = (v as { optionIndex: number }).optionIndex;
                         const textValue = (v as { text?: string }).text;
-                        valueDisplay = textValue && textValue.trim() !== ''
-                            ? textValue
-                            : (opts[optionIndex]?.label || String(optionIndex));
+                        valueDisplay = textValue && textValue.trim() !== '' ? textValue : opts[optionIndex]?.label || String(optionIndex);
                     } else if (typeof v === 'number' && opts[v]) {
                         valueDisplay = opts[v].label || String(v);
                     } else {
                         valueDisplay = String(v);
                     }
                 } else if (cond && cond.interaction_type === 'range') {
-                    const isRange = typeof v === 'object' && v !== null && 'min' in (v as Record<string, unknown>) && 'max' in (v as Record<string, unknown>);
+                    const isRange =
+                        typeof v === 'object' && v !== null && 'min' in (v as Record<string, unknown>) && 'max' in (v as Record<string, unknown>);
                     const min = isRange ? (v as { min: any; max: any }).min : '';
                     const max = isRange ? (v as { min: any; max: any }).max : '';
                     if (cond.type === 'date') {
@@ -140,7 +139,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                     setFormErrors({});
                     setShowContactModal(false);
                     setSavedSnapshot(null);
-                    setContact({ name: '', company: '', email: '', phone: '' });
+                    setContact({ name: '', company: '', role: '', email: '', phone: '' });
                     setShowSavedDetails(false);
                 },
             });
@@ -178,7 +177,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
         const distance = targetPosition - startPosition;
         let startTime: number | null = null;
 
-        const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
         const step = (currentTime: number) => {
             if (startTime === null) startTime = currentTime;
@@ -218,8 +217,11 @@ export default function GestionLine({ viewData }: GestionLineProps) {
         <div className="flex min-h-screen flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-white to-slate-50">
             {/* Blobs decorativos */}
             <div className="blob pointer-events-none fixed -right-40 -top-40 h-96 w-96 rounded-full bg-[#0693e3]/10 blur-3xl" />
-            <div className="blob pointer-events-none fixed -bottom-40 -left-40 h-96 w-96 rounded-full bg-emerald-500/10 blur-3xl" style={{ animationDelay: '-4s' }} />
-            
+            <div
+                className="blob pointer-events-none fixed -bottom-40 -left-40 h-96 w-96 rounded-full bg-emerald-500/10 blur-3xl"
+                style={{ animationDelay: '-4s' }}
+            />
+
             <Header />
             <GoSelect />
 
@@ -245,24 +247,29 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                         return (
                             <Card
                                 key={line}
-                                onClick={() => { setSelectedLine(line); setSelectedServices([]); }}
+                                onClick={() => {
+                                    setSelectedLine(line);
+                                    setSelectedServices([]);
+                                }}
                                 className={`animate-slide-up stagger-${index + 1} card-shine hover-lift group cursor-pointer overflow-hidden rounded-2xl border-2 transition-all duration-300 ${
-                                    isSelected 
-                                        ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-white shadow-lg shadow-emerald-500/20' 
+                                    isSelected
+                                        ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-white shadow-lg shadow-emerald-500/20'
                                         : 'border-slate-200 bg-white hover:border-[#0693e3]/50 hover:shadow-lg'
                                 }`}
                             >
                                 <CardContent className="p-6">
                                     <div className="flex items-center gap-4">
                                         {/* Icono */}
-                                        <div className={`flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-300 ${
-                                            isSelected 
-                                                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' 
-                                                : 'bg-slate-100 text-slate-600 group-hover:bg-[#0693e3]/10 group-hover:text-[#0693e3]'
-                                        }`}>
+                                        <div
+                                            className={`flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-300 ${
+                                                isSelected
+                                                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                                                    : 'bg-slate-100 text-slate-600 group-hover:bg-[#0693e3]/10 group-hover:text-[#0693e3]'
+                                            }`}
+                                        >
                                             <Layers className="h-6 w-6" />
                                         </div>
-                                        
+
                                         <div className="flex-1">
                                             <h3 className="text-lg font-semibold text-slate-900">{capitalize(line)}</h3>
                                         </div>
@@ -272,7 +279,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                                 </CardContent>
                             </Card>
                         );
-                      })}
+                    })}
                 </div>
 
                 {/* Servicios */}
@@ -300,7 +307,8 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                     return (
                         <div ref={conditionsRef} className="mt-10 scroll-mt-24">
                             <h3 className="mb-2 text-center text-2xl font-bold leading-tight text-slate-900 md:text-2xl">
-                                Condiciones para {selectedServices.length === 1 ? selectedServices[0] : `${selectedServices.length} servicios seleccionados`}
+                                Condiciones para{' '}
+                                {selectedServices.length === 1 ? selectedServices[0] : `${selectedServices.length} servicios seleccionados`}
                             </h3>
                             <p className="mb-6 text-center text-slate-600">Responde las condiciones una a una</p>
 
@@ -333,7 +341,6 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                         </div>
                     );
                 })()}
-                        
             </main>
 
             {/* Contact modal shown after finalizar */}
@@ -346,7 +353,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                         <p className="mb-4 text-sm text-slate-600">Ingresa tus datos para que podamos contactarte sobre esta cotización.</p>
 
                         {(() => {
-                            const fieldKeys = ['name', 'company', 'email', 'phone'];
+                            const fieldKeys = ['name', 'company', 'role', 'email', 'phone'];
                             const globalMsgs: string[] = formErrors._global ? [...formErrors._global] : [];
                             const otherMsgs: string[] = Object.entries(formErrors)
                                 .filter(([k]) => k !== '_global' && !fieldKeys.includes(k))
@@ -368,42 +375,86 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <div className="col-span-2">
                                 <label className="mb-1 block text-sm font-medium text-slate-700">Nombre</label>
-                                <input value={contact.name} onChange={(e) => setContact((c) => ({ ...c, name: e.target.value }))} className="w-full rounded border px-3 py-2" placeholder="Tu nombre" />
+                                <input
+                                    value={contact.name}
+                                    onChange={(e) => setContact((c) => ({ ...c, name: e.target.value }))}
+                                    className="w-full rounded border px-3 py-2"
+                                    placeholder="Tu nombre"
+                                />
                                 {formErrors.name && <p className="mt-1 text-sm text-red-600">{formErrors.name[0]}</p>}
                             </div>
 
                             <div>
                                 <label className="mb-1 block text-sm font-medium text-slate-700">Empresa</label>
-                                <input value={contact.company} onChange={(e) => setContact((c) => ({ ...c, company: e.target.value }))} className="w-full rounded border px-3 py-2" placeholder="Nombre de la empresa (opcional)" />
+                                <input
+                                    value={contact.company}
+                                    onChange={(e) => setContact((c) => ({ ...c, company: e.target.value }))}
+                                    className="w-full rounded border px-3 py-2"
+                                    placeholder="Nombre de la empresa (opcional)"
+                                />
                                 {formErrors.company && <p className="mt-1 text-sm text-red-600">{formErrors.company[0]}</p>}
                             </div>
 
                             <div>
+                                <label className="mb-1 block text-sm font-medium text-slate-700">Cargo</label>
+                                <input
+                                    value={contact.role}
+                                    onChange={(e) => setContact((c) => ({ ...c, role: e.target.value }))}
+                                    className="w-full rounded border px-3 py-2"
+                                    placeholder="Cargo o puesto en la empresa"
+                                />
+                                {formErrors.role && <p className="mt-1 text-sm text-red-600">{formErrors.role[0]}</p>}
+                            </div>
+
+                            <div>
                                 <label className="mb-1 block text-sm font-medium text-slate-700">Correo</label>
-                                <input value={contact.email} onChange={(e) => setContact((c) => ({ ...c, email: e.target.value }))} className="w-full rounded border px-3 py-2" placeholder="correo@ejemplo.com" />
+                                <input
+                                    value={contact.email}
+                                    onChange={(e) => setContact((c) => ({ ...c, email: e.target.value }))}
+                                    className="w-full rounded border px-3 py-2"
+                                    placeholder="correo@ejemplo.com"
+                                />
                                 {formErrors.email && <p className="mt-1 text-sm text-red-600">{formErrors.email[0]}</p>}
                             </div>
 
                             <div>
                                 <label className="mb-1 block text-sm font-medium text-slate-700">Teléfono</label>
-                                <input value={contact.phone} onChange={(e) => setContact((c) => ({ ...c, phone: e.target.value }))} className="w-full rounded border px-3 py-2" placeholder="+57 300 123 4567" />
+                                <input
+                                    value={contact.phone}
+                                    onChange={(e) => setContact((c) => ({ ...c, phone: e.target.value }))}
+                                    className="w-full rounded border px-3 py-2"
+                                    placeholder="+57 300 123 4567"
+                                />
                                 {formErrors.phone && <p className="mt-1 text-sm text-red-600">{formErrors.phone[0]}</p>}
                             </div>
                         </div>
 
                         <div className="mt-4 flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <button onClick={handleSendContact} className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">Enviar</button>
-                                <button onClick={handleReturnToSnapshot} className="rounded border px-4 py-2 text-sm text-slate-700">Volver</button>
-                                <button onClick={() => setShowSavedDetails((v) => !v)} className="rounded px-3 py-2 text-sm text-slate-700">{showSavedDetails ? 'Ocultar' : 'Visualizar el resumen de la propuesta'}</button>
+                                <button onClick={handleSendContact} className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+                                    Enviar
+                                </button>
+                                <button onClick={handleReturnToSnapshot} className="rounded border px-4 py-2 text-sm text-slate-700">
+                                    Volver
+                                </button>
+                                <button onClick={() => setShowSavedDetails((v) => !v)} className="rounded px-3 py-2 text-sm text-slate-700">
+                                    {showSavedDetails ? 'Ocultar' : 'Visualizar el resumen de la propuesta'}
+                                </button>
                             </div>
                         </div>
 
                         {showSavedDetails && savedSnapshot && (
-                            <div className="mt-4 max-h-48 overflow-auto rounded border p-3 bg-slate-50">
+                            <div className="mt-4 max-h-48 overflow-auto rounded border bg-slate-50 p-3">
                                 <h4 className="mb-2 text-sm font-semibold">Resumen previo</h4>
-                                <p className="text-sm text-slate-700"><strong>Línea de Gestión:</strong> {savedSnapshot.selectedLine || '-'} </p>
-                                <p className="text-sm text-slate-700"><strong>Servicio(s):</strong> {Array.isArray(savedSnapshot.selectedServices) && savedSnapshot.selectedServices.length > 0 ? savedSnapshot.selectedServices.join(', ') : '-'} </p>
+                                <p className="text-sm text-slate-700">
+                                    <strong>Línea de Gestión:</strong> {savedSnapshot.selectedLine || '-'}{' '}
+                                </p>
+                                <p className="text-sm text-slate-700">
+                                    <strong>Servicio(s):</strong>{' '}
+                                    {Array.isArray(savedSnapshot.selectedServices) && savedSnapshot.selectedServices.length > 0
+                                        ? savedSnapshot.selectedServices.join(', ')
+                                        : '-'}{' '}
+                                </p>
                                 <div className="mt-2 text-sm">
                                     <strong>Respuestas:</strong>
                                     <ul className="mt-1 list-inside list-disc text-slate-700">
@@ -417,9 +468,10 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                                                     if (typeof v === 'object' && v !== null && 'optionIndex' in (v as Record<string, unknown>)) {
                                                         const optionIndex = (v as { optionIndex: number }).optionIndex;
                                                         const textValue = (v as { text?: string }).text;
-                                                        valueDisplay = textValue && textValue.trim() !== ''
-                                                            ? textValue
-                                                            : (opts[optionIndex]?.label || String(optionIndex));
+                                                        valueDisplay =
+                                                            textValue && textValue.trim() !== ''
+                                                                ? textValue
+                                                                : opts[optionIndex]?.label || String(optionIndex);
                                                     } else if (typeof v === 'number' && opts[v]) {
                                                         valueDisplay = opts[v].label || String(v);
                                                     } else {
@@ -427,8 +479,14 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                                                     }
                                                 } else if (cond && cond.interaction_type === 'range') {
                                                     // expect v to be { min, max }
-                                                    const min = typeof v === 'object' && v !== null && 'min' in (v as Record<string, unknown>) ? (v as { min: any }).min : '';
-                                                    const max = typeof v === 'object' && v !== null && 'max' in (v as Record<string, unknown>) ? (v as { max: any }).max : '';
+                                                    const min =
+                                                        typeof v === 'object' && v !== null && 'min' in (v as Record<string, unknown>)
+                                                            ? (v as { min: any }).min
+                                                            : '';
+                                                    const max =
+                                                        typeof v === 'object' && v !== null && 'max' in (v as Record<string, unknown>)
+                                                            ? (v as { max: any }).max
+                                                            : '';
                                                     if (cond.type === 'date') {
                                                         const fmt = (d: any) => {
                                                             const dt = new Date(d);
@@ -442,7 +500,11 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                                                     valueDisplay = typeof v === 'object' ? JSON.stringify(v) : String(v);
                                                 }
 
-                                                return <li key={k}>{condLabel}: {valueDisplay}</li>;
+                                                return (
+                                                    <li key={k}>
+                                                        {condLabel}: {valueDisplay}
+                                                    </li>
+                                                );
                                             })
                                         ) : (
                                             <li>(sin respuestas)</li>
@@ -513,7 +575,7 @@ function ConditionStepper({
             const val = answers[String(currentId)] ?? '';
             return (
                 <input
-                    className="border rounded-lg p-2 w-full"
+                    className="w-full rounded-lg border p-2"
                     type={inputType}
                     value={val}
                     onChange={(e) => onAnswer(String(currentId), e.target.value)}
@@ -526,8 +588,20 @@ function ConditionStepper({
             const v = answers[String(currentId)] ?? { min: '', max: '' };
             return (
                 <div className="grid grid-cols-2 gap-3">
-                    <input className="border rounded-lg p-2" type={t} placeholder="Desde" value={v.min} onChange={(e) => onAnswer(String(currentId), { ...v, min: e.target.value })} />
-                    <input className="border rounded-lg p-2" type={t} placeholder="Hasta" value={v.max} onChange={(e) => onAnswer(String(currentId), { ...v, max: e.target.value })} />
+                    <input
+                        className="rounded-lg border p-2"
+                        type={t}
+                        placeholder="Desde"
+                        value={v.min}
+                        onChange={(e) => onAnswer(String(currentId), { ...v, min: e.target.value })}
+                    />
+                    <input
+                        className="rounded-lg border p-2"
+                        type={t}
+                        placeholder="Hasta"
+                        value={v.max}
+                        onChange={(e) => onAnswer(String(currentId), { ...v, max: e.target.value })}
+                    />
                 </div>
             );
         }
@@ -535,14 +609,16 @@ function ConditionStepper({
         if (cond.interaction_type === 'options') {
             const opts = Array.isArray((cond as any).options) ? (cond as any).options : [];
             const currentAnswer = answers[String(currentId)];
-            const selectedIndex = typeof currentAnswer === 'number'
-                ? currentAnswer
-                : (typeof currentAnswer === 'object' && currentAnswer !== null && 'optionIndex' in currentAnswer)
-                    ? (currentAnswer as { optionIndex: number }).optionIndex
-                    : null;
-            const selectedText = typeof currentAnswer === 'object' && currentAnswer !== null && 'text' in currentAnswer
-                ? (currentAnswer as { text?: string }).text ?? ''
-                : '';
+            const selectedIndex =
+                typeof currentAnswer === 'number'
+                    ? currentAnswer
+                    : typeof currentAnswer === 'object' && currentAnswer !== null && 'optionIndex' in currentAnswer
+                      ? (currentAnswer as { optionIndex: number }).optionIndex
+                      : null;
+            const selectedText =
+                typeof currentAnswer === 'object' && currentAnswer !== null && 'text' in currentAnswer
+                    ? ((currentAnswer as { text?: string }).text ?? '')
+                    : '';
 
             return (
                 <div className="space-y-3">
@@ -588,14 +664,15 @@ function ConditionStepper({
         const opts = Array.isArray((cond as any).options) ? (cond as any).options : [];
         const sel = answers[String(currentId)];
         if (sel === undefined || sel === null) return cond.next_condition ?? null;
-        const selectedIndex = typeof sel === 'number'
-            ? sel
-            : (typeof sel === 'object' && sel !== null && 'optionIndex' in sel)
-                ? (sel as { optionIndex: number }).optionIndex
-                : null;
+        const selectedIndex =
+            typeof sel === 'number'
+                ? sel
+                : typeof sel === 'object' && sel !== null && 'optionIndex' in sel
+                  ? (sel as { optionIndex: number }).optionIndex
+                  : null;
         if (selectedIndex === null) return cond.next_condition ?? null;
         const opt = opts[selectedIndex];
-        return opt && opt.next_condition ? Number(opt.next_condition) : cond.next_condition ?? null;
+        return opt && opt.next_condition ? Number(opt.next_condition) : (cond.next_condition ?? null);
     };
 
     const nextId = computeNextFromOption();
@@ -644,7 +721,7 @@ function ConditionStepper({
                 if (String(textValue).trim() === '') setValidationError('Escribe tu respuesta');
             }
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [answers, currentId]);
 
     const canProceed = !validationError;
@@ -666,7 +743,11 @@ function ConditionStepper({
 
                 <div className="flex items-center justify-between">
                     <div>
-                        <button onClick={goBack} disabled={history.length === 0} className="mr-2 rounded px-3 py-1 text-sm text-slate-700 disabled:opacity-50">
+                        <button
+                            onClick={goBack}
+                            disabled={history.length === 0}
+                            className="mr-2 rounded px-3 py-1 text-sm text-slate-700 disabled:opacity-50"
+                        >
                             Anterior
                         </button>
                     </div>
