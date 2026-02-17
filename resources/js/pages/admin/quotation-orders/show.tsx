@@ -11,6 +11,7 @@ interface QuotationOrder {
     email: string;
     company?: string | null;
     phone?: string;
+    role?: string;
   };
   business_unit?: string;
   gestion_line?: string;
@@ -150,6 +151,10 @@ export default function Show() {
                       <td className="px-6 py-4 text-gray-900">{quotationOrder.contact_info.phone}</td>
                     </tr>
                   )}
+                  <tr className="hover:bg-gray-50">
+                    <td className="px-6 py-4 font-semibold text-gray-600">Cargo</td>
+                    <td className="px-6 py-4 text-gray-900">{quotationOrder.contact_info.role}</td>
+                  </tr>
                 </>
               )}
 
