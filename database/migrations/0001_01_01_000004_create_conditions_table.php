@@ -31,6 +31,8 @@ return new class extends Migration
                 ->nullable()
                 ->constrained('conditions')
                 ->onDelete('set null');
+            
+            $table->boolean("allows_multiple_values")->default(False);
 
             $table->foreignId('business_unit_id')->constrained()->onDelete('cascade');
         });
