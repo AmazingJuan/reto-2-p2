@@ -58,7 +58,7 @@ const Dashboard: React.FC = () => {
 
     return (
         <AdminLayout>
-            <div className="flex justify-start max-w-5xl mx-auto mt-8">
+            <div className="flex justify-end max-w-5xl mx-auto mt-8">
                 <Link href={route('home')} className="inline-flex items-center gap-2 rounded bg-white px-3 py-2 text-sm shadow-sm font-semibold text-[#0693e3] border border-[#0693e3] hover:bg-[#0693e3] hover:text-white transition">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-3A2.25 2.25 0 008.25 5.25V9m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3A2.25 2.25 0 008.25 5.25V9m7.5 0h-11.25M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.125c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />

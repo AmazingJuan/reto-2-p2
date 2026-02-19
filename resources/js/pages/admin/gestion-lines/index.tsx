@@ -40,7 +40,7 @@ export default function Index() {
         <AdminLayout>
             <div className="p-6">
                 <h1 className="mb-6 text-center text-3xl font-bold leading-tight text-slate-900 md:text-3xl">Administrar Líneas de Gestión</h1>
-                <FlashAlert flash={flash} duration={5000} />
+                <FlashAlert flash={flash}/>
                 <Button onClick={handleCreate} variant="crear" className="bg-amber-600 hover:bg-amber-600">
                     <Plus />
                     Crear línea de gestión

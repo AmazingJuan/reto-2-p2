@@ -56,7 +56,7 @@ export default function Index() {
                 <AdminLayout>
                         <div className="p-6">
                 <h1 className="mb-6 text-center text-3xl font-bold leading-tight text-slate-900 md:text-3xl">Administrar Servicios</h1>
-                <FlashAlert flash={flash} duration={5000} />
+                <FlashAlert flash={flash}/>
                 <div className="mb-4 flex items-center justify-between">
                     <Button variant="crear" onClick={handleCreate}>
                         <Plus /> Crear servicio
@@ -85,9 +85,9 @@ export default function Index() {
                 <table className="w-full">
                     <thead>
                         <tr className="border-b bg-gray-50">
-                            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">ID</th>
-                            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Nombre</th>
-                            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Acciones</th>
+                            <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">ID</th>
+                            <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Nombre</th>
+                            <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
