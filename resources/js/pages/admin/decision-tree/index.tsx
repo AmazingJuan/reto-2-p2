@@ -400,7 +400,7 @@ export default function DecisionTreePage() {
         <AdminLayout>
             <div className="mx-auto max-w-7xl space-y-6">
                 <h1 className="text-2xl font-semibold">Árbol de decisión</h1>
-                <FlashAlert flash={flash} duration={5000} />
+                <FlashAlert flash={flash}/>
 
                 <div className="flex items-center gap-4">
                     <label className="text-sm">Unidad de negocio:</label>

@@ -13,12 +13,11 @@ export default function FlashAlert({ flash, duration = 5000 }: FlashAlertProps) 
 
     const [visible, setVisible] = useState(false);
 
-    // 🔑 CLAVE: volver a mostrar cuando llega un nuevo flash
     useEffect(() => {
-        if (success || error) {
+        if (flash.success || flash.error) {
             setVisible(true);
         }
-    }, [success, error]);
+    }, [flash]);
 
     // auto dismiss
     useEffect(() => {
