@@ -3,7 +3,7 @@ import FlashAlert from '@/components/ui/flashalert';
 import AdminLayout from '@/layouts/admin-layout';
 import { router, usePage } from '@inertiajs/react';
 import { Plus, Star, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // Types (kept minimal for runtime flexibility)
 type InteractionType = 'range' | 'options' | 'input';
@@ -37,6 +37,19 @@ export default function DecisionTreePage() {
     const [initialConditionByBU, setInitialConditionByBU] = useState<Record<number, number | null>>({});
     const [submitErrors, setSubmitErrors] = useState<string[]>([]);
     const { flash } = usePage().props as any;
+    const listRef = useRef<HTMLUListElement | null>(null);
+
+    //Scroll into new conditions
+    useEffect(() => {
+        if (editingIdx !== null) {
+            const element = listRef.current?.children[editingIdx] as HTMLElement | undefined;
+
+            element?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+            });
+        }
+    }, [editingIdx]);
 
     useEffect(() => {
         const viewData: any = (props as any).viewData ?? {};
@@ -400,7 +413,7 @@ export default function DecisionTreePage() {
         <AdminLayout>
             <div className="mx-auto max-w-7xl space-y-6">
                 <h1 className="text-2xl font-semibold">Árbol de decisión</h1>
-                <FlashAlert flash={flash}/>
+                <FlashAlert flash={flash} />
 
                 <div className="flex items-center gap-4">
                     <label className="text-sm">Unidad de negocio:</label>
@@ -443,7 +456,7 @@ export default function DecisionTreePage() {
                                 {/* Guardar todo moved below the section, above the JSON preview */}
                             </header>
 
-                            <ul className="space-y-3">
+                            <ul ref={listRef} className="space-y-3">
                                 {(conditionsByBU[selectedBU] ?? []).length === 0 && <li className="text-sm text-gray-500">Sin condiciones.</li>}
 
                                 {(conditionsByBU[selectedBU] ?? []).map((c, idx) => {
