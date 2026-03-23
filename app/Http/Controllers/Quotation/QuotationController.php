@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BusinessUnit;
 use App\Models\GestionLine;
 use App\Models\Service;
+use App\Services\MailService;
 use App\Helpers\DecisionTreeHelper;
 use App\Http\Requests\StoreQuotationProposal;
 use App\Models\QuotationProposalOrder;
@@ -70,7 +71,7 @@ class QuotationController extends Controller
         $quotationProposalData = $request->validated();
         $quotationProposalId = (string) Str::uuid();
 
-        QuotationProposalOrder::create([
+        $quotationProposalOrder = QuotationProposalOrder::create([
             'id' => $quotationProposalId,
             'contact_info' => $quotationProposalData['contact'],
             'services' => $quotationProposalData['services'],
@@ -78,7 +79,7 @@ class QuotationController extends Controller
             'answers' => $quotationProposalData['answers'],
         ]);
 
-        // enviar correo de confirmación al usuario y a training
+        MailService::sendQuotationPendingEmail($quotationProposalOrder);
 
         return redirect()->route('home')->with('success', 'Su cotización ha sido procesada exitosamente.');
     }
