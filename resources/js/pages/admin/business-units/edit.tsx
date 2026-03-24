@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import AdminLayout from '@/layouts/admin-layout';
-import { useForm, usePage } from '@inertiajs/react';
+import { router, useForm, usePage } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 
 interface BusinessUnit {
@@ -26,6 +26,10 @@ export default function Edit() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         put(route('dashboard.business-unit.update', businessUnit.id));
+    };
+
+    const handleCancel = () => {
+        router.get(route('dashboard.business-unit.index'));
     };
 
     return (
@@ -54,7 +58,7 @@ export default function Edit() {
 
                             {/* Botones */}
                             <div className="flex justify-end gap-3 border-t pt-6">
-                                <Button variant="training" onClick={() => window.history.back()} className="bg-red-600 hover:bg-red-700">
+                                <Button type = "button" variant="training" onClick={handleCancel} className="bg-red-600 hover:bg-red-700">
                                     Cancelar
                                 </Button>
                                 <Button variant="training" disabled={processing} className="bg-emerald-600 hover:bg-emerald-700">
