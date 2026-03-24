@@ -10,7 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-
+use App\Services\MailService;
 class AdminQuotationOrderController extends Controller
 {
     public function index(): Response
@@ -23,7 +23,7 @@ class AdminQuotationOrderController extends Controller
     }
 
     public function show(string $quotationOrderId): Response|RedirectResponse
-    {   
+    {
         try{
         $quotationOrder = QuotationProposalOrder::findOrFail($quotationOrderId);
         } catch (ModelNotFoundException $e) {
@@ -56,6 +56,8 @@ class AdminQuotationOrderController extends Controller
         $quotationOrder->setQuotationUrl($quotationUrl);
         $quotationOrder->setIsGenerated(true);
         $quotationOrder->save();
+
+        MailService::sendQuotationGeneratedEmail($quotationOrder);
 
         return redirect()->route('dashboard.quotation-orders.show', $quotationOrderId)->with('success', 'URL de cotización subida exitosamente.');
     }

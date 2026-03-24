@@ -2,7 +2,7 @@
 
 namespace App\Mail;
 
-use App\Models\QuotationOrder;
+use App\Models\QuotationProposalOrder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -11,14 +11,14 @@ class QuotationGenerated extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public QuotationOrder $order;
+    public QuotationProposalOrder $order;
 
     /**
      * Create a new message instance.
      *
      * @param  array  $mailData
      */
-    public function __construct(QuotationOrder $order)
+    public function __construct(QuotationProposalOrder $order)
     {
         $this->order = $order;
     }
