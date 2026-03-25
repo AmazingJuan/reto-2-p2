@@ -1,12 +1,12 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminBusinessUnitController;
+use App\Http\Controllers\Admin\AdminConfigurationController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDecisionTreeController;
 use App\Http\Controllers\Admin\AdminGestionLineController;
 use App\Http\Controllers\Admin\AdminQuotationOrderController;
 use App\Http\Controllers\Admin\AdminServiceController;
-use App\Http\Controllers\Admin\AdminUserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () {
@@ -45,4 +45,8 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
 
     Route::get('/arbol-decision', [AdminDecisionTreeController::class, 'index'])->name('dashboard.business-unit.decision-tree');
     Route::post('/arbol-decision', [AdminDecisionTreeController::class, 'update'])->name('dashboard.business-unit.decision-tree.update');
+
+    // Configuraciones
+    Route::get('/configuraciones', [AdminConfigurationController::class, 'edit'])->name('dashboard.configurations.edit');
+    Route::put('/configuraciones', [AdminConfigurationController::class, 'update'])->name('dashboard.configurations.update');
 });
