@@ -20,8 +20,11 @@
   @else
     <p style="font-size:14px; margin:0; color:#6b7280; font-style:italic;">El documento aún no está disponible.</p>
   @endif
+
+  @push('below_content')
+    @include('emails.partials.company-contact')
+  @endpush
+
 @endsection
 
-@push('below_content')
-  @include('emails.partials.company-contact')
-@endpush
+

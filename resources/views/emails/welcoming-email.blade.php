@@ -22,8 +22,9 @@
       Ir a la plataforma
     </a>
   </p>
-@endsection
 
-@push('below_content')
-  @include('emails.partials.company-contact')
-@endpush
+  @push('below_content')
+    @include('emails.partials.company-contact')
+  @endpush
+
+@endsection
