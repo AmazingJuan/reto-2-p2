@@ -9,7 +9,7 @@ import { createRoot } from 'react-dom/client';
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 axios.defaults.withCredentials = true;
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = "Cotizaciones | Training Corporation";
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
