@@ -1,3 +1,4 @@
+import { adminListShellClass } from '@/components/admin/admin-page-header';
 import { Button } from '@/components/ui/button';
 import FlashAlert from '@/components/ui/flashalert';
 import AdminLayout from '@/layouts/admin-layout';
@@ -592,7 +593,7 @@ export default function DecisionTreePage() {
 
     return (
         <AdminLayout>
-            <div className="mx-auto w-full min-w-0 max-w-7xl space-y-4 sm:space-y-6">
+            <div className={adminListShellClass}>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex items-start gap-3">
                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
