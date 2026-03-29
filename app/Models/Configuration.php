@@ -35,7 +35,7 @@ class Configuration extends Model
 
     public function setNotificationEmail(string $notificationEmail): void
     {
-        $this->notification_email = $notificationEmail;
+        $this->notification_email = trim($notificationEmail);
     }
 
     public function setApplicationUrl(string $applicationUrl): void
