@@ -1,6 +1,6 @@
 import Footer from '@/components/admin/footer';
 import { Link, usePage } from '@inertiajs/react';
-import { Box, FileText, Home, Layers, Menu, Trees, X } from 'lucide-react';
+import { Box, FileText, Home, Layers, Menu, Settings, Trees, X } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 import { route } from 'ziggy-js';
 
@@ -14,6 +14,7 @@ const navItems = [
     { to: route('dashboard.services.index'), label: 'Servicios', icon: Box },
     { to: route('dashboard.business-unit.decision-tree'), label: 'Árbol de decisión', icon: Trees },
     { to: route('dashboard.quotation-orders.index'), label: 'Cotizaciones', icon: FileText },
+    { to: route('dashboard.configurations.edit'), label: 'Configuración', icon: Settings },
 ];
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
