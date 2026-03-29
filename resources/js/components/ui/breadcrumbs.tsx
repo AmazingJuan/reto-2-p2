@@ -5,7 +5,6 @@ const routeNameMap: Record<string, string> = {
   'portafolio-de-servicios': 'Portafolio de servicios',
   servicios: 'Servicios',
   perfil: 'Perfil',
-  // Agrega más rutas personalizadas aquí si lo deseas
 };
 
 export default function Breadcrumbs() {
@@ -28,9 +27,10 @@ export default function Breadcrumbs() {
           <span key={index} className="flex items-center gap-2">
             <span className="mx-2 text-white">→</span>
             {isLast ? (
-              <span className="font-semibold text-white uppercase">
+              <span className="relative font-semibold text-cyan-400 uppercase">
                 {displayName}
-              </span>
+              <span className="absolute -bottom-1 left-0 right-0 h-[2px] bg-cyan-400 rounded-full" />
+            </span>
             ) : (
               <Link href={href} className="font-semibold text-white">
                 {displayName}
