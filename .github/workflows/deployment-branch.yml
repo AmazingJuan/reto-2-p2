@@ -37,7 +37,8 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          # Must match composer.lock (Symfony 8 / Laravel 12 resolution often requires PHP 8.4+).
+          php-version: '8.4'
           extensions: mbstring, dom, fileinfo, pdo, sqlite, pdo_sqlite, zip, intl, curl
           coverage: none
           tools: composer:v2
