@@ -1,6 +1,6 @@
 import AdminLayout from '@/layouts/admin-layout';
 import { Link } from '@inertiajs/react';
-import { ChevronRight, GitBranch, ScrollText, Settings, Users, Wrench, BriefcaseBusiness, Trees } from 'lucide-react';
+import { ChevronRight, GitBranch, Mail, ScrollText, Settings, Users, Wrench, BriefcaseBusiness, Trees } from 'lucide-react';
 import React from 'react';
 import { route } from 'ziggy-js';
 
@@ -54,6 +54,13 @@ const Dashboard: React.FC = () => {
             desc: 'Correo de notificaciones y URL de la aplicación',
             icon: Settings,
             accent: 'indigo',
+        },
+        {
+            label: 'Correos de bienvenida',
+            name: 'dashboard.welcome-broadcast.create',
+            desc: 'Enviar el correo de bienvenida a una lista de direcciones',
+            icon: Mail,
+            accent: 'emerald',
         },
     ] as const;
 

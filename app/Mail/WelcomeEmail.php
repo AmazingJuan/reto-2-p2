@@ -12,15 +12,10 @@ class WelcomeEmail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    private $platformUrl;
-
-    /**
-     * Create a new message instance.
-     */
-    public function __construct(string $platformUrl)
-    {
-        $this->platformUrl = $platformUrl;
-    }
+    public function __construct(
+        private string $platformUrl,
+        private ?string $userName = null,
+    ) {}
 
     /**
      * Get the message envelope.
@@ -41,6 +36,7 @@ class WelcomeEmail extends Mailable
             view: 'emails.welcoming-email',
             with: [
                 'platformUrl' => $this->platformUrl,
+                'userName' => $this->userName,
             ]
         );
     }
