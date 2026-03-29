@@ -92,8 +92,10 @@
       </td>
     </tr>
   </table>
-@endsection
 
-@push('below_content')
-  @include('emails.partials.company-contact')
-@endpush
+
+  @push('below_content')
+    @include('emails.partials.company-contact')
+  @endpush
+
+@endsection
