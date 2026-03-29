@@ -8,16 +8,32 @@ use App\Models\BusinessUnit;
 use App\Utils\NameNormalizer;
 use Exception;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
 class AdminBusinessUnitController extends Controller
 {
-    public function index(): InertiaResponse
+    public function index(Request $request): InertiaResponse
     {
-        $businessUnits = BusinessUnit::select('id', 'display_name')->orderBy('id')->get();
+        $search = $request->string('search')->trim()->toString();
 
-        $viewData['businessUnits'] = $businessUnits;
+        $query = BusinessUnit::query()->select('id', 'display_name')->orderBy('id');
+
+        if ($search !== '') {
+            $like = '%'.$search.'%';
+            $query->where(function ($q) use ($like, $search) {
+                $q->where('display_name', 'like', $like);
+                if (ctype_digit($search)) {
+                    $q->orWhere('id', (int) $search);
+                }
+            });
+        }
+
+        $viewData['businessUnits'] = $query->paginate(15)->withQueryString();
+        $viewData['filters'] = [
+            'search' => $search,
+        ];
 
         return Inertia::render('admin/business-units/index', compact('viewData'));
     }

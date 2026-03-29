@@ -1,8 +1,11 @@
-import { Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Download, Upload } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import FlashAlert from '@/components/ui/flashalert';
+import AdminLayout from '@/layouts/admin-layout';
+import type { PageProps } from '@/types';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { ArrowLeft, Download, ScrollText, Upload } from 'lucide-react';
 import { useState } from 'react';
 import { route } from 'ziggy-js';
-import AdminLayout from '../../../layouts/admin-layout';
 
 interface QuotationOrder {
     id: number | string;
@@ -16,22 +19,21 @@ interface QuotationOrder {
     business_unit?: string;
     gestion_line?: string;
     services?: string[];
-    answers?: Record<string, any>;
+    answers?: Record<string, unknown>;
     is_generated: boolean;
     quotation_url?: string;
     created_at?: string;
     updated_at?: string;
 }
 
-interface ShowPageProps extends Record<string, unknown> {
-    auth: { user: any };
+type ShowPageProps = PageProps<{
     viewData: {
         quotationOrder: QuotationOrder;
     };
-}
+}>;
 
 export default function Show() {
-    const { viewData, errors } = usePage<ShowPageProps>().props;
+    const { viewData, errors, flash } = usePage<ShowPageProps & { flash: Record<string, unknown> }>().props;
     const { quotationOrder } = viewData;
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [quotationUrl, setQuotationUrl] = useState('');
@@ -66,31 +68,46 @@ export default function Show() {
 
     return (
         <AdminLayout>
-            <div className="p-6">
-                {/* Encabezado */}
-                <div className="mb-6 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <Link href={route('dashboard.quotation-orders.index')} className="flex items-center text-gray-600 hover:text-gray-900">
-                            <ArrowLeft className="mr-1 h-5 w-5" /> Volver
+            <Head title={`Cotización #${quotationOrder.id}`} />
+
+            <div className="mx-auto max-w-6xl p-6">
+                <FlashAlert flash={flash} />
+
+                <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                        <Link
+                            href={route('dashboard.quotation-orders.index')}
+                            className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900"
+                        >
+                            <ArrowLeft className="h-5 w-5" />
+                            Volver
                         </Link>
-                        <h1 className="text-2xl font-bold">Cotización #{quotationOrder.id}</h1>
+                        <div className="flex items-center gap-3">
+                            <ScrollText className="h-8 w-8 text-blue-600" />
+                            <div>
+                                <h1 className="text-3xl font-bold text-slate-900">Cotización #{quotationOrder.id}</h1>
+                                <p className="mt-1 text-sm text-gray-600">Detalle de la solicitud</p>
+                            </div>
+                        </div>
                     </div>
 
-                    <div>
+                    <div className="flex flex-wrap gap-2">
                         {!quotationOrder.is_generated ? (
-                            <button
+                            <Button
+                                type="button"
                                 onClick={() => setShowUploadModal(true)}
-                                className="flex items-center rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white transition hover:bg-emerald-700"
+                                variant="crear"
+                                className="bg-emerald-600 hover:bg-emerald-700"
                             >
                                 <Upload className="mr-2 h-5 w-5" />
-                                Subir Propuesta
-                            </button>
+                                Subir propuesta
+                            </Button>
                         ) : quotationOrder.quotation_url ? (
                             <a
                                 href={quotationOrder.quotation_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center rounded-lg bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700"
+                                className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700"
                             >
                                 <Download className="mr-2 h-5 w-5" />
                                 Descargar PDF
@@ -99,33 +116,29 @@ export default function Show() {
                     </div>
                 </div>
 
-                {/* Contenido principal */}
-                <div className="rounded-lg border bg-white p-6 shadow-md">
+                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
                     <table className="w-full">
-                        <tbody className="divide-y">
-                            {/* ID */}
+                        <tbody className="divide-y divide-gray-100">
                             <tr className="hover:bg-gray-50">
                                 <td className="w-1/3 px-6 py-4 font-semibold text-gray-600">ID</td>
                                 <td className="px-6 py-4 text-gray-900">{quotationOrder.id}</td>
                             </tr>
 
-                            {/* Estado */}
                             <tr className="hover:bg-gray-50">
                                 <td className="px-6 py-4 font-semibold text-gray-600">Estado</td>
                                 <td className="px-6 py-4">
                                     {quotationOrder.is_generated ? (
-                                        <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
+                                        <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
                                             Generada
                                         </span>
                                     ) : (
-                                        <span className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700">
+                                        <span className="inline-flex rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700">
                                             Pendiente
                                         </span>
                                     )}
                                 </td>
                             </tr>
 
-                            {/* Contacto */}
                             {quotationOrder.contact_info && (
                                 <>
                                     <tr className="hover:bg-gray-50">
@@ -155,23 +168,20 @@ export default function Show() {
                                 </>
                             )}
 
-                            {/* Unidad de Negocio */}
                             {quotationOrder.business_unit && (
                                 <tr className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 font-semibold text-gray-600">Unidad de Negocio</td>
+                                    <td className="px-6 py-4 font-semibold text-gray-600">Unidad de negocio</td>
                                     <td className="px-6 py-4 text-gray-900">{quotationOrder.business_unit}</td>
                                 </tr>
                             )}
 
-                            {/* Línea de Gestión */}
                             {quotationOrder.gestion_line && (
                                 <tr className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 font-semibold text-gray-600">Línea de Gestión</td>
+                                    <td className="px-6 py-4 font-semibold text-gray-600">Línea de gestión</td>
                                     <td className="px-6 py-4 text-gray-900">{quotationOrder.gestion_line}</td>
                                 </tr>
                             )}
 
-                            {/* Servicios */}
                             {quotationOrder.services && quotationOrder.services.length > 0 && (
                                 <tr className="align-top hover:bg-gray-50">
                                     <td className="px-6 py-4 font-semibold text-gray-600">Servicios</td>
@@ -185,7 +195,6 @@ export default function Show() {
                                 </tr>
                             )}
 
-                            {/* Respuestas */}
                             {quotationOrder.answers && Object.keys(quotationOrder.answers).length > 0 && (
                                 <tr className="align-top hover:bg-gray-50">
                                     <td className="px-6 py-4 font-semibold text-gray-600">Respuestas</td>
@@ -201,11 +210,12 @@ export default function Show() {
                                 </tr>
                             )}
 
-                            {/* Fecha de Creación */}
                             {quotationOrder.created_at && (
                                 <tr className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 font-semibold text-gray-600">Fecha de Creación</td>
-                                    <td className="px-6 py-4 text-gray-900">{new Date(quotationOrder.created_at).toLocaleDateString('es-CO')}</td>
+                                    <td className="px-6 py-4 font-semibold text-gray-600">Fecha de creación</td>
+                                    <td className="px-6 py-4 text-gray-900">
+                                        {new Date(quotationOrder.created_at).toLocaleDateString('es-CO')}
+                                    </td>
                                 </tr>
                             )}
                         </tbody>
@@ -213,45 +223,55 @@ export default function Show() {
                 </div>
             </div>
 
-            {/* Modal para subir propuesta */}
             {showUploadModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-black/40" onClick={() => setShowUploadModal(false)} />
-
-                    <div className="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-                        <h3 className="mb-4 text-xl font-bold text-gray-900">Subir Link de Propuesta</h3>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <button
+                        type="button"
+                        className="absolute inset-0 bg-black/40"
+                        aria-label="Cerrar"
+                        onClick={() => setShowUploadModal(false)}
+                    />
+                    <div className="relative z-10 w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-lg">
+                        <h3 className="mb-4 text-xl font-bold text-gray-900">Subir enlace de propuesta</h3>
 
                         <div className="mb-4">
-                            <label className="mb-2 block text-sm font-medium text-gray-700">URL de la propuesta</label>
+                            <label htmlFor="quotation_url" className="mb-2 block text-sm font-medium text-gray-700">
+                                URL de la propuesta
+                            </label>
                             <input
+                                id="quotation_url"
                                 type="url"
                                 value={quotationUrl}
                                 onChange={(e) => setQuotationUrl(e.target.value)}
                                 placeholder="https://ejemplo.com/propuesta.pdf"
-                                className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
+                                className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
                                     errors.quotation_url
                                         ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                                        : 'border-gray-300 focus:border-emerald-500 focus:ring-emerald-500'
+                                        : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
                                 }`}
                             />
                             {errors.quotation_url && <p className="mt-1 text-sm text-red-600">{errors.quotation_url}</p>}
                         </div>
 
                         <div className="flex justify-end gap-3">
-                            <button
+                            <Button
+                                type="button"
+                                variant="crear"
                                 onClick={() => setShowUploadModal(false)}
-                                className="rounded-lg border px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                className="bg-slate-100 text-slate-800 hover:bg-slate-200"
                                 disabled={uploading}
                             >
                                 Cancelar
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="crear"
                                 onClick={handleUpload}
                                 disabled={!quotationUrl.trim() || uploading}
-                                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-700 disabled:bg-gray-300"
+                                className="bg-amber-600 hover:bg-amber-700 disabled:opacity-50"
                             >
                                 {uploading ? 'Guardando...' : 'Guardar'}
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

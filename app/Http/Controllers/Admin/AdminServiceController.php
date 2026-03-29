@@ -10,22 +10,37 @@ use App\Models\Service;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
 class AdminServiceController extends Controller
 {
-    public function index(): InertiaResponse
+    public function index(Request $request): InertiaResponse
     {
+        $search = $request->string('search')->trim()->toString();
+        $businessUnitId = $request->input('business_unit_id');
 
-        $services = Service::select('id', 'name', 'business_unit_id')
-            ->orderBy('id')
-            ->get();
+        $query = Service::query()
+            ->select('id', 'name', 'business_unit_id')
+            ->orderBy('id');
 
-        $businessUnits = BusinessUnit::all(['id', 'display_name']);
+        if ($businessUnitId !== null && $businessUnitId !== '' && $businessUnitId !== 'all') {
+            $query->where('business_unit_id', $businessUnitId);
+        }
 
-        $viewData['services'] = $services;
-        $viewData['businessUnits'] = $businessUnits;
+        if ($search !== '') {
+            $query->where('name', 'like', '%'.$search.'%');
+        }
+
+        $viewData['services'] = $query->paginate(15)->withQueryString();
+        $viewData['businessUnits'] = BusinessUnit::all(['id', 'display_name']);
+        $viewData['filters'] = [
+            'search' => $search,
+            'business_unit_id' => ($businessUnitId !== null && $businessUnitId !== '' && $businessUnitId !== 'all')
+                ? (string) $businessUnitId
+                : '',
+        ];
 
         return Inertia::render('admin/services/index', compact('viewData'));
     }

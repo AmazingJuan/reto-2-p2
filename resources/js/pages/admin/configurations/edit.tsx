@@ -2,7 +2,8 @@ import { Button } from '@/components/ui/button';
 import FlashAlert from '@/components/ui/flashalert';
 import AdminLayout from '@/layouts/admin-layout';
 import type { PageProps } from '@/types';
-import { useForm, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import { Settings } from 'lucide-react';
 import { route } from 'ziggy-js';
 
 const FIELD_LABELS: Record<string, string> = {
@@ -28,11 +29,10 @@ type EditPageProps = PageProps<{
     viewData: {
         configuration: Record<string, string | null>;
     };
-    flash: Record<string, unknown>;
 }>;
 
 export default function Edit() {
-    const { viewData, flash } = usePage<EditPageProps>().props;
+    const { viewData, flash } = usePage<EditPageProps & { flash: Record<string, unknown> }>().props;
     const configuration = viewData.configuration ?? {};
 
     const initialData = Object.fromEntries(
@@ -50,10 +50,15 @@ export default function Edit() {
 
     return (
         <AdminLayout>
-            <div className="mt-6 mx-auto max-w-4xl px-4">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold leading-tight text-slate-900 md:text-3xl">Configuración</h1>
-                    <p className="mt-2 text-sm text-gray-600">Ajustes generales del sistema</p>
+            <Head title="Configuración" />
+
+            <div className="mx-auto mt-6 max-w-4xl px-4">
+                <div className="mb-8 flex items-center gap-3">
+                    <Settings className="h-8 w-8 text-blue-600" />
+                    <div>
+                        <h1 className="text-3xl font-bold text-slate-900">Configuración</h1>
+                        <p className="mt-1 text-sm text-gray-600">Ajustes generales del sistema</p>
+                    </div>
                 </div>
 
                 <FlashAlert flash={flash} />
@@ -72,7 +77,7 @@ export default function Edit() {
                                             type={inputType(key)}
                                             value={data[key] ?? ''}
                                             onChange={(e) => setData(key, e.target.value)}
-                                            className="block w-full rounded-lg border border-gray-300 px-4 py-3 shadow-sm transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                                            className="block w-full rounded-lg border border-gray-300 px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                                             autoComplete="off"
                                         />
                                         {errors[key] && <p className="mt-2 text-sm text-red-600">{errors[key]}</p>}

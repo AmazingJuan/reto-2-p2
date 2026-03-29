@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import FlashAlert from '@/components/ui/flashalert';
 import AdminLayout from '@/layouts/admin-layout';
 import { router, usePage } from '@inertiajs/react';
-import { Plus, Star, Trash2 } from 'lucide-react';
+import { Plus, Star, Trash2, Trees } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 // Types (kept minimal for runtime flexibility)
@@ -26,7 +26,9 @@ interface ConditionData {
 }
 
 export default function DecisionTreePage() {
-    const { props } = usePage();
+    const page = usePage<{ flash: Record<string, unknown> }>();
+    const { props } = page;
+    const { flash } = page.props;
 
     // conditionsByBU: { [businessUnitId]: ConditionData[] }
     const [conditionsByBU, setConditionsByBU] = useState<Record<number, ConditionData[]>>({});
@@ -36,7 +38,6 @@ export default function DecisionTreePage() {
     const [editingValues, setEditingValues] = useState<{ label: string; observation: string }>({ label: '', observation: '' });
     const [initialConditionByBU, setInitialConditionByBU] = useState<Record<number, number | null>>({});
     const [submitErrors, setSubmitErrors] = useState<string[]>([]);
-    const { flash } = usePage().props as any;
     const listRef = useRef<HTMLUListElement | null>(null);
 
     //Scroll into new conditions
@@ -411,8 +412,14 @@ export default function DecisionTreePage() {
 
     return (
         <AdminLayout>
-            <div className="mx-auto max-w-7xl space-y-6">
-                <h1 className="text-2xl font-semibold">Árbol de decisión</h1>
+            <div className="mx-auto max-w-7xl space-y-6 p-6">
+                <div className="flex items-center gap-3">
+                    <Trees className="h-8 w-8 text-blue-600" />
+                    <div>
+                        <h1 className="text-3xl font-bold text-slate-900">Árbol de decisión</h1>
+                        <p className="mt-1 text-sm text-gray-600">Condiciones y flujos por unidad de negocio</p>
+                    </div>
+                </div>
                 <FlashAlert flash={flash} />
 
                 <div className="flex items-center gap-4">

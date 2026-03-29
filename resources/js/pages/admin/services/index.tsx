@@ -1,10 +1,12 @@
+import { AdminPagination } from '@/components/admin/admin-pagination';
+import { AdminTableToolbar } from '@/components/admin/admin-table-toolbar';
 import { Button } from '@/components/ui/button';
 import FlashAlert from '@/components/ui/flashalert';
-import { router, usePage } from '@inertiajs/react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
-import { route } from 'ziggy-js';
 import AdminLayout from '@/layouts/admin-layout';
-import { useState } from 'react';
+import type { PageProps } from '@/types';
+import { router, usePage } from '@inertiajs/react';
+import { Pencil, Plus, Trash2, Wrench } from 'lucide-react';
+import { route } from 'ziggy-js';
 
 interface Service {
     id: number;
@@ -13,119 +15,170 @@ interface Service {
 }
 
 interface BusinessUnit {
-    id: string;
+    id: number | string;
     display_name: string;
 }
 
-interface IndexPageProps extends Record<string, unknown> {
-    auth: { user: any };
-    viewData: {
-        services: Service[];
-        businessUnits: BusinessUnit[];
-    };
+interface Paginated<T> {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number | null;
+    to: number | null;
 }
+
+type IndexPageProps = PageProps<{
+    viewData: {
+        services: Paginated<Service>;
+        businessUnits: BusinessUnit[];
+        filters: {
+            search: string;
+            business_unit_id: string;
+        };
+    };
+}>;
 
 export default function Index() {
     const { viewData, flash } = usePage<IndexPageProps & { flash: Record<string, unknown> }>().props;
-    const { services, businessUnits } = viewData;
-    const [selectedBusinessUnit, setSelectedBusinessUnit] = useState<string>('all');
+    const { services, businessUnits, filters } = viewData;
+    const rows = services.data;
     const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
-    const filteredServices = selectedBusinessUnit === 'all' 
-        ? services 
-        : services.filter(service => service.business_unit_id === parseInt(selectedBusinessUnit));
+    const handleBusinessUnitFilter = (value: string) => {
+        const params: Record<string, string | number> = { page: 1 };
+        if (filters.search) {
+            params.search = filters.search;
+        }
+        if (value && value !== 'all') {
+            params.business_unit_id = value;
+        }
+        router.get(route('dashboard.services.index'), params, { preserveState: true, replace: true });
+    };
 
-    // Acción: borrar servicio
     const handleDelete = (id: number) => {
         if (confirm('¿Seguro que deseas borrar este servicio?')) {
             router.delete(route('dashboard.services.delete', id));
         }
     };
 
-    // Acción: ir a editar
     const handleEdit = (id: number) => {
         router.get(route('dashboard.services.edit', id));
     };
 
-    // Acción: ir a crear
     const handleCreate = () => {
         router.get(route('dashboard.services.create'));
     };
 
-        return (
-                <AdminLayout>
-                        <div className="p-6">
-                <h1 className="mb-6 text-center text-3xl font-bold leading-tight text-slate-900 md:text-3xl">Administrar Servicios</h1>
-                <FlashAlert flash={flash}/>
-                <div className="mb-4 flex items-center justify-between">
-                    <Button variant="crear" onClick={handleCreate}>
-                        <Plus /> Crear servicio
-                    </Button>
-                    <div className="flex items-center gap-2">
-                        <label htmlFor="business-unit-filter" className="text-sm font-medium text-gray-700">
-                            Filtrar por Unidad de Negocio:
+    const unitFilterValue = filters.business_unit_id || 'all';
+
+    return (
+        <AdminLayout>
+            <div className="p-6">
+                <div className="mx-auto mb-6 flex max-w-6xl flex-col gap-4">
+                    <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+                        <div className="flex items-center gap-3">
+                            <Wrench className="h-8 w-8 text-blue-600" />
+                            <div className="text-center sm:text-left">
+                                <h1 className="text-3xl font-bold text-slate-900">Servicios</h1>
+                                <p className="mt-1 text-sm text-gray-600">Administra los servicios por unidad de negocio</p>
+                            </div>
+                        </div>
+                        <Button onClick={handleCreate} variant="crear" className="bg-amber-600 hover:bg-amber-600">
+                            <Plus className="h-4 w-4" />
+                            Nuevo servicio
+                        </Button>
+                    </div>
+                </div>
+
+                <div className="mx-auto max-w-6xl">
+                    <FlashAlert flash={flash} />
+                </div>
+
+                <AdminTableToolbar
+                    routeName="dashboard.services.index"
+                    filters={filters}
+                    searchPlaceholder="Nombre del servicio…"
+                    extraKeys={['business_unit_id']}
+                >
+                    <div className="flex w-full flex-col gap-1 sm:w-auto sm:min-w-[220px]">
+                        <label htmlFor="business-unit-filter" className="text-xs font-medium text-gray-600">
+                            Unidad de negocio
                         </label>
                         <select
                             id="business-unit-filter"
-                            value={selectedBusinessUnit}
-                            onChange={(e) => setSelectedBusinessUnit(e.target.value)}
-                            className="rounded-lg border border-gray-300 bg-white px-4 py-2 shadow-sm transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                            value={unitFilterValue}
+                            onChange={(e) => handleBusinessUnitFilter(e.target.value)}
+                            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="all">Todas</option>
                             {businessUnits.map((unit) => (
-                                <option key={unit.id} value={unit.id}>
+                                <option key={String(unit.id)} value={String(unit.id)}>
                                     {unit.display_name}
                                 </option>
                             ))}
                         </select>
                     </div>
+                </AdminTableToolbar>
+
+                <div className="mx-auto max-w-6xl overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">ID</th>
+                                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Nombre</th>
+                                <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 bg-white">
+                            {rows.length > 0 ? (
+                                rows.map((service) => (
+                                    <tr key={service.id} className="transition hover:bg-gray-50">
+                                        <td className="px-6 py-4 text-sm text-gray-900">{service.id}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-900">{capitalize(service.name)}</td>
+                                        <td className="px-6 py-4 text-center">
+                                            <div className="flex justify-center gap-4">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleEdit(service.id)}
+                                                    className="text-blue-600 transition hover:text-blue-800"
+                                                    title="Editar"
+                                                >
+                                                    <Pencil className="h-5 w-5" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDelete(service.id)}
+                                                    className="text-red-600 transition hover:text-red-800"
+                                                    title="Eliminar"
+                                                >
+                                                    <Trash2 className="h-5 w-5" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={3} className="px-6 py-6 text-center text-gray-500">
+                                        {filters.search || unitFilterValue !== 'all'
+                                            ? 'No hay resultados con los filtros actuales.'
+                                            : 'No hay servicios registrados.'}
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
 
-            <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-                <table className="w-full">
-                    <thead>
-                        <tr className="border-b bg-gray-50">
-                            <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">ID</th>
-                            <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Nombre</th>
-                            <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredServices.map((service) => (
-                            <tr key={service.id} className="hover:bg-gray-50">
-                                <td className="flex justify-center border-b px-4 py-2">{service.id}</td>
-                                <td className="border-b px-4 py-2 text-center">{capitalize(service.name)}</td>
-
-                                <td className="border-b px-4 py-2">
-                                    <div className="flex items-center justify-center gap-5">
-                                        {/* Editar */}
-                                        <button
-                                            onClick={() => handleEdit(service.id)}
-                                            className="transform transition hover:scale-110"
-                                            title="Editar"
-                                        >
-                                            <Pencil className="h-6 w-6 text-blue-500 hover:text-blue-600" />
-
-                                        </button>
-                                        <button onClick={() => handleDelete(service.id)} className="text-red-600 hover:text-red-800 transition-colors" title="Borrar">
-                                            <Trash2 className="h-5 w-5" />
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-
-                        {filteredServices.length === 0 && (
-                            <tr>
-                                <td colSpan={3} className="py-4 text-center">
-                                    {selectedBusinessUnit === 'all' ? 'No hay servicios registrados.' : 'No hay servicios para la unidad de negocio seleccionada.'}
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-                        </div>
-                    </div>
-                </AdminLayout>
+                <AdminPagination
+                    routeName="dashboard.services.index"
+                    meta={services}
+                    filters={filters}
+                    extraKeys={['business_unit_id']}
+                />
+            </div>
+        </AdminLayout>
     );
 }
