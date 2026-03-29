@@ -77,9 +77,9 @@ class AdminGestionLineController extends Controller
             $gestionLine = GestionLine::findOrFail($id);
             $gestionLine->update($validatedData);
 
-            return redirect()->route('admin.lines.index')->with('success', 'Línea de gestión actualizada exitosamente.');
+            return redirect()->route('dashboard.lines.index')->with('success', 'Línea de gestión actualizada exitosamente.');
         } catch (ModelNotFoundException $e) {
-            return redirect()->route('admin.lines.index')->with('error', 'Línea de gestión con ID '.$id.' no encontrada.');
+            return redirect()->route('dashboard.lines.index')->with('error', 'Línea de gestión con ID '.$id.' no encontrada.');
         }
     }
 }

@@ -15,14 +15,14 @@ class MailService
     public static function sendQuotationPendingEmail(QuotationProposalOrder $quotationOrder): void
     {
         $email = $quotationOrder->getContactInfo()['email'];
-        Mail::to($email)->send(new QuotationPending($quotationOrder));
+        Mail::to($email)->queue(new QuotationPending($quotationOrder));
         self::sendAdminQuotationPendingNotification($quotationOrder);
     }
 
     public static function sendQuotationGeneratedEmail(QuotationProposalOrder $quotationOrder): void
     {
         $email = $quotationOrder->getContactInfo()['email'];
-        Mail::to($email)->send(new QuotationGenerated($quotationOrder));
+        Mail::to($email)->queue(new QuotationGenerated($quotationOrder));
         self::sendAdminQuotationGeneratedNotification($quotationOrder);
     }
 
@@ -33,7 +33,7 @@ class MailService
             return;
         }
 
-        Mail::to($adminEmail)->send(new QuotationPendingAdmin($quotationOrder));
+        Mail::to($adminEmail)->queue(new QuotationPendingAdmin($quotationOrder));
     }
 
     public static function sendAdminQuotationGeneratedNotification(QuotationProposalOrder $quotationOrder): void
@@ -43,6 +43,6 @@ class MailService
             return;
         }
 
-        Mail::to($adminEmail)->send(new QuotationGeneratedAdmin($quotationOrder));
+        Mail::to($adminEmail)->queue(new QuotationGeneratedAdmin($quotationOrder));
     }
 }
