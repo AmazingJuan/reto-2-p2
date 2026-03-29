@@ -6,6 +6,7 @@ use App\Mail\QuotationGenerated;
 use App\Mail\QuotationGeneratedAdmin;
 use App\Mail\QuotationPending;
 use App\Mail\QuotationPendingAdmin;
+use App\Mail\WelcomeEmail;
 use App\Models\Configuration;
 use App\Models\QuotationProposalOrder;
 use Illuminate\Support\Facades\Mail;
@@ -44,5 +45,10 @@ class MailService
         }
 
         Mail::to($adminEmail)->queue(new QuotationGeneratedAdmin($quotationOrder));
+    }
+
+    public static function sendWelcomeEmail(string $toEmail, string $platformUrl, ?string $recipientName = null): void
+    {
+        Mail::to($toEmail)->queue(new WelcomeEmail($platformUrl, $recipientName));
     }
 }

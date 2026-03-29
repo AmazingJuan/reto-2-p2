@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\AdminGestionLineController;
 use App\Http\Controllers\Admin\AdminQuotationOrderController;
 use App\Http\Controllers\Admin\AdminServiceController;
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AdminWelcomeBroadcastController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () {
@@ -58,4 +59,8 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
     // Configuraciones
     Route::get('/configuraciones', [AdminConfigurationController::class, 'edit'])->name('dashboard.configurations.edit');
     Route::put('/configuraciones', [AdminConfigurationController::class, 'update'])->name('dashboard.configurations.update');
+
+    // Correos de bienvenida (lista manual)
+    Route::get('/correos-bienvenida', [AdminWelcomeBroadcastController::class, 'create'])->name('dashboard.welcome-broadcast.create');
+    Route::post('/correos-bienvenida', [AdminWelcomeBroadcastController::class, 'store'])->name('dashboard.welcome-broadcast.store');
 });
