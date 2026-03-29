@@ -1,7 +1,7 @@
 import Footer from '@/components/admin/footer';
 import { Link, usePage } from '@inertiajs/react';
 import { Box, FileText, Home, Layers, Mail, Menu, Settings, Trees, Users, X } from 'lucide-react';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { route } from 'ziggy-js';
 
 interface AdminLayoutProps {
@@ -21,8 +21,22 @@ const navItems = [
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [isDesktop, setIsDesktop] = useState(() =>
+        typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)').matches : false,
+    );
     const { url } = usePage();
     const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+
+    useEffect(() => {
+        const mq = window.matchMedia('(min-width: 768px)');
+        const onChange = () => {
+            setIsDesktop(mq.matches);
+            if (mq.matches) setSidebarOpen(false);
+        };
+        onChange();
+        mq.addEventListener('change', onChange);
+        return () => mq.removeEventListener('change', onChange);
+    }, []);
 
     const openSidebar = () => {
         setSidebarOpen(true);
@@ -43,17 +57,17 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900">
-            <div className="flex">
+            <div className="flex min-w-0">
                 {/* Sidebar */}
                 <aside
-                    className={`fixed inset-y-0 left-0 z-40 w-64 shrink-0 transform border-r bg-white transition-transform duration-200 ease-in-out md:static md:block md:translate-x-0 ${
+                    className={`fixed inset-y-0 left-0 z-40 flex w-64 max-w-[calc(100vw-1rem)] shrink-0 flex-col overflow-y-auto border-r bg-white transition-transform duration-200 ease-in-out sm:max-w-none md:static md:translate-x-0 ${
                         sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
                     }`}
-                    aria-hidden={!sidebarOpen}
+                    aria-hidden={isDesktop ? false : !sidebarOpen}
                 >
-                    <div className="sticky top-0 flex h-full flex-col justify-between">
+                    <div className="flex min-h-0 flex-1 flex-col">
                         <div>
-                            <div className="border-b p-6">
+                            <div className="border-b p-4 sm:p-6">
                                 <div className="flex items-center justify-between">
                                     <Link href={route('dashboard')} className="flex items-center gap-3">
                                         <div className="rounded-md bg-blue-600 p-2 text-white">
@@ -123,30 +137,46 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 </aside>
 
                 {/* Content area */}
-                <div className="min-h-screen flex-1">
+                <div className="flex min-h-screen min-w-0 flex-1 flex-col">
                     {/* Mobile topbar */}
-                    <div className="flex items-center justify-between border-b bg-white px-4 py-3 md:hidden">
+                    <header className="grid shrink-0 grid-cols-[2.75rem_1fr_2.75rem] items-center gap-1 border-b border-slate-200 bg-white px-2 py-2.5 supports-[padding:max(0px)]:pt-[max(0.625rem,env(safe-area-inset-top))] sm:grid-cols-[3rem_1fr_auto] sm:px-3 md:hidden">
                         <button
                             ref={menuButtonRef}
+                            type="button"
                             onClick={openSidebar}
-                            className="rounded-md p-2 text-slate-700 hover:bg-slate-50"
+                            className="justify-self-start rounded-lg p-2 text-slate-700 hover:bg-slate-100"
                             aria-label="Abrir menú"
                         >
                             <Menu className="h-5 w-5" />
                         </button>
-                        <Link href={route('dashboard')} className="text-sm font-semibold">
+                        <Link
+                            href={route('dashboard')}
+                            className="min-w-0 justify-self-center truncate text-center text-sm font-semibold text-slate-900"
+                        >
                             Panel Admin
                         </Link>
-                        <div />
-                    </div>
+                        <div className="justify-self-end">
+                            {!route().current('dashboard') ? (
+                                <Link
+                                    href={route('dashboard')}
+                                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 sm:px-2.5"
+                                >
+                                    <Home className="h-4 w-4 shrink-0" />
+                                    Inicio
+                                </Link>
+                            ) : (
+                                <span className="inline-block w-10" aria-hidden />
+                            )}
+                        </div>
+                    </header>
 
-                    <main className="mx-auto max-w-7xl p-4 pt-[96px] md:p-6">
-                        <div className="mb-6 flex items-center justify-between">
+                    <main className="mx-auto w-full min-w-0 max-w-[100vw] flex-1 px-3 py-4 sm:px-4 sm:py-5 md:px-6 md:py-6">
+                        <div className="mb-4 hidden items-center justify-between md:flex md:mb-6">
                             <div className="flex items-center gap-3">
                                 {!route().current('dashboard') && (
                                     <Link
                                         href={route('dashboard')}
-                                        className="hidden items-center gap-2 rounded bg-white px-3 py-2 text-sm shadow-sm md:inline-flex"
+                                        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
                                     >
                                         <Home className="h-4 w-4" />
                                         Volver al dashboard
@@ -155,7 +185,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                             </div>
                         </div>
 
-                        <div className="space-y-6">{children}</div>
+                        <div className="min-w-0 space-y-4 sm:space-y-6">{children}</div>
                     </main>
                 </div>
             </div>

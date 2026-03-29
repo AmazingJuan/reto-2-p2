@@ -54,22 +54,26 @@ export default function Index() {
 
     return (
         <AdminLayout>
-            <div className="p-6">
-                <div className="mx-auto mb-6 flex max-w-6xl flex-col items-center gap-4 sm:flex-row sm:justify-between">
+            <div className="w-full min-w-0 space-y-4">
+                <div className="mx-auto flex w-full min-w-0 max-w-6xl flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
-                        <GitBranch className="h-8 w-8 text-blue-600" />
-                        <div className="text-center sm:text-left">
-                            <h1 className="text-3xl font-bold text-slate-900">Líneas de gestión</h1>
+                        <GitBranch className="h-7 w-7 shrink-0 text-blue-600 sm:h-8 sm:w-8" />
+                        <div className="min-w-0 text-left">
+                            <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Líneas de gestión</h1>
                             <p className="mt-1 text-sm text-gray-600">Administra las líneas de gestión del sistema</p>
                         </div>
                     </div>
-                    <Button onClick={handleCreate} variant="crear" className="bg-amber-600 hover:bg-amber-600">
+                    <Button
+                        onClick={handleCreate}
+                        variant="crear"
+                        className="w-full shrink-0 bg-amber-600 hover:bg-amber-600 sm:w-auto"
+                    >
                         <Plus className="h-4 w-4" />
                         Nueva línea
                     </Button>
                 </div>
 
-                <div className="mx-auto max-w-6xl">
+                <div className="mx-auto w-full min-w-0 max-w-6xl">
                     <FlashAlert flash={flash} />
                 </div>
 
@@ -79,22 +83,22 @@ export default function Index() {
                     searchPlaceholder="Nombre o ID…"
                 />
 
-                <div className="mx-auto max-w-6xl overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
-                    <table className="min-w-full divide-y divide-gray-200">
+                <div className="mx-auto w-full min-w-0 max-w-6xl overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm [-webkit-overflow-scrolling:touch]">
+                    <table className="min-w-[520px] w-full divide-y divide-gray-200 sm:min-w-full">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">ID</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Nombre</th>
-                                <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">Acciones</th>
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">ID</th>
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">Nombre</th>
+                                <th className="px-3 py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 bg-white">
                             {rows.length > 0 ? (
                                 rows.map((line) => (
                                     <tr key={line.id} className="transition hover:bg-gray-50">
-                                        <td className="px-6 py-4 text-sm text-gray-900">{line.id}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-900">{capitalize(line.name)}</td>
-                                        <td className="px-6 py-4 text-center">
+                                        <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4">{line.id}</td>
+                                        <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4">{capitalize(line.name)}</td>
+                                        <td className="px-3 py-3 text-center sm:px-6 sm:py-4">
                                             <div className="flex justify-center gap-4">
                                                 <button
                                                     type="button"
@@ -118,7 +122,7 @@ export default function Index() {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={3} className="px-6 py-6 text-center text-gray-500">
+                                    <td colSpan={3} className="px-4 py-6 text-center text-gray-500 sm:px-6">
                                         {filters.search ? 'No hay resultados para tu búsqueda.' : 'No hay líneas de gestión registradas.'}
                                     </td>
                                 </tr>

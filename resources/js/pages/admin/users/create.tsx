@@ -21,17 +21,17 @@ export default function Create() {
         <AdminLayout>
             <Head title="Crear usuario" />
 
-            <div className="mx-auto mt-6 max-w-4xl px-4">
-                <div className="mb-8 flex items-center gap-3">
-                    <UserPlus className="h-8 w-8 text-blue-600" />
-                    <div>
-                        <h1 className="text-3xl font-bold text-slate-900">Crear usuario</h1>
+            <div className="mx-auto mt-2 w-full min-w-0 max-w-4xl sm:mt-6">
+                <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center">
+                    <UserPlus className="h-8 w-8 shrink-0 text-blue-600" />
+                    <div className="min-w-0">
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Crear usuario</h1>
                         <p className="mt-1 text-sm text-gray-600">Complete los campos para registrar un nuevo usuario.</p>
                     </div>
                 </div>
 
                 <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-                    <form onSubmit={handleSubmit} className="space-y-8 p-8">
+                    <form onSubmit={handleSubmit} className="space-y-6 p-4 sm:space-y-8 sm:p-8">
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div>
                                 <label htmlFor="name" className="mb-2 block text-sm font-medium text-gray-700">
@@ -99,12 +99,22 @@ export default function Create() {
                             </div>
                         </div>
 
-                        <div className="flex justify-end gap-3 border-t border-gray-200 pt-6">
-                            <Button type="button" onClick={() => window.history.back()} variant="crear" className="bg-red-600 hover:bg-red-700">
+                        <div className="flex flex-col gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end sm:pt-6">
+                            <Button
+                                type="button"
+                                onClick={() => window.history.back()}
+                                variant="crear"
+                                className="w-full bg-red-600 hover:bg-red-700 sm:w-auto"
+                            >
                                 <ArrowLeft className="mr-1 h-4 w-4" />
                                 Cancelar
                             </Button>
-                            <Button type="submit" disabled={processing} variant="crear" className="bg-amber-600 hover:bg-amber-700">
+                            <Button
+                                type="submit"
+                                disabled={processing}
+                                variant="crear"
+                                className="w-full bg-amber-600 hover:bg-amber-700 sm:w-auto"
+                            >
                                 {processing ? 'Guardando...' : 'Guardar usuario'}
                             </Button>
                         </div>

@@ -61,7 +61,7 @@ export default function Show() {
     if (!quotationOrder) {
         return (
             <AdminLayout>
-                <div className="p-6 text-center text-gray-500">No se encontró la cotización.</div>
+                <div className="px-2 py-8 text-center text-gray-500">No se encontró la cotización.</div>
             </AdminLayout>
         );
     }
@@ -70,34 +70,36 @@ export default function Show() {
         <AdminLayout>
             <Head title={`Cotización #${quotationOrder.id}`} />
 
-            <div className="mx-auto max-w-6xl p-6">
+            <div className="mx-auto w-full min-w-0 max-w-6xl space-y-4">
                 <FlashAlert flash={flash} />
 
-                <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center">
                         <Link
                             href={route('dashboard.quotation-orders.index')}
-                            className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900"
+                            className="inline-flex w-fit items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900"
                         >
                             <ArrowLeft className="h-5 w-5" />
                             Volver
                         </Link>
-                        <div className="flex items-center gap-3">
-                            <ScrollText className="h-8 w-8 text-blue-600" />
-                            <div>
-                                <h1 className="text-3xl font-bold text-slate-900">Cotización #{quotationOrder.id}</h1>
+                        <div className="flex min-w-0 items-center gap-3">
+                            <ScrollText className="h-7 w-7 shrink-0 text-blue-600 sm:h-8 sm:w-8" />
+                            <div className="min-w-0">
+                                <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                                    Cotización #{quotationOrder.id}
+                                </h1>
                                 <p className="mt-1 text-sm text-gray-600">Detalle de la solicitud</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
                         {!quotationOrder.is_generated ? (
                             <Button
                                 type="button"
                                 onClick={() => setShowUploadModal(true)}
                                 variant="crear"
-                                className="bg-emerald-600 hover:bg-emerald-700"
+                                className="w-full bg-emerald-600 hover:bg-emerald-700 sm:w-auto"
                             >
                                 <Upload className="mr-2 h-5 w-5" />
                                 Subir propuesta
@@ -107,7 +109,7 @@ export default function Show() {
                                 href={quotationOrder.quotation_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700"
+                                className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 sm:w-auto"
                             >
                                 <Download className="mr-2 h-5 w-5" />
                                 Descargar PDF
@@ -116,17 +118,19 @@ export default function Show() {
                     </div>
                 </div>
 
-                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                    <table className="w-full">
+                <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6 [-webkit-overflow-scrolling:touch]">
+                    <table className="w-full min-w-[280px]">
                         <tbody className="divide-y divide-gray-100">
                             <tr className="hover:bg-gray-50">
-                                <td className="w-1/3 px-6 py-4 font-semibold text-gray-600">ID</td>
-                                <td className="px-6 py-4 text-gray-900">{quotationOrder.id}</td>
+                                <td className="w-[36%] min-w-[7rem] px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:w-1/3 sm:px-6 sm:py-4">
+                                    ID
+                                </td>
+                                <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">{quotationOrder.id}</td>
                             </tr>
 
                             <tr className="hover:bg-gray-50">
-                                <td className="px-6 py-4 font-semibold text-gray-600">Estado</td>
-                                <td className="px-6 py-4">
+                                <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4">Estado</td>
+                                <td className="px-3 py-3 sm:px-6 sm:py-4">
                                     {quotationOrder.is_generated ? (
                                         <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
                                             Generada
@@ -142,50 +146,50 @@ export default function Show() {
                             {quotationOrder.contact_info && (
                                 <>
                                     <tr className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 font-semibold text-gray-600">Nombre</td>
-                                        <td className="px-6 py-4 text-gray-900">{quotationOrder.contact_info.name}</td>
+                                        <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Nombre</td>
+                                        <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">{quotationOrder.contact_info.name}</td>
                                     </tr>
                                     <tr className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 font-semibold text-gray-600">Email</td>
-                                        <td className="px-6 py-4 text-gray-900">{quotationOrder.contact_info.email}</td>
+                                        <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Email</td>
+                                        <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">{quotationOrder.contact_info.email}</td>
                                     </tr>
                                     {quotationOrder.contact_info.company && (
                                         <tr className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 font-semibold text-gray-600">Empresa</td>
-                                            <td className="px-6 py-4 text-gray-900">{quotationOrder.contact_info.company}</td>
+                                            <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Empresa</td>
+                                            <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">{quotationOrder.contact_info.company}</td>
                                         </tr>
                                     )}
                                     {quotationOrder.contact_info.phone && (
                                         <tr className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 font-semibold text-gray-600">Teléfono</td>
-                                            <td className="px-6 py-4 text-gray-900">{quotationOrder.contact_info.phone}</td>
+                                            <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Teléfono</td>
+                                            <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">{quotationOrder.contact_info.phone}</td>
                                         </tr>
                                     )}
                                     <tr className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 font-semibold text-gray-600">Cargo</td>
-                                        <td className="px-6 py-4 text-gray-900">{quotationOrder.contact_info.role}</td>
+                                        <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Cargo</td>
+                                        <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">{quotationOrder.contact_info.role}</td>
                                     </tr>
                                 </>
                             )}
 
                             {quotationOrder.business_unit && (
                                 <tr className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 font-semibold text-gray-600">Unidad de negocio</td>
-                                    <td className="px-6 py-4 text-gray-900">{quotationOrder.business_unit}</td>
+                                    <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Unidad de negocio</td>
+                                    <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">{quotationOrder.business_unit}</td>
                                 </tr>
                             )}
 
                             {quotationOrder.gestion_line && (
                                 <tr className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 font-semibold text-gray-600">Línea de gestión</td>
-                                    <td className="px-6 py-4 text-gray-900">{quotationOrder.gestion_line}</td>
+                                    <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Línea de gestión</td>
+                                    <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">{quotationOrder.gestion_line}</td>
                                 </tr>
                             )}
 
                             {quotationOrder.services && quotationOrder.services.length > 0 && (
                                 <tr className="align-top hover:bg-gray-50">
-                                    <td className="px-6 py-4 font-semibold text-gray-600">Servicios</td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Servicios</td>
+                                    <td className="px-3 py-3 sm:px-6 sm:py-4">
                                         <ul className="list-inside list-disc space-y-1 text-gray-900">
                                             {quotationOrder.services.map((service, idx) => (
                                                 <li key={idx}>{service}</li>
@@ -197,8 +201,8 @@ export default function Show() {
 
                             {quotationOrder.answers && Object.keys(quotationOrder.answers).length > 0 && (
                                 <tr className="align-top hover:bg-gray-50">
-                                    <td className="px-6 py-4 font-semibold text-gray-600">Respuestas</td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Respuestas</td>
+                                    <td className="px-3 py-3 sm:px-6 sm:py-4">
                                         <ul className="list-inside list-disc space-y-1 text-gray-900">
                                             {Object.entries(quotationOrder.answers).map(([key, value]) => (
                                                 <li key={key}>
@@ -212,8 +216,8 @@ export default function Show() {
 
                             {quotationOrder.created_at && (
                                 <tr className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 font-semibold text-gray-600">Fecha de creación</td>
-                                    <td className="px-6 py-4 text-gray-900">
+                                    <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Fecha de creación</td>
+                                    <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">
                                         {new Date(quotationOrder.created_at).toLocaleDateString('es-CO')}
                                     </td>
                                 </tr>
