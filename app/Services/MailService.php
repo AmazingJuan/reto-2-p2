@@ -12,17 +12,17 @@ class MailService
     public static function sendQuotationPendingEmail(QuotationProposalOrder $quotationOrder): void
     {
         $email = $quotationOrder->getContactInfo()["email"];
-        Mail::to($email)->send(new QuotationPending($quotationOrder));
+        Mail::to($email)->queue(new QuotationPending($quotationOrder));
     }
 
     public static function sendQuotationGeneratedEmail(QuotationProposalOrder $quotationOrder): void
     {
         $email = $quotationOrder->getContactInfo()["email"];
-        Mail::to($email)->send(new QuotationGenerated($quotationOrder));
+        Mail::to($email)->queue(new QuotationGenerated($quotationOrder));
     }
 
     public static function sendWelcomeEmail(string $email, string $platformUrl): void
     {
-        Mail::to($email)->send(new WelcomeEmail($platformUrl));
+        Mail::to($email)->queue(new WelcomeEmail($platformUrl));
     }
 }
