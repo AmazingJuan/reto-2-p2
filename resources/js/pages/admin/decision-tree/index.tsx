@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import FlashAlert from '@/components/ui/flashalert';
 import AdminLayout from '@/layouts/admin-layout';
+import type { PageProps } from '@/types';
 import { router, usePage } from '@inertiajs/react';
 import { Plus, Star, Trash2, Trees } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -25,8 +26,12 @@ interface ConditionData {
     options: OptionData[];
 }
 
+type DecisionTreePageProps = PageProps<{
+    viewData: Record<string, unknown>;
+}>;
+
 export default function DecisionTreePage() {
-    const page = usePage<{ flash: Record<string, unknown> }>();
+    const page = usePage<DecisionTreePageProps & { flash: Record<string, unknown> }>();
     const { props } = page;
     const { flash } = page.props;
 
