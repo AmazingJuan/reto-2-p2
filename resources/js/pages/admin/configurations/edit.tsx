@@ -1,6 +1,16 @@
+import {
+    AdminPageHeader,
+    adminFieldInputClass,
+    adminFieldLabelClass,
+    adminFormCardClass,
+    adminFormShellClass,
+    adminOutlineButtonClass,
+    adminPrimaryButtonClass,
+} from '@/components/admin/admin-page-header';
 import { Button } from '@/components/ui/button';
 import FlashAlert from '@/components/ui/flashalert';
 import AdminLayout from '@/layouts/admin-layout';
+import { cn } from '@/lib/utils';
 import type { PageProps } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { Settings } from 'lucide-react';
@@ -52,24 +62,18 @@ export default function Edit() {
         <AdminLayout>
             <Head title="Configuración" />
 
-            <div className="mx-auto mt-2 w-full min-w-0 max-w-4xl sm:mt-6">
-                <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center">
-                    <Settings className="h-8 w-8 shrink-0 text-blue-600" />
-                    <div className="min-w-0">
-                        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Configuración</h1>
-                        <p className="mt-1 text-sm text-gray-600">Ajustes generales del sistema</p>
-                    </div>
-                </div>
+            <div className={adminFormShellClass}>
+                <AdminPageHeader icon={Settings} title="Configuración" description="Ajustes generales del sistema" />
 
                 <FlashAlert flash={flash} />
 
-                <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+                <div className={adminFormCardClass}>
                     <form onSubmit={handleSubmit} className="space-y-6 p-4 sm:space-y-8 sm:p-8">
                         <div>
                             <div className="grid grid-cols-1 gap-6">
                                 {entries.map(([key]) => (
                                     <div key={key}>
-                                        <label htmlFor={key} className="mb-2 block text-sm font-medium text-gray-700">
+                                        <label htmlFor={key} className={adminFieldLabelClass}>
                                             {fieldLabel(key)}
                                         </label>
                                         <input
@@ -77,7 +81,7 @@ export default function Edit() {
                                             type={inputType(key)}
                                             value={data[key] ?? ''}
                                             onChange={(e) => setData(key, e.target.value)}
-                                            className="block w-full rounded-lg border border-gray-300 px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                                            className={adminFieldInputClass}
                                             autoComplete="off"
                                         />
                                         {errors[key] && <p className="mt-2 text-sm text-red-600">{errors[key]}</p>}
@@ -86,20 +90,20 @@ export default function Edit() {
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end sm:pt-6">
+                        <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end sm:pt-6">
                             <Button
                                 type="button"
                                 onClick={() => window.history.back()}
-                                variant="crear"
-                                className="w-full bg-red-600 hover:bg-red-700 sm:w-auto"
+                                variant="outline"
+                                className={cn(adminOutlineButtonClass, 'w-full sm:w-auto')}
                             >
                                 Cancelar
                             </Button>
                             <Button
                                 type="submit"
                                 disabled={processing}
-                                variant="crear"
-                                className="w-full bg-amber-600 hover:bg-amber-700 sm:w-auto"
+                                size="sm"
+                                className={cn(adminPrimaryButtonClass, 'w-full sm:w-auto')}
                             >
                                 {processing ? 'Guardando...' : 'Guardar configuración'}
                             </Button>

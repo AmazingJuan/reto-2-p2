@@ -1,5 +1,15 @@
+import {
+    AdminPageHeader,
+    adminFieldInputClass,
+    adminFieldLabelClass,
+    adminFormCardClass,
+    adminFormShellClass,
+    adminOutlineButtonClass,
+    adminPrimaryButtonClass,
+} from '@/components/admin/admin-page-header';
 import { Button } from '@/components/ui/button';
 import AdminLayout from '@/layouts/admin-layout';
+import { cn } from '@/lib/utils';
 import type { PageProps } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { ArrowLeft, BriefcaseBusiness } from 'lucide-react';
@@ -33,19 +43,17 @@ export default function Edit() {
         <AdminLayout>
             <Head title="Editar unidad de negocio" />
 
-            <div className="mx-auto mt-2 w-full min-w-0 max-w-4xl sm:mt-6">
-                <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center">
-                    <BriefcaseBusiness className="h-8 w-8 shrink-0 text-blue-600" />
-                    <div className="min-w-0">
-                        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Editar unidad de negocio</h1>
-                        <p className="mt-1 text-sm text-gray-600">Modifique el nombre y guarde los cambios.</p>
-                    </div>
-                </div>
+            <div className={adminFormShellClass}>
+                <AdminPageHeader
+                    icon={BriefcaseBusiness}
+                    title="Editar unidad de negocio"
+                    description="Modifique el nombre y guarde los cambios."
+                />
 
-                <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+                <div className={adminFormCardClass}>
                     <form onSubmit={handleSubmit} className="space-y-6 p-4 sm:space-y-8 sm:p-8">
                         <div>
-                            <label htmlFor="display_name" className="mb-2 block text-sm font-medium text-gray-700">
+                            <label htmlFor="display_name" className={adminFieldLabelClass}>
                                 Nombre <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -53,26 +61,26 @@ export default function Edit() {
                                 type="text"
                                 value={data.display_name}
                                 onChange={(e) => setData('display_name', e.target.value)}
-                                className="block w-full rounded-lg border border-gray-300 px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                                className={adminFieldInputClass}
                             />
                             {errors.display_name && <p className="mt-2 text-sm text-red-600">{errors.display_name}</p>}
                         </div>
 
-                        <div className="flex flex-col gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end sm:pt-6">
+                        <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end sm:pt-6">
                             <Button
                                 type="button"
                                 onClick={() => window.history.back()}
-                                variant="crear"
-                                className="w-full bg-red-600 hover:bg-red-700 sm:w-auto"
+                                variant="outline"
+                                className={cn(adminOutlineButtonClass, 'w-full sm:w-auto')}
                             >
-                                <ArrowLeft className="mr-1 h-4 w-4" />
+                                <ArrowLeft className="h-4 w-4" />
                                 Cancelar
                             </Button>
                             <Button
                                 type="submit"
                                 disabled={processing}
-                                variant="crear"
-                                className="w-full bg-amber-600 hover:bg-amber-700 sm:w-auto"
+                                size="sm"
+                                className={cn(adminPrimaryButtonClass, 'w-full sm:w-auto')}
                             >
                                 {processing ? 'Guardando...' : 'Guardar cambios'}
                             </Button>

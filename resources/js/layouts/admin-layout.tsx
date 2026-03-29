@@ -60,7 +60,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             <div className="flex min-w-0">
                 {/* Sidebar */}
                 <aside
-                    className={`fixed inset-y-0 left-0 z-40 flex w-64 max-w-[calc(100vw-1rem)] shrink-0 flex-col overflow-y-auto border-r bg-white transition-transform duration-200 ease-in-out sm:max-w-none md:static md:translate-x-0 ${
+                    className={`fixed inset-y-0 left-0 z-40 flex w-64 max-w-[calc(100vw-1rem)] shrink-0 flex-col overflow-y-auto border-r border-slate-200 bg-white transition-transform duration-200 ease-in-out sm:max-w-none ${
                         sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
                     }`}
                     aria-hidden={isDesktop ? false : !sidebarOpen}
@@ -136,8 +136,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     </div>
                 </aside>
 
-                {/* Content area */}
-                <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+                {/* Content area — ml matches fixed sidebar width on desktop */}
+                <div className="flex min-h-screen min-w-0 flex-1 flex-col md:ml-64">
                     {/* Mobile topbar */}
                     <header className="grid shrink-0 grid-cols-[2.75rem_1fr_2.75rem] items-center gap-1 border-b border-slate-200 bg-white px-2 py-2.5 supports-[padding:max(0px)]:pt-[max(0.625rem,env(safe-area-inset-top))] sm:grid-cols-[3rem_1fr_auto] sm:px-3 md:hidden">
                         <button
@@ -170,7 +170,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                         </div>
                     </header>
 
-                    <main className="mx-auto w-full min-w-0 max-w-[100vw] flex-1 px-3 py-4 sm:px-4 sm:py-5 md:px-6 md:py-6">
+                    <main className="mx-auto w-full min-w-0 max-w-[100vw] flex-1 px-3 py-4 pb-28 sm:px-4 sm:py-5 sm:pb-32 md:px-6 md:py-6 md:pb-32">
                         <div className="mb-4 hidden items-center justify-between md:flex md:mb-6">
                             <div className="flex items-center gap-3">
                                 {!route().current('dashboard') && (
