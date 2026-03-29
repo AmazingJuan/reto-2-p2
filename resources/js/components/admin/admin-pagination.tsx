@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { router } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { route as ziggyRoute } from 'ziggy-js';
@@ -20,9 +21,10 @@ interface AdminPaginationProps {
     filters: Record<string, string | undefined | null>;
     /** Query keys to include when changing page */
     extraKeys?: string[];
+    className?: string;
 }
 
-export function AdminPagination({ routeName, meta, filters, extraKeys = [] }: AdminPaginationProps) {
+export function AdminPagination({ routeName, meta, filters, extraKeys = [], className }: AdminPaginationProps) {
     const { current_page, last_page, total, from, to } = meta;
 
     if (last_page <= 1 && total === 0) {
@@ -51,32 +53,38 @@ export function AdminPagination({ routeName, meta, filters, extraKeys = [] }: Ad
               : `${total} resultado${total === 1 ? '' : 's'}`;
 
     return (
-        <div className="mx-auto mt-4 flex max-w-6xl flex-col items-center justify-between gap-3 border-t border-gray-100 pt-4 sm:flex-row">
-            <p className="text-sm text-gray-600">{summary}</p>
-            <div className="flex items-center gap-2">
-                <Button
-                    type="button"
-                    variant="crear"
-                    disabled={current_page <= 1}
-                    onClick={() => go(current_page - 1)}
-                    className="bg-white text-slate-800 ring-1 ring-gray-300 hover:bg-gray-50 disabled:opacity-40"
-                >
-                    <ChevronLeft className="h-4 w-4" />
-                    Anterior
-                </Button>
-                <span className="px-2 text-sm text-gray-700">
-                    Página {current_page} de {last_page}
-                </span>
-                <Button
-                    type="button"
-                    variant="crear"
-                    disabled={current_page >= last_page}
-                    onClick={() => go(current_page + 1)}
-                    className="bg-white text-slate-800 ring-1 ring-gray-300 hover:bg-gray-50 disabled:opacity-40"
-                >
-                    Siguiente
-                    <ChevronRight className="h-4 w-4" />
-                </Button>
+        <div
+            className={cn(
+                'mx-auto mt-4 flex w-full min-w-0 max-w-6xl flex-col gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:items-center sm:justify-between',
+                className,
+            )}
+        >
+            <p className="text-center text-sm text-gray-600 sm:text-left">{summary}</p>
+            <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-3">
+                <p className="text-center text-sm text-gray-700 sm:hidden">Página {current_page} de {last_page}</p>
+                <div className="flex gap-2">
+                    <Button
+                        type="button"
+                        variant="crear"
+                        disabled={current_page <= 1}
+                        onClick={() => go(current_page - 1)}
+                        className="min-h-10 flex-1 bg-white text-slate-800 ring-1 ring-gray-300 hover:bg-gray-50 disabled:opacity-40 sm:flex-none"
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                        Anterior
+                    </Button>
+                    <span className="hidden items-center px-1 text-sm text-gray-700 sm:inline">Página {current_page} de {last_page}</span>
+                    <Button
+                        type="button"
+                        variant="crear"
+                        disabled={current_page >= last_page}
+                        onClick={() => go(current_page + 1)}
+                        className="min-h-10 flex-1 bg-white text-slate-800 ring-1 ring-gray-300 hover:bg-gray-50 disabled:opacity-40 sm:flex-none"
+                    >
+                        Siguiente
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
+                </div>
             </div>
         </div>
     );

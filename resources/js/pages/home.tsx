@@ -1,17 +1,15 @@
 import Header from '@/components/ui/header';
+import type { PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { ArrowRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-// Si no tienes el tipo PageProps, puedes definirlo así:
-type PageProps<T = {}> = {
-    auth: any;
-    flash?: { success?: string };
-    [key: string]: any;
-} & T;
+type HomePageProps = PageProps & {
+    flash?: { success?: string; error?: string };
+};
 
 export default function Home() {
-    const { props } = usePage<PageProps>();
+    const { props } = usePage<HomePageProps>();
     const successMessage = props.flash?.success;
     const [showSuccess, setShowSuccess] = useState(false);
 

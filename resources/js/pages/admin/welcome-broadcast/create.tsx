@@ -48,11 +48,11 @@ export default function Create() {
         <AdminLayout>
             <Head title="Correos de bienvenida" />
 
-            <div className="mx-auto max-w-3xl px-4 pb-10 pt-6">
-                <div className="mb-6 flex items-start gap-3">
-                    <Mail className="mt-1 h-8 w-8 shrink-0 text-blue-600" aria-hidden />
-                    <div>
-                        <h1 className="text-3xl font-bold text-slate-900">Enviar correos de bienvenida</h1>
+            <div className="mx-auto w-full min-w-0 max-w-3xl pb-8 pt-2 sm:pb-10 sm:pt-0">
+                <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start">
+                    <Mail className="h-8 w-8 shrink-0 text-blue-600 sm:mt-1" aria-hidden />
+                    <div className="min-w-0">
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Enviar correos de bienvenida</h1>
                         <p className="mt-1 text-sm text-gray-600">
                             Este correo se envía a nuevos clientes para informarles sobre la plataforma donde podrán solicitar cotizaciones.
                         </p>
@@ -80,7 +80,7 @@ export default function Create() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="rounded-lg border border-gray-200 bg-white shadow-sm">
-                    <div className="space-y-4 p-6 sm:p-8">
+                    <div className="space-y-4 p-4 sm:p-6 md:p-8">
                         <div>
                             <label htmlFor="emails_text" className="mb-2 block text-sm font-medium text-gray-800">
                                 Lista de correos
@@ -122,7 +122,12 @@ export default function Create() {
 
                         <div className="flex flex-col gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
                             <p className="text-xs text-gray-500">Máximo 500 correos por envío. Las direcciones duplicadas se envían una sola vez.</p>
-                            <Button type="submit" variant="crear" disabled={processing} className="bg-blue-600 hover:bg-blue-700">
+                            <Button
+                                type="submit"
+                                variant="crear"
+                                disabled={processing}
+                                className="w-full bg-blue-600 hover:bg-blue-700 sm:w-auto"
+                            >
                                 {processing ? 'Enviando…' : 'Poner en cola el envío'}
                             </Button>
                         </div>

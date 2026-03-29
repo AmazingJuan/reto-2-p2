@@ -72,11 +72,11 @@ const Dashboard: React.FC = () => {
 
     return (
         <AdminLayout>
-            <div className="mx-auto max-w-5xl px-4 pb-10 pt-6">
-                <div className="mb-6 flex justify-end">
+            <div className="mx-auto w-full min-w-0 max-w-5xl pb-8 pt-2 sm:pb-10 sm:pt-0">
+                <div className="mb-4 flex justify-stretch sm:mb-6 sm:justify-end">
                     <Link
                         href={route('home')}
-                        className="inline-flex items-center gap-2 rounded border border-[#0693e3] bg-white px-3 py-2 text-sm font-semibold text-[#0693e3] shadow-sm transition hover:bg-[#0693e3] hover:text-white"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#0693e3] bg-white px-4 py-2.5 text-sm font-semibold text-[#0693e3] shadow-sm transition hover:bg-[#0693e3] hover:text-white sm:w-auto"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5">
                             <path
@@ -88,17 +88,17 @@ const Dashboard: React.FC = () => {
                         Salir
                     </Link>
                 </div>
-                <section className="mx-auto mb-8 max-w-4xl text-center">
-                    <h2 className="text-4xl font-bold leading-tight text-slate-900">Dashboard</h2>
+                <section className="mx-auto mb-6 max-w-4xl text-center sm:mb-8">
+                    <h2 className="text-2xl font-bold leading-tight text-slate-900 sm:text-4xl">Dashboard</h2>
                     <p className="mt-2 text-gray-600">Acceso rápido a los recursos de administración</p>
                 </section>
 
-                <section className="mx-auto grid max-w-5xl gap-5 pb-6 sm:grid-cols-2 lg:grid-cols-3">
+                <section className="mx-auto grid max-w-5xl grid-cols-1 gap-4 pb-6 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
                     {items.map(({ label, name, desc, icon: Icon, accent }) => (
                         <Link
                             key={name}
                             href={route(name)}
-                            className="group relative block rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                            className="group relative block min-w-0 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 sm:p-5"
                         >
                             <div className="flex items-start gap-4">
                                 <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${badgeClasses[accent]}`}>

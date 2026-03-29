@@ -33,17 +33,17 @@ export default function Edit() {
         <AdminLayout>
             <Head title="Editar unidad de negocio" />
 
-            <div className="mx-auto mt-6 max-w-4xl px-4">
-                <div className="mb-8 flex items-center gap-3">
-                    <BriefcaseBusiness className="h-8 w-8 text-blue-600" />
-                    <div>
-                        <h1 className="text-3xl font-bold text-slate-900">Editar unidad de negocio</h1>
+            <div className="mx-auto mt-2 w-full min-w-0 max-w-4xl sm:mt-6">
+                <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center">
+                    <BriefcaseBusiness className="h-8 w-8 shrink-0 text-blue-600" />
+                    <div className="min-w-0">
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Editar unidad de negocio</h1>
                         <p className="mt-1 text-sm text-gray-600">Modifique el nombre y guarde los cambios.</p>
                     </div>
                 </div>
 
                 <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-                    <form onSubmit={handleSubmit} className="space-y-8 p-8">
+                    <form onSubmit={handleSubmit} className="space-y-6 p-4 sm:space-y-8 sm:p-8">
                         <div>
                             <label htmlFor="display_name" className="mb-2 block text-sm font-medium text-gray-700">
                                 Nombre <span className="text-red-500">*</span>
@@ -58,12 +58,22 @@ export default function Edit() {
                             {errors.display_name && <p className="mt-2 text-sm text-red-600">{errors.display_name}</p>}
                         </div>
 
-                        <div className="flex justify-end gap-3 border-t border-gray-200 pt-6">
-                            <Button type="button" onClick={() => window.history.back()} variant="crear" className="bg-red-600 hover:bg-red-700">
+                        <div className="flex flex-col gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end sm:pt-6">
+                            <Button
+                                type="button"
+                                onClick={() => window.history.back()}
+                                variant="crear"
+                                className="w-full bg-red-600 hover:bg-red-700 sm:w-auto"
+                            >
                                 <ArrowLeft className="mr-1 h-4 w-4" />
                                 Cancelar
                             </Button>
-                            <Button type="submit" disabled={processing} variant="crear" className="bg-amber-600 hover:bg-amber-700">
+                            <Button
+                                type="submit"
+                                disabled={processing}
+                                variant="crear"
+                                className="w-full bg-amber-600 hover:bg-amber-700 sm:w-auto"
+                            >
                                 {processing ? 'Guardando...' : 'Guardar cambios'}
                             </Button>
                         </div>

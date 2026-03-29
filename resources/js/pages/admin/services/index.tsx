@@ -75,24 +75,26 @@ export default function Index() {
 
     return (
         <AdminLayout>
-            <div className="p-6">
-                <div className="mx-auto mb-6 flex max-w-6xl flex-col gap-4">
-                    <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-                        <div className="flex items-center gap-3">
-                            <Wrench className="h-8 w-8 text-blue-600" />
-                            <div className="text-center sm:text-left">
-                                <h1 className="text-3xl font-bold text-slate-900">Servicios</h1>
-                                <p className="mt-1 text-sm text-gray-600">Administra los servicios por unidad de negocio</p>
-                            </div>
+            <div className="w-full min-w-0 space-y-4">
+                <div className="mx-auto flex w-full min-w-0 max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3">
+                        <Wrench className="h-7 w-7 shrink-0 text-blue-600 sm:h-8 sm:w-8" />
+                        <div className="min-w-0 text-left">
+                            <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Servicios</h1>
+                            <p className="mt-1 text-sm text-gray-600">Administra los servicios por unidad de negocio</p>
                         </div>
-                        <Button onClick={handleCreate} variant="crear" className="bg-amber-600 hover:bg-amber-600">
-                            <Plus className="h-4 w-4" />
-                            Nuevo servicio
-                        </Button>
                     </div>
+                    <Button
+                        onClick={handleCreate}
+                        variant="crear"
+                        className="w-full shrink-0 bg-amber-600 hover:bg-amber-600 sm:w-auto"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Nuevo servicio
+                    </Button>
                 </div>
 
-                <div className="mx-auto max-w-6xl">
+                <div className="mx-auto w-full min-w-0 max-w-6xl">
                     <FlashAlert flash={flash} />
                 </div>
 
@@ -102,7 +104,7 @@ export default function Index() {
                     searchPlaceholder="Nombre del servicio…"
                     extraKeys={['business_unit_id']}
                 >
-                    <div className="flex w-full flex-col gap-1 sm:w-auto sm:min-w-[220px]">
+                    <div className="flex w-full min-w-0 flex-col gap-1 sm:w-auto sm:min-w-[200px] md:min-w-[220px]">
                         <label htmlFor="business-unit-filter" className="text-xs font-medium text-gray-600">
                             Unidad de negocio
                         </label>
@@ -122,22 +124,22 @@ export default function Index() {
                     </div>
                 </AdminTableToolbar>
 
-                <div className="mx-auto max-w-6xl overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
-                    <table className="min-w-full divide-y divide-gray-200">
+                <div className="mx-auto w-full min-w-0 max-w-6xl overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm [-webkit-overflow-scrolling:touch]">
+                    <table className="min-w-[520px] w-full divide-y divide-gray-200 sm:min-w-full">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">ID</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Nombre</th>
-                                <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">Acciones</th>
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">ID</th>
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">Nombre</th>
+                                <th className="px-3 py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 bg-white">
                             {rows.length > 0 ? (
                                 rows.map((service) => (
                                     <tr key={service.id} className="transition hover:bg-gray-50">
-                                        <td className="px-6 py-4 text-sm text-gray-900">{service.id}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-900">{capitalize(service.name)}</td>
-                                        <td className="px-6 py-4 text-center">
+                                        <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4">{service.id}</td>
+                                        <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4">{capitalize(service.name)}</td>
+                                        <td className="px-3 py-3 text-center sm:px-6 sm:py-4">
                                             <div className="flex justify-center gap-4">
                                                 <button
                                                     type="button"
@@ -161,7 +163,7 @@ export default function Index() {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={3} className="px-6 py-6 text-center text-gray-500">
+                                    <td colSpan={3} className="px-4 py-6 text-center text-gray-500 sm:px-6">
                                         {filters.search || unitFilterValue !== 'all'
                                             ? 'No hay resultados con los filtros actuales.'
                                             : 'No hay servicios registrados.'}
