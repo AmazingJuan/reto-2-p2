@@ -4,6 +4,7 @@ import AdminLayout from '@/layouts/admin-layout';
 import { router, usePage } from '@inertiajs/react';
 import { Plus, Star, Trash2, Trees } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { PageProps } from '@/types';
 
 // Types (kept minimal for runtime flexibility)
 type InteractionType = 'range' | 'options' | 'input';
@@ -26,7 +27,7 @@ interface ConditionData {
 }
 
 export default function DecisionTreePage() {
-    const page = usePage<{ flash: Record<string, unknown> }>();
+    const page = usePage<PageProps<{ flash: Record<string, unknown> }>>();
     const { props } = page;
     const { flash } = page.props;
 
