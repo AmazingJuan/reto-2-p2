@@ -15,6 +15,13 @@ class AdminUserUpdateRequest extends FormRequest
         return Auth::check();
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->input('password') === '' || $this->input('password') === null) {
+            $this->merge(['password' => null]);
+        }
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -26,7 +33,7 @@ class AdminUserUpdateRequest extends FormRequest
 
         return [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $userId,
+            'email' => 'required|email|unique:users,email,'.$userId,
             'password' => 'nullable|string|min:8',
             'phone' => 'required|string|min:10|max:15',
         ];

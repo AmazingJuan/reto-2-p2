@@ -8,16 +8,32 @@ use App\Models\GestionLine;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
 class AdminGestionLineController extends Controller
 {
-    public function index(): InertiaResponse
+    public function index(Request $request): InertiaResponse
     {
-    
-        $gestionLines = GestionLine::select('id', 'name')->orderBy('id')->get();
-        $viewData['gestionLines'] = $gestionLines;
+        $search = $request->string('search')->trim()->toString();
+
+        $query = GestionLine::query()->select('id', 'name')->orderBy('id');
+
+        if ($search !== '') {
+            $like = '%'.$search.'%';
+            $query->where(function ($q) use ($like, $search) {
+                $q->where('name', 'like', $like);
+                if (ctype_digit($search)) {
+                    $q->orWhere('id', (int) $search);
+                }
+            });
+        }
+
+        $viewData['gestionLines'] = $query->paginate(15)->withQueryString();
+        $viewData['filters'] = [
+            'search' => $search,
+        ];
 
         return Inertia::render('admin/gestion-lines/index', compact('viewData'));
     }

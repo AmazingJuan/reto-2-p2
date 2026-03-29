@@ -1,7 +1,8 @@
-import { Button } from '@/components/ui/button';
 import AdminLayout from '@/layouts/admin-layout';
+import type { PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, BriefcaseBusiness } from 'lucide-react';
+import { route } from 'ziggy-js';
 
 interface BusinessUnit {
     id: number;
@@ -13,13 +14,12 @@ interface Service {
     name: string;
 }
 
-interface ShowPageProps extends Record<string, unknown> {
-    auth: { user: any };
+type ShowPageProps = PageProps<{
     viewData: {
         businessUnit: BusinessUnit;
         services: Service[];
     };
-}
+}>;
 
 export default function Show() {
     const { viewData } = usePage<ShowPageProps>().props;
@@ -29,61 +29,49 @@ export default function Show() {
     return (
         <AdminLayout>
             <div className="p-6">
-                <div className="ml-5 mt-4">
-                    <Link href={'/dashboard/unidad-negocio'}>
-                        <Button variant="outline" className="flex items-center gap-2">
-                            <ArrowLeft />
-                            {'Volver'}
-                        </Button>
+                <div className="mx-auto mb-6 max-w-6xl">
+                    <Link
+                        href={route('dashboard.business-unit.index')}
+                        className="mb-6 inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-gray-50"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                        Volver al listado
                     </Link>
-                </div>
 
-                <div className="mb-6 flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold text-slate-900">Unidad de Negocio</h1>
-                    </div>
-                </div>
-
-                <div className="mb-6 rounded-xl border bg-white p-6 shadow-sm">
-                    <div className="flex items-center justify-between">
+                    <div className="mb-8 flex items-center gap-3">
+                        <BriefcaseBusiness className="h-8 w-8 text-blue-600" />
                         <div>
-                            <h2 className="text-2xl font-semibold text-slate-800">{capitalize(businessUnit.display_name)}</h2>
+                            <h1 className="text-3xl font-bold text-slate-900">{capitalize(businessUnit.display_name)}</h1>
+                            <p className="mt-1 text-sm text-gray-600">Servicios asociados a esta unidad · ID #{businessUnit.id}</p>
                         </div>
-
-                        <div className="rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700">ID #{businessUnit.id}</div>
                     </div>
-                </div>
 
-                <p className="mb-5 mt-1 text-sm text-gray-600">
-                    Servicios asociados a la unidad <strong>{businessUnit.display_name}</strong>
-                </p>
-
-                <div className="rounded-lg border bg-white shadow">
-                    <table className="min-w-full">
-                        <thead>
-                            <tr className="bg-gray-100">
-                                <th className="border-b px-4 py-2 text-center">ID</th>
-                                <th className="border-b px-4 py-2 text-center">Nombre</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {services.map((service) => (
-                                <tr key={service.id} className="hover:bg-gray-50">
-                                    <td className="border-b px-4 py-2 text-center">{service.id}</td>
-                                    <td className="border-b px-4 py-2 text-center">{service.name}</td>
-                                </tr>
-                            ))}
-
-                            {services.length === 0 && (
+                    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
                                 <tr>
-                                    <td colSpan={2} className="py-6 text-center text-gray-500">
-                                        Esta unidad de negocio no tiene servicios asociados.
-                                    </td>
+                                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">ID</th>
+                                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Nombre</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 bg-white">
+                                {services.length > 0 ? (
+                                    services.map((service) => (
+                                        <tr key={service.id} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 text-sm text-gray-900">{service.id}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-900">{service.name}</td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={2} className="px-6 py-6 text-center text-gray-500">
+                                            Esta unidad no tiene servicios asociados.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </AdminLayout>

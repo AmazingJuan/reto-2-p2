@@ -7,10 +7,19 @@ use App\Http\Controllers\Admin\AdminDecisionTreeController;
 use App\Http\Controllers\Admin\AdminGestionLineController;
 use App\Http\Controllers\Admin\AdminQuotationOrderController;
 use App\Http\Controllers\Admin\AdminServiceController;
+use App\Http\Controllers\Admin\AdminUserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+    // Usuarios
+    Route::get('/usuarios', [AdminUserController::class, 'index'])->name('dashboard.users.index');
+    Route::get('/usuarios/crear', [AdminUserController::class, 'create'])->name('dashboard.users.create');
+    Route::post('/usuarios', [AdminUserController::class, 'store'])->name('dashboard.users.store');
+    Route::get('/usuarios/{id}/editar', [AdminUserController::class, 'edit'])->where('id', '[0-9]+')->name('dashboard.users.edit');
+    Route::put('/usuarios/{id}', [AdminUserController::class, 'update'])->where('id', '[0-9]+')->name('dashboard.users.update');
+    Route::delete('/usuarios/{id}', [AdminUserController::class, 'destroy'])->where('id', '[0-9]+')->name('dashboard.users.delete');
 
     // Services
     Route::get('/servicios', [AdminServiceController::class, 'index'])->name('dashboard.services.index');
