@@ -70,6 +70,7 @@ jobs:
           [ -f .env.example ] && cp -a .env.example "$DEPLOY_DIR/"
 
           [ -f Dockerfile ] && cp -a Dockerfile "$DEPLOY_DIR/"
+          [ -f nginx.conf ] && cp -a nginx.conf "$DEPLOY_DIR/"
           [ -f docker-compose.yml ] && cp -a docker-compose.yml "$DEPLOY_DIR/"
           [ -d docker ] && cp -a docker "$DEPLOY_DIR/"
 
