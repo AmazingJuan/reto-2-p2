@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\GestionLine;
 use App\Models\Professional;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreQuotationProposal extends FormRequest
 {
@@ -53,10 +53,33 @@ class StoreQuotationProposal extends FormRequest
             'answers.*' => ['required', 'string', 'max:1000'],
 
             'professional_id' => [
-                Rule::requiredIf(fn () => Professional::query()->exists()),
                 'nullable',
                 'integer',
                 'exists:professionals,id',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($value === null || $value === '') {
+                        return;
+                    }
+                    $lineName = $this->input('gestionLine');
+                    if (! is_string($lineName) || trim($lineName) === '') {
+                        $fail('La línea de gestión no es válida.');
+
+                        return;
+                    }
+                    $line = GestionLine::query()->where('name', $lineName)->first();
+                    if ($line === null) {
+                        $fail('La línea de gestión no es válida.');
+
+                        return;
+                    }
+                    $allowed = Professional::query()
+                        ->whereKey((int) $value)
+                        ->whereHas('gestionLines', fn ($q) => $q->where('gestion_lines.id', $line->getId()))
+                        ->exists();
+                    if (! $allowed) {
+                        $fail('El profesional no está habilitado para esta línea de gestión.');
+                    }
+                },
             ],
         ];
     }
@@ -95,7 +118,9 @@ class StoreQuotationProposal extends FormRequest
             $input['answers'] = $trimmed;
         }
 
-        if ($this->has('professional_id') && $this->input('professional_id') !== '' && $this->input('professional_id') !== null) {
+        if (! $this->has('professional_id') || $this->input('professional_id') === '' || $this->input('professional_id') === null) {
+            $input['professional_id'] = null;
+        } else {
             $input['professional_id'] = (int) $this->input('professional_id');
         }
 
@@ -135,7 +160,6 @@ class StoreQuotationProposal extends FormRequest
             'answers.*.string' => 'Cada respuesta debe ser texto.',
             'answers.*.max' => 'Cada respuesta no debe exceder :max caracteres.',
 
-            'professional_id.required' => 'Debe elegir un profesional para continuar.',
             'professional_id.exists' => 'El profesional seleccionado no es válido.',
         ];
     }

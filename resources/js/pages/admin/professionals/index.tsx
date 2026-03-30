@@ -12,6 +12,7 @@ interface ProfessionalRow {
     id: number;
     name: string;
     years_experience: number;
+    gestion_lines: { id: number; name: string }[];
 }
 
 interface Paginated<T> {
@@ -50,7 +51,9 @@ export default function Index() {
                         <UserCircle className="h-8 w-8 shrink-0 text-blue-600" />
                         <div>
                             <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Profesionales</h1>
-                            <p className="mt-1 text-sm text-slate-600">Nombre, resumen y años de experiencia (visible en cotizaciones solo el ID y experiencia)</p>
+                            <p className="mt-1 text-sm text-slate-600">
+                                Asocie líneas de gestión para que el profesional aparezca solo en esas cotizaciones. En público solo se muestra ID y experiencia.
+                            </p>
                         </div>
                     </div>
                     <Button
@@ -76,6 +79,9 @@ export default function Index() {
                                 <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">ID</th>
                                 <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">Nombre</th>
                                 <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">Años exp.</th>
+                                <th className="hidden px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 md:table-cell sm:px-6 sm:py-3">
+                                    Líneas
+                                </th>
                                 <th className="px-3 py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">Acciones</th>
                             </tr>
                         </thead>
@@ -86,6 +92,11 @@ export default function Index() {
                                         <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4">{row.id}</td>
                                         <td className="px-3 py-3 text-sm font-medium text-gray-900 sm:px-6 sm:py-4">{row.name}</td>
                                         <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4">{row.years_experience}</td>
+                                        <td className="hidden max-w-[14rem] px-3 py-3 text-xs text-gray-700 md:table-cell sm:px-6 sm:py-4">
+                                            {row.gestion_lines?.length
+                                                ? row.gestion_lines.map((l) => l.name).join(', ')
+                                                : '—'}
+                                        </td>
                                         <td className="px-3 py-3 text-center sm:px-6 sm:py-4">
                                             <div className="flex justify-center gap-2">
                                                 <button
@@ -118,7 +129,7 @@ export default function Index() {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={4} className="px-4 py-8 text-center text-sm text-gray-500 sm:px-6">
+                                    <td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-500 sm:px-6">
                                         {filters.search ? 'Sin resultados.' : 'No hay profesionales. Cree el primero para el cotizador.'}
                                     </td>
                                 </tr>
