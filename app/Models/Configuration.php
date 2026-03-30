@@ -10,8 +10,8 @@ class Configuration extends Model
      * Attributes:
      *
      * $this->attributes['id'] - int - Primary key identifier
-     * $this->attributes['notification_email'] - string - Notification email
-     * $this->attributes['application_url'] - string - Application URL
+     * $this->attributes['notification_email'] - string|null - Notification email (nullable en BD)
+     * $this->attributes['application_url'] - string|null - Application URL (nullable en BD)
      */
     protected $fillable = [
         'notification_email',
@@ -23,14 +23,26 @@ class Configuration extends Model
         return $this->attributes['id'];
     }
 
-    public function getNotificationEmail(): string
+    public function getNotificationEmail(): ?string
     {
-        return $this->notification_email;
+        $v = $this->notification_email;
+        if ($v === null) {
+            return null;
+        }
+        $t = trim((string) $v);
+
+        return $t === '' ? null : $t;
     }
 
-    public function getApplicationUrl(): string
+    public function getApplicationUrl(): ?string
     {
-        return $this->application_url;
+        $v = $this->application_url;
+        if ($v === null) {
+            return null;
+        }
+        $t = trim((string) $v);
+
+        return $t === '' ? null : $t;
     }
 
     public function setNotificationEmail(string $notificationEmail): void

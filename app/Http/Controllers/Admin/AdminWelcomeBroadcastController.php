@@ -17,7 +17,7 @@ class AdminWelcomeBroadcastController extends Controller
     public function create(): InertiaResponse
     {
         $config = Configuration::query()->first();
-        $applicationUrl = $config !== null ? trim((string) $config->getApplicationUrl()) : '';
+        $applicationUrl = $config !== null ? trim($config->getApplicationUrl() ?? '') : '';
         if ($applicationUrl === '') {
             $applicationUrl = (string) config('app.url');
         }
@@ -25,7 +25,7 @@ class AdminWelcomeBroadcastController extends Controller
         return Inertia::render('admin/welcome-broadcast/create', [
             'viewData' => [
                 'platform_url' => $applicationUrl,
-                'has_custom_app_url' => $config !== null && trim((string) $config->getApplicationUrl()) !== '',
+                'has_custom_app_url' => $config !== null && trim($config->getApplicationUrl() ?? '') !== '',
             ],
         ]);
     }
@@ -47,7 +47,7 @@ class AdminWelcomeBroadcastController extends Controller
         }
 
         $config = Configuration::query()->first();
-        $applicationUrl = $config !== null ? trim((string) $config->getApplicationUrl()) : '';
+        $applicationUrl = $config !== null ? trim($config->getApplicationUrl() ?? '') : '';
         if ($applicationUrl === '') {
             $applicationUrl = (string) config('app.url');
         }
