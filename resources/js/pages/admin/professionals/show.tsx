@@ -9,6 +9,7 @@ interface Professional {
     name: string;
     summary: string;
     years_experience: number;
+    gestion_lines: { id: number; name: string }[];
 }
 
 type ShowProps = PageProps<{
@@ -49,6 +50,19 @@ export default function Show() {
                         <Pencil className="h-4 w-4" />
                         Editar
                     </Link>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Líneas de gestión</h2>
+                    {professional.gestion_lines.length === 0 ? (
+                        <p className="mt-2 text-sm text-slate-600">Sin líneas asignadas.</p>
+                    ) : (
+                        <ul className="mt-3 list-inside list-disc text-sm text-slate-800">
+                            {professional.gestion_lines.map((l) => (
+                                <li key={l.id}>{l.name}</li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">

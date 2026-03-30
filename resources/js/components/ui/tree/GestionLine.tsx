@@ -1,8 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { router } from '@inertiajs/react';
-import { CheckCircle2, GitBranch, Layers, Loader2, SlidersHorizontal, UserRound } from 'lucide-react';
+import { CheckCircle2, GitBranch, Layers, SlidersHorizontal, UserRound } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { route } from 'ziggy-js';
 import GoSelect from '../goselect';
 import Header from '../header';
 import ServicesByLine from './ServicesByLine';
@@ -23,6 +22,22 @@ export interface ViewData {
         };
     };
     initial_condition_id?: number | null;
+    professionalsByGestionLine: Record<string, { id: number; years_experience: number }[]>;
+    hasAnyProfessionalsInDb: boolean;
+}
+
+function applyYearFilter(
+    list: { id: number; years_experience: number }[],
+    minStr: string,
+    maxStr: string,
+): { id: number; years_experience: number }[] {
+    const minParsed = minStr.trim() === '' ? null : parseInt(minStr, 10);
+    const maxParsed = maxStr.trim() === '' ? null : parseInt(maxStr, 10);
+    return list.filter((p) => {
+        if (minParsed !== null && !Number.isNaN(minParsed) && p.years_experience < minParsed) return false;
+        if (maxParsed !== null && !Number.isNaN(maxParsed) && p.years_experience > maxParsed) return false;
+        return true;
+    });
 }
 
 interface GestionLineProps {
@@ -39,9 +54,6 @@ export default function GestionLine({ viewData }: GestionLineProps) {
     const [showProfessionalModal, setShowProfessionalModal] = useState(false);
     const [selectedProfessionalId, setSelectedProfessionalId] = useState<number | null>(null);
     const [professionalList, setProfessionalList] = useState<{ id: number; years_experience: number }[]>([]);
-    const [hasAnyProfessionalsInDb, setHasAnyProfessionalsInDb] = useState(false);
-    const [loadingProfessionals, setLoadingProfessionals] = useState(false);
-    const [professionalFetchError, setProfessionalFetchError] = useState<string | null>(null);
     const [professionalPickerError, setProfessionalPickerError] = useState<string | null>(null);
     const [filterMinYears, setFilterMinYears] = useState('');
     const [filterMaxYears, setFilterMaxYears] = useState('');
@@ -59,52 +71,28 @@ export default function GestionLine({ viewData }: GestionLineProps) {
 
     const visibleLines = viewData.gestionLines.filter((line) => (viewData.services[line]?.length ?? 0) > 0);
 
-    const fetchProfessionalsList = useCallback(async () => {
-        setLoadingProfessionals(true);
-        setProfessionalFetchError(null);
-        try {
-            const url = route('quotation.professionals.list');
-            const params = new URLSearchParams();
-            if (filterMinYears.trim() !== '') params.set('min_years', filterMinYears.trim());
-            if (filterMaxYears.trim() !== '') params.set('max_years', filterMaxYears.trim());
-            const qs = params.toString();
-            const res = await fetch(qs ? `${url}?${qs}` : url, {
-                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                credentials: 'same-origin',
-            });
-            if (!res.ok) throw new Error('fetch');
-            const data = await res.json();
-            setProfessionalList(Array.isArray(data.professionals) ? data.professionals : []);
-            setHasAnyProfessionalsInDb(Boolean(data.has_any_professionals));
-        } catch {
-            setProfessionalFetchError('No se pudieron cargar los profesionales. Intente otra vez.');
-            setProfessionalList([]);
-            setHasAnyProfessionalsInDb(true);
-        } finally {
-            setLoadingProfessionals(false);
-        }
-    }, [filterMinYears, filterMaxYears]);
+    const lineNameForProfessionalPicker = (savedSnapshot?.selectedLine ?? selectedLine ?? '').trim();
+    const baseProfessionalsForLine =
+        lineNameForProfessionalPicker === ''
+            ? []
+            : (viewData.professionalsByGestionLine?.[lineNameForProfessionalPicker] ?? []);
+
+    const applyProfessionalFilters = useCallback(() => {
+        setProfessionalList(applyYearFilter(baseProfessionalsForLine, filterMinYears, filterMaxYears));
+    }, [baseProfessionalsForLine, filterMinYears, filterMaxYears]);
 
     useEffect(() => {
         if (!showProfessionalModal) return;
         setSelectedProfessionalId(null);
         setProfessionalPickerError(null);
-        void fetchProfessionalsList();
-        // Solo al abrir el paso; los filtros se aplican con el botón "Aplicar filtros"
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [showProfessionalModal]);
+        setFilterMinYears('');
+        setFilterMaxYears('');
+        const line = (savedSnapshot?.selectedLine ?? selectedLine ?? '').trim();
+        const base = line === '' ? [] : (viewData.professionalsByGestionLine?.[line] ?? []);
+        setProfessionalList(base);
+    }, [showProfessionalModal, savedSnapshot?.selectedLine, selectedLine, viewData.professionalsByGestionLine]);
 
     const handleContinueFromProfessionalPicker = () => {
-        if (professionalList.length > 0 && selectedProfessionalId === null) {
-            setProfessionalPickerError('Seleccione un profesional de la lista para continuar.');
-            return;
-        }
-        setProfessionalPickerError(null);
-        setShowProfessionalModal(false);
-        setShowContactModal(true);
-    };
-
-    const handleSkipProfessionalsWhenEmpty = () => {
         setProfessionalPickerError(null);
         setShowProfessionalModal(false);
         setShowContactModal(true);
@@ -429,9 +417,10 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                                 <UserRound className="h-6 w-6" strokeWidth={2} />
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">Elija un profesional</h3>
+                                <h3 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">Profesional (opcional)</h3>
                                 <p className="mt-1 text-sm leading-relaxed text-slate-600">
-                                    Por privacidad mostramos solo un identificador y los años de experiencia. Después podrá enviar sus datos de contacto.
+                                    Si lo desea, elija a alguien del equipo para esta línea de gestión. Por privacidad solo verá el identificador y los años de experiencia.
+                                    Puede continuar sin elegir.
                                 </p>
                             </div>
                         </div>
@@ -468,75 +457,80 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                                 </div>
                                 <button
                                     type="button"
-                                    onClick={() => void fetchProfessionalsList()}
-                                    disabled={loadingProfessionals}
-                                    className="shrink-0 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:opacity-60"
+                                    onClick={applyProfessionalFilters}
+                                    className="shrink-0 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
                                 >
                                     Aplicar filtros
                                 </button>
                             </div>
                         </div>
 
-                        {professionalFetchError && (
-                            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{professionalFetchError}</div>
-                        )}
                         {professionalPickerError && (
                             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">{professionalPickerError}</div>
                         )}
 
-                        {loadingProfessionals ? (
-                            <div className="flex flex-col items-center justify-center gap-3 py-12 text-slate-600">
-                                <Loader2 className="h-8 w-8 animate-spin text-[#0693e3]" />
-                                <p className="text-sm">Cargando opciones…</p>
-                            </div>
-                        ) : professionalList.length === 0 ? (
+                        {professionalList.length === 0 ? (
                             <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-8 text-center">
-                                {hasAnyProfessionalsInDb ? (
+                                {lineNameForProfessionalPicker === '' ? (
                                     <>
-                                        <p className="text-sm font-medium text-slate-700">Ningún profesional coincide con el filtro de experiencia.</p>
-                                        <p className="mt-1 text-xs text-slate-500">Amplíe el rango o borre mínimo y máximo y pulse Aplicar filtros.</p>
+                                        <p className="text-sm font-medium text-slate-700">No hay línea de gestión seleccionada.</p>
+                                        <p className="mt-1 text-xs text-slate-500">Vuelva atrás y complete el flujo de condiciones.</p>
                                     </>
-                                ) : (
+                                ) : !viewData.hasAnyProfessionalsInDb ? (
                                     <>
                                         <p className="text-sm font-medium text-slate-700">Aún no hay profesionales registrados en el sistema.</p>
                                         <p className="mt-1 text-xs text-slate-500">Puede continuar; su solicitud se registrará sin asignación de profesional.</p>
-                                        <button
-                                            type="button"
-                                            onClick={handleSkipProfessionalsWhenEmpty}
-                                            className="mt-5 inline-flex items-center justify-center rounded-xl bg-[#0693e3] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#0693e3]/25 transition hover:bg-[#047ac0]"
-                                        >
-                                            Continuar con datos de contacto
-                                        </button>
+                                    </>
+                                ) : baseProfessionalsForLine.length === 0 ? (
+                                    <>
+                                        <p className="text-sm font-medium text-slate-700">No hay profesionales asignados a esta línea de gestión.</p>
+                                        <p className="mt-1 text-xs text-slate-500">Puede continuar sin preferencia de profesional.</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="text-sm font-medium text-slate-700">Ningún profesional coincide con el filtro de experiencia.</p>
+                                        <p className="mt-1 text-xs text-slate-500">Amplíe el rango o borre mínimo y máximo y pulse Aplicar filtros, o continúe sin elegir.</p>
                                     </>
                                 )}
                             </div>
                         ) : (
-                            <ul className="grid max-h-[min(40vh,22rem)] gap-3 overflow-y-auto pr-1 sm:grid-cols-2">
-                                {professionalList.map((p) => {
-                                    const selected = selectedProfessionalId === p.id;
-                                    return (
-                                        <li key={p.id}>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setSelectedProfessionalId(p.id);
-                                                    setProfessionalPickerError(null);
-                                                }}
-                                                className={`flex w-full flex-col items-start rounded-xl border-2 px-4 py-3 text-left transition ${
-                                                    selected
-                                                        ? 'border-[#0693e3] bg-[#0693e3]/5 ring-2 ring-[#0693e3]/20'
-                                                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80'
-                                                }`}
-                                            >
-                                                <span className="text-sm font-bold text-slate-900">Profesional #{p.id}</span>
-                                                <span className="mt-1 text-xs text-slate-600">
-                                                    {p.years_experience} {p.years_experience === 1 ? 'año' : 'años'} de experiencia
-                                                </span>
-                                            </button>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
+                            <>
+                                <ul className="grid max-h-[min(40vh,22rem)] gap-3 overflow-y-auto pr-1 sm:grid-cols-2">
+                                    {professionalList.map((p) => {
+                                        const selected = selectedProfessionalId === p.id;
+                                        return (
+                                            <li key={p.id}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSelectedProfessionalId(selected ? null : p.id);
+                                                        setProfessionalPickerError(null);
+                                                    }}
+                                                    className={`flex w-full flex-col items-start rounded-xl border-2 px-4 py-3 text-left transition ${
+                                                        selected
+                                                            ? 'border-[#0693e3] bg-[#0693e3]/5 ring-2 ring-[#0693e3]/20'
+                                                            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80'
+                                                    }`}
+                                                >
+                                                    <span className="text-sm font-bold text-slate-900">Profesional #{p.id}</span>
+                                                    <span className="mt-1 text-xs text-slate-600">
+                                                        {p.years_experience} {p.years_experience === 1 ? 'año' : 'años'} de experiencia
+                                                    </span>
+                                                </button>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                                {selectedProfessionalId !== null && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setSelectedProfessionalId(null)}
+                                        className="mt-3 text-sm font-medium text-slate-600 underline hover:text-[#0693e3]"
+                                    >
+                                        Quitar selección
+                                    </button>
+                                )}
+                            </>
                         )}
 
                         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-between sm:gap-3">
@@ -547,16 +541,14 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                             >
                                 Volver a condiciones
                             </button>
-                            {professionalList.length > 0 ? (
-                                <button
-                                    type="button"
-                                    onClick={handleContinueFromProfessionalPicker}
-                                    className="rounded-xl bg-gradient-to-b from-[#0693e3] to-[#0580c7] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#0693e3]/30 transition hover:from-[#0588d4] hover:to-[#0470b0] disabled:cursor-not-allowed disabled:opacity-40"
-                                    disabled={selectedProfessionalId === null}
-                                >
-                                    Continuar con datos de contacto
-                                </button>
-                            ) : null}
+                            <button
+                                type="button"
+                                onClick={handleContinueFromProfessionalPicker}
+                                className="rounded-xl bg-gradient-to-b from-[#0693e3] to-[#0580c7] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#0693e3]/30 transition hover:from-[#0588d4] hover:to-[#0470b0]"
+                            >
+                                Continuar con datos de contacto
+                                {selectedProfessionalId !== null ? ' (con preferencia)' : ''}
+                            </button>
                         </div>
                     </div>
                 </div>

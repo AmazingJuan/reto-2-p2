@@ -5,26 +5,41 @@ import { Head, useForm, usePage } from '@inertiajs/react';
 import { ArrowLeft, UserCircle } from 'lucide-react';
 import { route } from 'ziggy-js';
 
+interface GestionLineOpt {
+    id: number;
+    name: string;
+}
+
 interface Professional {
     id: number;
     name: string;
     summary: string;
     years_experience: number;
+    gestion_lines: { id: number }[];
 }
 
 type EditProps = PageProps<{
     viewData: { professional: Professional };
+    gestionLines: GestionLineOpt[];
 }>;
 
 export default function Edit() {
-    const { viewData } = usePage<EditProps>().props;
+    const { viewData, gestionLines } = usePage<EditProps>().props;
     const { professional } = viewData;
 
     const { data, setData, put, processing, errors } = useForm({
         name: professional.name,
         summary: professional.summary,
         years_experience: professional.years_experience,
+        gestion_line_ids: professional.gestion_lines.map((g) => g.id),
     });
+
+    const toggleLine = (id: number) => {
+        setData(
+            'gestion_line_ids',
+            data.gestion_line_ids.includes(id) ? data.gestion_line_ids.filter((x) => x !== id) : [...data.gestion_line_ids, id],
+        );
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -76,6 +91,27 @@ export default function Edit() {
                                 required
                             />
                             {errors.years_experience && <p className="mt-2 text-sm text-red-600">{errors.years_experience}</p>}
+                        </div>
+
+                        <div>
+                            <span className="mb-2 block text-sm font-medium text-gray-700">
+                                Líneas de gestión <span className="text-red-500">*</span>
+                            </span>
+                            <p className="mb-3 text-xs text-gray-500">Solo se ofrecerá en el cotizador para las líneas marcadas.</p>
+                            <div className="max-h-56 space-y-2 overflow-y-auto rounded-lg border border-gray-200 p-3">
+                                {gestionLines.map((line) => (
+                                    <label key={line.id} className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-gray-50">
+                                        <input
+                                            type="checkbox"
+                                            checked={data.gestion_line_ids.includes(line.id)}
+                                            onChange={() => toggleLine(line.id)}
+                                            className="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                                        />
+                                        <span className="text-sm text-gray-800">{line.name}</span>
+                                    </label>
+                                ))}
+                            </div>
+                            {errors.gestion_line_ids && <p className="mt-2 text-sm text-red-600">{errors.gestion_line_ids}</p>}
                         </div>
 
                         <div>
