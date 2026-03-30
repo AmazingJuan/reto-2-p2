@@ -18,6 +18,12 @@ interface QuotationOrder {
     };
     business_unit?: string;
     gestion_line?: string;
+    professional?: {
+        id: number;
+        name: string;
+        summary: string;
+        years_experience: number;
+    } | null;
     services?: string[];
     answers?: Record<string, unknown>;
     is_generated: boolean;
@@ -184,6 +190,28 @@ export default function Show() {
                                     <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Línea de gestión</td>
                                     <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">{quotationOrder.gestion_line}</td>
                                 </tr>
+                            )}
+
+                            {quotationOrder.professional && (
+                                <>
+                                    <tr className="hover:bg-gray-50">
+                                        <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">
+                                            Profesional asignado
+                                        </td>
+                                        <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">
+                                            {quotationOrder.professional.name}{' '}
+                                            <span className="text-gray-500">({quotationOrder.professional.years_experience} años)</span>
+                                        </td>
+                                    </tr>
+                                    <tr className="align-top hover:bg-gray-50">
+                                        <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">
+                                            Resumen del profesional
+                                        </td>
+                                        <td className="whitespace-pre-wrap px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">
+                                            {quotationOrder.professional.summary}
+                                        </td>
+                                    </tr>
+                                </>
                             )}
 
                             {quotationOrder.services && quotationOrder.services.length > 0 && (

@@ -13,13 +13,8 @@ class AdminConfigurationController extends Controller
 {
     public function edit(): InertiaResponse
     {
-        $config = Configuration::firstOrCreate(
-            [],
-            [
-                'notification_email' => '',
-                'application_url' => '',
-            ]
-        );
+        $config = Configuration::query()->first();
+        abort_if($config === null, 500, 'No existe el registro de configuración. Ejecute las migraciones (php artisan migrate).');
 
         $viewData = [];
         $viewData['configuration'] = $config->only($config->getFillable());
@@ -29,13 +24,8 @@ class AdminConfigurationController extends Controller
 
     public function update(AdminConfigurationUpdateRequest $request): RedirectResponse
     {
-        $config = Configuration::firstOrCreate(
-            [],
-            [
-                'notification_email' => '',
-                'application_url' => '',
-            ]
-        );
+        $config = Configuration::query()->first();
+        abort_if($config === null, 500, 'No existe el registro de configuración. Ejecute las migraciones (php artisan migrate).');
 
         $config->update($request->validated());
 

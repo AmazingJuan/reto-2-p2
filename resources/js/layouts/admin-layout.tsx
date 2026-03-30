@@ -1,6 +1,6 @@
 import Footer from '@/components/admin/footer';
 import { Link, usePage } from '@inertiajs/react';
-import { Box, FileText, Home, Layers, Mail, Menu, Settings, Trees, Users, X } from 'lucide-react';
+import { Box, FileText, Home, Layers, Mail, Menu, Settings, Trees, UserCircle, Users, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { route } from 'ziggy-js';
 
@@ -10,6 +10,7 @@ interface AdminLayoutProps {
 
 const navItems = [
     { to: route('dashboard.users.index'), label: 'Usuarios', icon: Users },
+    { to: route('dashboard.professionals.index'), label: 'Profesionales', icon: UserCircle },
     { to: route('dashboard.business-unit.index'), label: 'Unidades de negocio', icon: Trees },
     { to: route('dashboard.lines.index'), label: 'Líneas de gestión', icon: Layers },
     { to: route('dashboard.services.index'), label: 'Servicios', icon: Box },
