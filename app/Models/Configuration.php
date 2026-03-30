@@ -6,16 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Configuration extends Model
 {
-    /**
-     * Attributes:
-     *
-     * $this->attributes['id'] - int - Primary key identifier
-     * $this->attributes['notification_email'] - string|null - Notification email (nullable en BD)
-     * $this->attributes['application_url'] - string|null - Application URL (nullable en BD)
-     */
     protected $fillable = [
         'notification_email',
-        'application_url',
+        'company_contact_email',
+        'company_contact_phone',
+        'company_contact_address',
+        'company_website_url',
+        'company_website_label',
     ];
 
     public function getId(): int
@@ -34,15 +31,29 @@ class Configuration extends Model
         return $t === '' ? null : $t;
     }
 
-    public function getApplicationUrl(): ?string
+    public function getCompanyContactEmail(): ?string
     {
-        $v = $this->application_url;
-        if ($v === null) {
-            return null;
-        }
-        $t = trim((string) $v);
+        return $this->nullableTrimmedString('company_contact_email');
+    }
 
-        return $t === '' ? null : $t;
+    public function getCompanyContactPhone(): ?string
+    {
+        return $this->nullableTrimmedString('company_contact_phone');
+    }
+
+    public function getCompanyContactAddress(): ?string
+    {
+        return $this->nullableTrimmedString('company_contact_address');
+    }
+
+    public function getCompanyWebsiteUrl(): ?string
+    {
+        return $this->nullableTrimmedString('company_website_url');
+    }
+
+    public function getCompanyWebsiteLabel(): ?string
+    {
+        return $this->nullableTrimmedString('company_website_label');
     }
 
     public function setNotificationEmail(string $notificationEmail): void
@@ -50,8 +61,14 @@ class Configuration extends Model
         $this->notification_email = trim($notificationEmail);
     }
 
-    public function setApplicationUrl(string $applicationUrl): void
+    private function nullableTrimmedString(string $key): ?string
     {
-        $this->application_url = $applicationUrl;
+        $v = $this->attributes[$key] ?? null;
+        if ($v === null) {
+            return null;
+        }
+        $t = trim((string) $v);
+
+        return $t === '' ? null : $t;
     }
 }

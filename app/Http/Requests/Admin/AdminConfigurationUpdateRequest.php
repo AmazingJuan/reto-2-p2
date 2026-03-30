@@ -22,7 +22,11 @@ class AdminConfigurationUpdateRequest extends FormRequest
         foreach ((new Configuration)->getFillable() as $field) {
             $rules[$field] = match ($field) {
                 'notification_email' => ['nullable', 'email', 'max:255'],
-                'application_url' => ['nullable', 'string', 'max:2048'],
+                'company_contact_email' => ['nullable', 'email', 'max:255'],
+                'company_contact_phone' => ['nullable', 'string', 'max:64'],
+                'company_contact_address' => ['nullable', 'string', 'max:2000'],
+                'company_website_url' => ['nullable', 'string', 'max:512'],
+                'company_website_label' => ['nullable', 'string', 'max:255'],
                 default => ['nullable', 'string', 'max:255'],
             };
         }
@@ -35,7 +39,10 @@ class AdminConfigurationUpdateRequest extends FormRequest
         return [
             'notification_email.email' => 'El correo de notificaciones debe ser una dirección válida.',
             'notification_email.max' => 'El correo no puede superar los :max caracteres.',
-            'application_url.max' => 'La URL no puede superar los :max caracteres.',
+            'company_contact_email.email' => 'El correo de contacto debe ser una dirección válida.',
+            'company_contact_phone.max' => 'El teléfono no puede superar los :max caracteres.',
+            'company_contact_address.max' => 'La dirección no puede superar los :max caracteres.',
+            'company_website_url.max' => 'La URL del sitio web no puede superar los :max caracteres.',
         ];
     }
 }
