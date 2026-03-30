@@ -35,18 +35,16 @@ class QuotationController extends Controller
             return redirect()->route('quotation.select.business_unit')->with('error', 'No hay ninguna unidad de negocio con ese nombre');
         }
 
-        $gestionLineNames = GestionLine::pluck('name');
-
-        if ($gestionLineNames->isEmpty()) {
-            return redirect()->route('quotation.select.business_unit')->with('error', 'No existen líneas de gestión disponibles para cotizar.');
-        }
-
-        $services = Service::select('id', 'name', 'gestion_line_id')
+        $services = Service::query()
+            ->where('business_unit_id', $selectedBusinessUnit->getId())
+            ->whereNotNull('gestion_line_id')
+            ->select('id', 'name', 'gestion_line_id')
             ->with('gestionLine:id,name')
+            ->orderBy('name')
             ->get();
 
         if ($services->isEmpty()) {
-            return redirect()->route('quotation.select.business_unit')->with('error', 'No existen servicios disponibles para cotizar.');
+            return redirect()->route('quotation.select.business_unit')->with('error', 'No existen servicios configurados para esta unidad de negocio.');
         }
 
         $decisionTree = DecisionTreeHelper::buildTree($selectedBusinessUnit);
@@ -55,8 +53,16 @@ class QuotationController extends Controller
             return redirect()->route('quotation.select.business_unit')->with('error', 'No existen condiciones definidas para la unidad de negocio seleccionada.');
         }
 
-        $formattedServices = $services->groupBy(fn ($s) => $s->gestionLine->name)
-            ->map(fn ($group) => $group->map(fn ($s) => $s->name));
+        $formattedServices = $services
+            ->filter(fn (Service $s) => $s->gestionLine !== null)
+            ->groupBy(fn (Service $s) => $s->gestionLine->getName())
+            ->map(fn ($group) => $group->map(fn (Service $s) => $s->getName())->values());
+
+        if ($formattedServices->isEmpty()) {
+            return redirect()->route('quotation.select.business_unit')->with('error', 'Los servicios de esta unidad no tienen línea de gestión válida. Revise la configuración.');
+        }
+
+        $gestionLineNames = $formattedServices->keys()->sort()->values();
 
         $viewData['businessUnit'] = $selectedBusinessUnit->getDisplayName();
         $viewData['gestionLines'] = $gestionLineNames;
@@ -64,7 +70,10 @@ class QuotationController extends Controller
         $viewData['conditions'] = $decisionTree;
         $viewData['initial_condition_id'] = $selectedBusinessUnit->getInitialCondition()?->getId() ?? null;
 
+        $lineNamesForQuote = $gestionLineNames->all();
+
         $viewData['professionalsByGestionLine'] = GestionLine::query()
+            ->whereIn('name', $lineNamesForQuote)
             ->with(['professionals' => function ($q) {
                 $q->select(['professionals.id', 'professionals.years_experience'])
                     ->orderBy('professionals.years_experience')
