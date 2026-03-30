@@ -22,7 +22,11 @@ class AdminServiceController extends Controller
         $businessUnitId = $request->input('business_unit_id');
 
         $query = Service::query()
-            ->select('id', 'name', 'business_unit_id')
+            ->select('id', 'name', 'business_unit_id', 'gestion_line_id')
+            ->with([
+                'businessUnit:id,display_name',
+                'gestionLine:id,name',
+            ])
             ->orderBy('id');
 
         if ($businessUnitId !== null && $businessUnitId !== '' && $businessUnitId !== 'all') {
