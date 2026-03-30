@@ -29,6 +29,7 @@ class QuotationProposalOrder extends Model
      */
     protected $fillable = [
         'id',
+        'quotation_code',
         'contact_info',
         'business_unit',
         'gestion_line',
@@ -77,6 +78,17 @@ class QuotationProposalOrder extends Model
     public function getId(): string
     {
         return (string) $this->getAttribute('id');
+    }
+
+    public function getQuotationCode(): ?string
+    {
+        $v = $this->attributes['quotation_code'] ?? null;
+        if ($v === null) {
+            return null;
+        }
+        $t = trim((string) $v);
+
+        return $t === '' ? null : $t;
     }
 
     // Contact Info

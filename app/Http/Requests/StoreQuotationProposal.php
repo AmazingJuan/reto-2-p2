@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\GestionLine;
 use App\Models\Professional;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreQuotationProposal extends FormRequest
 {
@@ -31,7 +32,7 @@ class StoreQuotationProposal extends FormRequest
             'contact.phone' => ['required', 'string', 'max:30', 'regex:/^[0-9+\s().-]{7,30}$/'],
             'contact.role' => ['required', 'string', 'max:255'],
 
-            'businessUnit' => ['required', 'string', 'max:255'],
+            'businessUnit' => ['required', 'string', 'max:255', Rule::exists('business_units', 'display_name')],
             'gestionLine' => ['required', 'string', 'max:255'],
 
             'services' => ['required', 'array', 'min:1'],
