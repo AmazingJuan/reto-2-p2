@@ -40,6 +40,18 @@ function applyYearFilter(
     });
 }
 
+/** API puede mandar 0/1 o strings; en JS `if ("0")` es true y rompía el flujo de opciones. */
+function conditionOptionIsOther(o: { is_other?: unknown }): boolean {
+    const v = o.is_other;
+    if (v === true || v === 1) return true;
+    if (v === false || v === 0 || v === null || v === undefined) return false;
+    if (typeof v === 'string') {
+        const s = v.trim().toLowerCase();
+        return s === '1' || s === 'true' || s === 'yes';
+    }
+    return false;
+}
+
 interface GestionLineProps {
     viewData: ViewData;
 }
@@ -155,7 +167,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                     valueDisplay = typeof v === 'object' ? JSON.stringify(v) : String(v);
                 }
 
-                readableAnswers[condLabel] = valueDisplay;
+                readableAnswers[condLabel] = String(valueDisplay ?? '');
             });
         }
 
@@ -865,7 +877,7 @@ function ConditionStepper({
                                     name={`opt-${currentId}`}
                                     checked={selectedIndex === i}
                                     onChange={() => {
-                                        if (o.is_other) {
+                                        if (conditionOptionIsOther(o)) {
                                             onAnswer(String(currentId), { optionIndex: i, text: '' });
                                         } else {
                                             onAnswer(String(currentId), i);
@@ -877,7 +889,7 @@ function ConditionStepper({
                                 <span className="text-sm font-medium text-slate-800">{o.label || '(sin etiqueta)'}</span>
                             </label>
 
-                            {o.is_other && selectedIndex === i && (
+                            {conditionOptionIsOther(o) && selectedIndex === i && (
                                 <input
                                     className={inputClass}
                                     type="text"
@@ -950,11 +962,25 @@ function ConditionStepper({
 
         if (cond.interaction_type === 'options') {
             const sel = answers[String(currentId)];
+            const opts = Array.isArray((cond as any).options) ? (cond as any).options : [];
             if (sel === undefined || sel === null) {
                 setValidationError('Selecciona una opción');
-            } else if (typeof sel === 'object' && sel !== null && 'text' in sel) {
-                const textValue = (sel as { text?: string }).text ?? '';
-                if (String(textValue).trim() === '') setValidationError('Escribe tu respuesta');
+            } else {
+                const selectedIndex =
+                    typeof sel === 'number'
+                        ? sel
+                        : typeof sel === 'object' && sel !== null && 'optionIndex' in sel
+                          ? (sel as { optionIndex: number }).optionIndex
+                          : null;
+                if (selectedIndex === null || selectedIndex < 0 || selectedIndex >= opts.length) {
+                    setValidationError('Selecciona una opción');
+                } else if (conditionOptionIsOther(opts[selectedIndex])) {
+                    const textValue =
+                        typeof sel === 'object' && sel !== null && 'text' in sel
+                            ? ((sel as { text?: string }).text ?? '')
+                            : '';
+                    if (String(textValue).trim() === '') setValidationError('Escribe tu respuesta');
+                }
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
