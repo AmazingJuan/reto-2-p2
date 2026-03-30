@@ -55,31 +55,31 @@ export function AdminPagination({ routeName, meta, filters, extraKeys = [], clas
     return (
         <div
             className={cn(
-                'mx-auto mt-4 flex w-full min-w-0 max-w-6xl flex-col gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:items-center sm:justify-between',
+                'mt-4 flex w-full min-w-0 flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between',
                 className,
             )}
         >
-            <p className="text-center text-sm text-gray-600 sm:text-left">{summary}</p>
+            <p className="text-center text-sm text-slate-600 sm:text-left">{summary}</p>
             <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-3">
-                <p className="text-center text-sm text-gray-700 sm:hidden">Página {current_page} de {last_page}</p>
+                <p className="text-center text-sm text-slate-700 sm:hidden">Página {current_page} de {last_page}</p>
                 <div className="flex gap-2">
                     <Button
                         type="button"
-                        variant="crear"
+                        variant="outline"
                         disabled={current_page <= 1}
                         onClick={() => go(current_page - 1)}
-                        className="min-h-10 flex-1 bg-white text-slate-800 ring-1 ring-gray-300 hover:bg-gray-50 disabled:opacity-40 sm:flex-none"
+                        className="min-h-10 flex-1 rounded-xl border-slate-200 font-medium text-slate-800 shadow-sm hover:bg-slate-50 disabled:opacity-40 sm:flex-none"
                     >
                         <ChevronLeft className="h-4 w-4" />
                         Anterior
                     </Button>
-                    <span className="hidden items-center px-1 text-sm text-gray-700 sm:inline">Página {current_page} de {last_page}</span>
+                    <span className="hidden items-center px-1 text-sm text-slate-700 sm:inline">Página {current_page} de {last_page}</span>
                     <Button
                         type="button"
-                        variant="crear"
+                        variant="outline"
                         disabled={current_page >= last_page}
                         onClick={() => go(current_page + 1)}
-                        className="min-h-10 flex-1 bg-white text-slate-800 ring-1 ring-gray-300 hover:bg-gray-50 disabled:opacity-40 sm:flex-none"
+                        className="min-h-10 flex-1 rounded-xl border-slate-200 font-medium text-slate-800 shadow-sm hover:bg-slate-50 disabled:opacity-40 sm:flex-none"
                     >
                         Siguiente
                         <ChevronRight className="h-4 w-4" />

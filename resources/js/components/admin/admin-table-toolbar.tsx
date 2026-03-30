@@ -68,7 +68,7 @@ export function AdminTableToolbar({
     return (
         <div
             className={cn(
-                'mx-auto mb-4 flex w-full min-w-0 max-w-6xl flex-col gap-3 md:flex-row md:flex-wrap md:items-end md:justify-between',
+                'mb-4 flex w-full min-w-0 flex-col gap-3 md:flex-row md:flex-wrap md:items-end md:justify-between',
                 className,
             )}
         >
@@ -78,7 +78,7 @@ export function AdminTableToolbar({
             >
                 <div className="relative w-full min-w-0 sm:flex-1">
                     <Search
-                        className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                        className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
                         aria-hidden
                     />
                     <input
@@ -86,19 +86,23 @@ export function AdminTableToolbar({
                         value={q}
                         onChange={(e) => setQ(e.target.value)}
                         placeholder={searchPlaceholder}
-                        className="w-full min-w-0 rounded-lg border border-gray-300 py-2.5 pl-10 pr-3 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                        className="w-full min-w-0 rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-3 text-sm shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     />
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                    <Button type="submit" variant="crear" className="min-h-[42px] flex-1 bg-slate-700 hover:bg-slate-800 sm:flex-none">
+                    <Button
+                        type="submit"
+                        variant="outline"
+                        className="min-h-[42px] flex-1 rounded-xl border-slate-300 font-semibold text-slate-800 shadow-sm hover:bg-slate-50 sm:flex-none"
+                    >
                         Buscar
                     </Button>
                     {hasSearch && (
                         <Button
                             type="button"
-                            variant="crear"
+                            variant="outline"
                             onClick={clearSearch}
-                            className="min-h-[42px] shrink-0 bg-slate-200 text-slate-800 hover:bg-slate-300"
+                            className="min-h-[42px] shrink-0 rounded-xl border-slate-200 bg-slate-50 font-medium text-slate-700 hover:bg-slate-100"
                         >
                             <X className="h-4 w-4" />
                         </Button>

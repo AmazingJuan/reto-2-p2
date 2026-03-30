@@ -1,6 +1,15 @@
+import {
+    AdminPageHeader,
+    adminFieldInputClass,
+    adminFieldLabelClass,
+    adminListShellClass,
+    adminOutlineButtonClass,
+    adminPrimaryButtonClass,
+} from '@/components/admin/admin-page-header';
 import { Button } from '@/components/ui/button';
 import FlashAlert from '@/components/ui/flashalert';
 import AdminLayout from '@/layouts/admin-layout';
+import { cn } from '@/lib/utils';
 import type { PageProps } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Download, ScrollText, Upload } from 'lucide-react';
@@ -38,6 +47,11 @@ type ShowPageProps = PageProps<{
     };
 }>;
 
+const labelTd =
+    'w-[36%] min-w-[7rem] px-3 py-3 align-top text-sm font-semibold text-slate-600 sm:w-1/3 sm:px-6 sm:py-4';
+const valueTd = 'px-3 py-3 text-sm text-slate-900 sm:px-6 sm:py-4 sm:text-base';
+const rowHover = 'transition hover:bg-slate-50/80';
+
 export default function Show() {
     const { viewData, errors, flash } = usePage<ShowPageProps & { flash: Record<string, unknown> }>().props;
     const { quotationOrder } = viewData;
@@ -67,7 +81,7 @@ export default function Show() {
     if (!quotationOrder) {
         return (
             <AdminLayout>
-                <div className="px-2 py-8 text-center text-gray-500">No se encontró la cotización.</div>
+                <div className="px-2 py-8 text-center text-slate-500">No se encontró la cotización.</div>
             </AdminLayout>
         );
     }
@@ -76,38 +90,34 @@ export default function Show() {
         <AdminLayout>
             <Head title={`Cotización #${quotationOrder.id}`} />
 
-            <div className="mx-auto w-full min-w-0 max-w-6xl space-y-4">
+            <div className={adminListShellClass}>
                 <FlashAlert flash={flash} />
 
-                <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0 space-y-3">
                         <Link
                             href={route('dashboard.quotation-orders.index')}
-                            className="inline-flex w-fit items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900"
+                            className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-[#0693e3]"
                         >
-                            <ArrowLeft className="h-5 w-5" />
-                            Volver
+                            <ArrowLeft className="h-4 w-4" />
+                            Volver al listado
                         </Link>
-                        <div className="flex min-w-0 items-center gap-3">
-                            <ScrollText className="h-7 w-7 shrink-0 text-blue-600 sm:h-8 sm:w-8" />
-                            <div className="min-w-0">
-                                <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-                                    Cotización #{quotationOrder.id}
-                                </h1>
-                                <p className="mt-1 text-sm text-gray-600">Detalle de la solicitud</p>
-                            </div>
-                        </div>
+                        <AdminPageHeader
+                            icon={ScrollText}
+                            title={`Cotización #${quotationOrder.id}`}
+                            description="Detalle de la solicitud"
+                        />
                     </div>
 
-                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-end">
                         {!quotationOrder.is_generated ? (
                             <Button
                                 type="button"
                                 onClick={() => setShowUploadModal(true)}
-                                variant="crear"
-                                className="w-full bg-emerald-600 hover:bg-emerald-700 sm:w-auto"
+                                variant="outline"
+                                className="w-full rounded-xl border-emerald-300 bg-emerald-50 font-semibold text-emerald-900 shadow-sm hover:bg-emerald-100 sm:w-auto"
                             >
-                                <Upload className="mr-2 h-5 w-5" />
+                                <Upload className="h-4 w-4" />
                                 Subir propuesta
                             </Button>
                         ) : quotationOrder.quotation_url ? (
@@ -115,34 +125,35 @@ export default function Show() {
                                 href={quotationOrder.quotation_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 sm:w-auto"
+                                className={cn(
+                                    adminPrimaryButtonClass,
+                                    'inline-flex w-full items-center justify-center gap-2 sm:w-auto',
+                                )}
                             >
-                                <Download className="mr-2 h-5 w-5" />
+                                <Download className="h-4 w-4" />
                                 Descargar PDF
                             </a>
                         ) : null}
                     </div>
                 </div>
 
-                <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6 [-webkit-overflow-scrolling:touch]">
+                <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 [-webkit-overflow-scrolling:touch]">
                     <table className="w-full min-w-[280px]">
-                        <tbody className="divide-y divide-gray-100">
-                            <tr className="hover:bg-gray-50">
-                                <td className="w-[36%] min-w-[7rem] px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:w-1/3 sm:px-6 sm:py-4">
-                                    ID
-                                </td>
-                                <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">{quotationOrder.id}</td>
+                        <tbody className="divide-y divide-slate-100">
+                            <tr className={rowHover}>
+                                <td className={labelTd}>ID</td>
+                                <td className={valueTd}>{quotationOrder.id}</td>
                             </tr>
 
-                            <tr className="hover:bg-gray-50">
-                                <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4">Estado</td>
-                                <td className="px-3 py-3 sm:px-6 sm:py-4">
+                            <tr className={rowHover}>
+                                <td className={labelTd}>Estado</td>
+                                <td className={valueTd}>
                                     {quotationOrder.is_generated ? (
-                                        <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
+                                        <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-800 ring-1 ring-emerald-200/80">
                                             Generada
                                         </span>
                                     ) : (
-                                        <span className="inline-flex rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700">
+                                        <span className="inline-flex rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-900 ring-1 ring-amber-200/80">
                                             Pendiente
                                         </span>
                                     )}
@@ -151,44 +162,44 @@ export default function Show() {
 
                             {quotationOrder.contact_info && (
                                 <>
-                                    <tr className="hover:bg-gray-50">
-                                        <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Nombre</td>
-                                        <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">{quotationOrder.contact_info.name}</td>
+                                    <tr className={rowHover}>
+                                        <td className={labelTd}>Nombre</td>
+                                        <td className={valueTd}>{quotationOrder.contact_info.name}</td>
                                     </tr>
-                                    <tr className="hover:bg-gray-50">
-                                        <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Email</td>
-                                        <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">{quotationOrder.contact_info.email}</td>
+                                    <tr className={rowHover}>
+                                        <td className={labelTd}>Email</td>
+                                        <td className={valueTd}>{quotationOrder.contact_info.email}</td>
                                     </tr>
                                     {quotationOrder.contact_info.company && (
-                                        <tr className="hover:bg-gray-50">
-                                            <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Empresa</td>
-                                            <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">{quotationOrder.contact_info.company}</td>
+                                        <tr className={rowHover}>
+                                            <td className={labelTd}>Empresa</td>
+                                            <td className={valueTd}>{quotationOrder.contact_info.company}</td>
                                         </tr>
                                     )}
                                     {quotationOrder.contact_info.phone && (
-                                        <tr className="hover:bg-gray-50">
-                                            <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Teléfono</td>
-                                            <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">{quotationOrder.contact_info.phone}</td>
+                                        <tr className={rowHover}>
+                                            <td className={labelTd}>Teléfono</td>
+                                            <td className={valueTd}>{quotationOrder.contact_info.phone}</td>
                                         </tr>
                                     )}
-                                    <tr className="hover:bg-gray-50">
-                                        <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Cargo</td>
-                                        <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">{quotationOrder.contact_info.role}</td>
+                                    <tr className={rowHover}>
+                                        <td className={labelTd}>Cargo</td>
+                                        <td className={valueTd}>{quotationOrder.contact_info.role}</td>
                                     </tr>
                                 </>
                             )}
 
                             {quotationOrder.business_unit && (
-                                <tr className="hover:bg-gray-50">
-                                    <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Unidad de negocio</td>
-                                    <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">{quotationOrder.business_unit}</td>
+                                <tr className={rowHover}>
+                                    <td className={labelTd}>Unidad de negocio</td>
+                                    <td className={valueTd}>{quotationOrder.business_unit}</td>
                                 </tr>
                             )}
 
                             {quotationOrder.gestion_line && (
-                                <tr className="hover:bg-gray-50">
-                                    <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Línea de gestión</td>
-                                    <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">{quotationOrder.gestion_line}</td>
+                                <tr className={rowHover}>
+                                    <td className={labelTd}>Línea de gestión</td>
+                                    <td className={valueTd}>{quotationOrder.gestion_line}</td>
                                 </tr>
                             )}
 
@@ -215,10 +226,10 @@ export default function Show() {
                             )}
 
                             {quotationOrder.services && quotationOrder.services.length > 0 && (
-                                <tr className="align-top hover:bg-gray-50">
-                                    <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Servicios</td>
-                                    <td className="px-3 py-3 sm:px-6 sm:py-4">
-                                        <ul className="list-inside list-disc space-y-1 text-gray-900">
+                                <tr className={cn(rowHover, 'align-top')}>
+                                    <td className={labelTd}>Servicios</td>
+                                    <td className={valueTd}>
+                                        <ul className="list-inside list-disc space-y-1 text-slate-900">
                                             {quotationOrder.services.map((service, idx) => (
                                                 <li key={idx}>{service}</li>
                                             ))}
@@ -228,10 +239,10 @@ export default function Show() {
                             )}
 
                             {quotationOrder.answers && Object.keys(quotationOrder.answers).length > 0 && (
-                                <tr className="align-top hover:bg-gray-50">
-                                    <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Respuestas</td>
-                                    <td className="px-3 py-3 sm:px-6 sm:py-4">
-                                        <ul className="list-inside list-disc space-y-1 text-gray-900">
+                                <tr className={cn(rowHover, 'align-top')}>
+                                    <td className={labelTd}>Respuestas</td>
+                                    <td className={valueTd}>
+                                        <ul className="list-inside list-disc space-y-1 text-slate-900">
                                             {Object.entries(quotationOrder.answers).map(([key, value]) => (
                                                 <li key={key}>
                                                     <span className="font-medium">{key}:</span> {String(value)}
@@ -243,9 +254,9 @@ export default function Show() {
                             )}
 
                             {quotationOrder.created_at && (
-                                <tr className="hover:bg-gray-50">
-                                    <td className="px-3 py-3 align-top text-sm font-semibold text-gray-600 sm:px-6 sm:py-4 sm:text-base">Fecha de creación</td>
-                                    <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4 sm:text-base">
+                                <tr className={rowHover}>
+                                    <td className={labelTd}>Fecha de creación</td>
+                                    <td className={valueTd}>
                                         {new Date(quotationOrder.created_at).toLocaleDateString('es-CO')}
                                     </td>
                                 </tr>
@@ -259,15 +270,16 @@ export default function Show() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <button
                         type="button"
-                        className="absolute inset-0 bg-black/40"
+                        className="absolute inset-0 bg-slate-900/40"
                         aria-label="Cerrar"
                         onClick={() => setShowUploadModal(false)}
                     />
-                    <div className="relative z-10 w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-lg">
-                        <h3 className="mb-4 text-xl font-bold text-gray-900">Subir enlace de propuesta</h3>
+                    <div className="relative z-10 w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_12px_40px_-12px_rgba(15,23,42,0.18)]">
+                        <h3 className="mb-1 text-lg font-bold tracking-tight text-slate-900">Subir enlace de propuesta</h3>
+                        <p className="mb-4 text-sm text-slate-600">Pega la URL pública del PDF o documento de la propuesta.</p>
 
                         <div className="mb-4">
-                            <label htmlFor="quotation_url" className="mb-2 block text-sm font-medium text-gray-700">
+                            <label htmlFor="quotation_url" className={adminFieldLabelClass}>
                                 URL de la propuesta
                             </label>
                             <input
@@ -276,31 +288,30 @@ export default function Show() {
                                 value={quotationUrl}
                                 onChange={(e) => setQuotationUrl(e.target.value)}
                                 placeholder="https://ejemplo.com/propuesta.pdf"
-                                className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
-                                    errors.quotation_url
-                                        ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                                        : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
-                                }`}
+                                className={cn(
+                                    adminFieldInputClass,
+                                    errors.quotation_url && 'border-red-300 focus:border-red-500 focus:ring-red-500/20',
+                                )}
                             />
                             {errors.quotation_url && <p className="mt-1 text-sm text-red-600">{errors.quotation_url}</p>}
                         </div>
 
-                        <div className="flex justify-end gap-3">
+                        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
                             <Button
                                 type="button"
-                                variant="crear"
+                                variant="outline"
                                 onClick={() => setShowUploadModal(false)}
-                                className="bg-slate-100 text-slate-800 hover:bg-slate-200"
+                                className={cn(adminOutlineButtonClass, 'w-full sm:w-auto')}
                                 disabled={uploading}
                             >
                                 Cancelar
                             </Button>
                             <Button
                                 type="button"
-                                variant="crear"
                                 onClick={handleUpload}
                                 disabled={!quotationUrl.trim() || uploading}
-                                className="bg-amber-600 hover:bg-amber-700 disabled:opacity-50"
+                                size="sm"
+                                className={cn(adminPrimaryButtonClass, 'w-full sm:w-auto disabled:opacity-50')}
                             >
                                 {uploading ? 'Guardando...' : 'Guardar'}
                             </Button>
