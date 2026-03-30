@@ -1,6 +1,6 @@
 import AdminLayout from '@/layouts/admin-layout';
 import { Link } from '@inertiajs/react';
-import { ChevronRight, GitBranch, Mail, ScrollText, Settings, Users, Wrench, BriefcaseBusiness, Trees } from 'lucide-react';
+import { ChevronRight, GitBranch, Mail, ScrollText, Settings, UserCircle, Users, Wrench, BriefcaseBusiness, Trees } from 'lucide-react';
 import React from 'react';
 import { route } from 'ziggy-js';
 
@@ -12,6 +12,13 @@ const Dashboard: React.FC = () => {
             desc: 'Gestiona cuentas del sistema',
             icon: Users,
             accent: 'indigo',
+        },
+        {
+            label: 'Profesionales',
+            name: 'dashboard.professionals.index',
+            desc: 'Equipo visible en cotizaciones (anonimizado para el cliente)',
+            icon: UserCircle,
+            accent: 'amber',
         },
         {
             label: 'Servicios',

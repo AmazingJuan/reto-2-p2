@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Professional;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreQuotationProposal extends FormRequest
 {
@@ -40,14 +42,22 @@ class StoreQuotationProposal extends FormRequest
                 'array',
                 function ($attribute, $value, $fail) {
                     foreach ($value as $k => $v) {
-                        if (!is_string($k) || trim($k) === '') {
-                            $fail('Las claves de ' . $attribute . ' deben ser cadenas no vacías.');
+                        if (! is_string($k) || trim($k) === '') {
+                            $fail('Las claves de '.$attribute.' deben ser cadenas no vacías.');
+
                             return;
                         }
                     }
                 },
             ],
             'answers.*' => ['required', 'string', 'max:1000'],
+
+            'professional_id' => [
+                Rule::requiredIf(fn () => Professional::query()->exists()),
+                'nullable',
+                'integer',
+                'exists:professionals,id',
+            ],
         ];
     }
 
@@ -85,6 +95,10 @@ class StoreQuotationProposal extends FormRequest
             $input['answers'] = $trimmed;
         }
 
+        if ($this->has('professional_id') && $this->input('professional_id') !== '' && $this->input('professional_id') !== null) {
+            $input['professional_id'] = (int) $this->input('professional_id');
+        }
+
         $this->replace($input);
     }
 
@@ -120,6 +134,9 @@ class StoreQuotationProposal extends FormRequest
             'answers.*.required' => 'Cada respuesta es requerida.',
             'answers.*.string' => 'Cada respuesta debe ser texto.',
             'answers.*.max' => 'Cada respuesta no debe exceder :max caracteres.',
+
+            'professional_id.required' => 'Debe elegir un profesional para continuar.',
+            'professional_id.exists' => 'El profesional seleccionado no es válido.',
         ];
     }
 }

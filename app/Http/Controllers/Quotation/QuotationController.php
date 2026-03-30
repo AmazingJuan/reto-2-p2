@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers\Quotation;
 
+use App\Helpers\DecisionTreeHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreQuotationProposal;
 use App\Models\BusinessUnit;
 use App\Models\GestionLine;
+use App\Models\Professional;
+use App\Models\QuotationProposalOrder;
 use App\Models\Service;
 use App\Services\MailService;
-use App\Helpers\DecisionTreeHelper;
-use App\Http\Requests\StoreQuotationProposal;
-use App\Models\QuotationProposalOrder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -66,6 +69,34 @@ class QuotationController extends Controller
         return Inertia::render('quotation/index', compact('viewData'));
     }
 
+    /**
+     * Lista pública para el cotizador: solo id y años de experiencia (sin nombre ni resumen).
+     */
+    public function listProfessionalsForSelection(Request $request): JsonResponse
+    {
+        $query = Professional::query()
+            ->select(['id', 'years_experience'])
+            ->orderBy('years_experience')
+            ->orderBy('id');
+
+        if ($request->query('min_years') !== null && $request->query('min_years') !== '') {
+            $query->where('years_experience', '>=', max(0, (int) $request->query('min_years')));
+        }
+        if ($request->query('max_years') !== null && $request->query('max_years') !== '') {
+            $query->where('years_experience', '<=', max(0, (int) $request->query('max_years')));
+        }
+
+        $hasAnyProfessionals = Professional::query()->exists();
+
+        return response()->json([
+            'professionals' => $query->get()->map(fn (Professional $p) => [
+                'id' => $p->id,
+                'years_experience' => $p->years_experience,
+            ])->values(),
+            'has_any_professionals' => $hasAnyProfessionals,
+        ]);
+    }
+
     public function storeQuotationProposal(StoreQuotationProposal $request): RedirectResponse
     {
         $quotationProposalData = $request->validated();
@@ -77,6 +108,7 @@ class QuotationController extends Controller
             'services' => $quotationProposalData['services'],
             'business_unit' => $quotationProposalData['businessUnit'],
             'answers' => $quotationProposalData['answers'],
+            'professional_id' => $quotationProposalData['professional_id'] ?? null,
         ]);
 
         MailService::sendQuotationPendingEmail($quotationProposalOrder);
