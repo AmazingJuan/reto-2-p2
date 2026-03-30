@@ -47,8 +47,8 @@ class MailService
         Mail::to($adminEmail)->queue(new QuotationGeneratedAdmin($quotationOrder));
     }
 
-    public static function sendWelcomeEmail(string $toEmail, string $platformUrl, ?string $recipientName = null): void
+    public static function sendWelcomeEmail(string $toEmail, ?string $recipientName = null): void
     {
-        Mail::to($toEmail)->queue(new WelcomeEmail($platformUrl, $recipientName));
+        Mail::to($toEmail)->queue(new WelcomeEmail($recipientName));
     }
 }

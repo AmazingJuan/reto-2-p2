@@ -19,8 +19,10 @@ class QuotationPendingAdmin extends Mailable
 
     public function envelope(): Envelope
     {
+        $ref = $this->quotationOrder->getQuotationCode() ?? '#'.$this->quotationOrder->getId();
+
         return new Envelope(
-            subject: 'Nueva solicitud de cotización #'.$this->quotationOrder->getId(),
+            subject: 'Nueva solicitud de cotización '.$ref,
         );
     }
 

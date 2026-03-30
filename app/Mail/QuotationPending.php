@@ -31,8 +31,10 @@ class QuotationPending extends Mailable
      */
     public function envelope(): Envelope
     {
+        $ref = $this->quotationOrder->getQuotationCode() ?? $this->quotationOrder->getId();
+
         return new Envelope(
-            subject: 'Tu cotización #'.$this->quotationOrder->id.' está pendiente',
+            subject: 'Tu cotización '.$ref.' está pendiente',
         );
     }
 
