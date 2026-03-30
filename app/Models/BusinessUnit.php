@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
+/**
+ * @property string $abbreviation
+ * @property int|null $quotation_seq_year
+ * @property int $quotation_seq_value
+ */
 class BusinessUnit extends Model
 {
     /**
@@ -18,13 +23,13 @@ class BusinessUnit extends Model
      * $this->attributes['updated_at'] - Carbon - Record last update timestamp
      * $this->attributes['services'] - Service[] - Services associated with the business unit
      */
-    protected $fillable = ['name', 'display_name', 'initial_condition_id'];
+    protected $fillable = ['name', 'display_name', 'initial_condition_id', 'abbreviation'];
 
     // Relationships
 
     public function initialCondition(): BelongsTo
     {
-         return $this->belongsTo(Condition::class, 'initial_condition_id');
+        return $this->belongsTo(Condition::class, 'initial_condition_id');
     }
 
     public function getInitialCondition(): ?Condition
@@ -83,4 +88,30 @@ class BusinessUnit extends Model
         return $this->services;
     }
 
+    public function getAbbreviation(): string
+    {
+        return strtoupper(trim((string) ($this->attributes['abbreviation'] ?? '')));
+    }
+
+    /**
+     * Siguiente código tipo ABBREV-YYnn (año de 2 dígitos + correlativo dentro del año).
+     * Debe ejecutarse dentro de una transacción; bloquea la fila de la unidad.
+     */
+    public function lockAndAllocateNextQuotationCode(): string
+    {
+        $row = self::query()->whereKey($this->getId())->lockForUpdate()->firstOrFail();
+        $yy = (int) now()->format('y');
+        $storedYear = $row->quotation_seq_year !== null ? (int) $row->quotation_seq_year : -1;
+        $val = (int) $row->quotation_seq_value;
+        if ($storedYear !== $yy) {
+            $storedYear = $yy;
+            $val = 0;
+        }
+        $val++;
+        $row->quotation_seq_year = $storedYear;
+        $row->quotation_seq_value = $val;
+        $row->save();
+
+        return sprintf('%s-%02d%02d', strtoupper(trim((string) $row->abbreviation)), $yy, $val);
+    }
 }

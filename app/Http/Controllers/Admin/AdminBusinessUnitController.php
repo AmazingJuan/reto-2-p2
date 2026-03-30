@@ -18,12 +18,15 @@ class AdminBusinessUnitController extends Controller
     {
         $search = $request->string('search')->trim()->toString();
 
-        $query = BusinessUnit::query()->select('id', 'display_name')->orderBy('id');
+        $query = BusinessUnit::query()
+            ->select('id', 'display_name', 'abbreviation', 'quotation_seq_year', 'quotation_seq_value')
+            ->orderBy('id');
 
         if ($search !== '') {
             $like = '%'.$search.'%';
             $query->where(function ($q) use ($like, $search) {
-                $q->where('display_name', 'like', $like);
+                $q->where('display_name', 'like', $like)
+                    ->orWhere('abbreviation', 'like', $like);
                 if (ctype_digit($search)) {
                     $q->orWhere('id', (int) $search);
                 }
@@ -40,7 +43,9 @@ class AdminBusinessUnitController extends Controller
 
     public function show(int $businessUnitId): InertiaResponse|RedirectResponse
     {
-        $businessUnit = BusinessUnit::where('id', $businessUnitId)->select('id', 'display_name')->first();
+        $businessUnit = BusinessUnit::where('id', $businessUnitId)
+            ->select('id', 'display_name', 'abbreviation', 'quotation_seq_year', 'quotation_seq_value')
+            ->first();
 
         if (! $businessUnit) {
             return redirect()->route('dashboard.business-unit.index')->with('error', 'Unidad de negocio con ID: '.$businessUnitId.' no encontrada.');
@@ -78,7 +83,9 @@ class AdminBusinessUnitController extends Controller
 
     public function edit(int $businessUnitId): InertiaResponse|RedirectResponse
     {
-        $businessUnit = BusinessUnit::where('id', $businessUnitId)->select('id', 'display_name')->first();
+        $businessUnit = BusinessUnit::where('id', $businessUnitId)
+            ->select('id', 'display_name', 'abbreviation', 'quotation_seq_year', 'quotation_seq_value')
+            ->first();
 
         if (! $businessUnit) {
             return redirect()->route('dashboard.business-unit.index')->with('error', 'Unidad de negocio con ID: '.$businessUnitId.' no encontrada.');
@@ -91,7 +98,9 @@ class AdminBusinessUnitController extends Controller
 
     public function update(AdminBusinessUnitRequest $request, int $businessUnitId): RedirectResponse
     {
-        $businessUnit = BusinessUnit::where('id', $businessUnitId)->select('id', 'name')->first();
+        $businessUnit = BusinessUnit::where('id', $businessUnitId)
+            ->select('id', 'name', 'display_name', 'abbreviation')
+            ->first();
 
         if (! $businessUnit) {
             return redirect()->route('dashboard.business-unit.index')->with('error', 'Unidad de negocio con ID: '.$businessUnitId.' no encontrada.');
@@ -126,7 +135,7 @@ class AdminBusinessUnitController extends Controller
         }
 
         try {
-        
+
             $businessUnit->delete();
             $successMessage = 'La unidad de negocio: '.$businessUnit->name.', ha sido eliminada exitosamente.';
 

@@ -16,6 +16,9 @@ import { route } from 'ziggy-js';
 interface BusinessUnit {
     id: number;
     display_name: string;
+    abbreviation: string;
+    quotation_seq_year?: number | null;
+    quotation_seq_value?: number | null;
 }
 
 interface Service {
@@ -52,8 +55,17 @@ export default function Show() {
                 <AdminPageHeader
                     icon={BriefcaseBusiness}
                     title={capitalize(businessUnit.display_name)}
-                    description={`Servicios asociados a esta unidad · ID #${businessUnit.id}`}
+                    description={`Abreviado ${businessUnit.abbreviation} · ID #${businessUnit.id}`}
                 />
+
+                <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700 shadow-sm">
+                    <p>
+                        <span className="font-semibold text-slate-900">Contador de cotizaciones (año actual):</span>{' '}
+                        {businessUnit.quotation_seq_year != null
+                            ? `’${String(businessUnit.quotation_seq_year).padStart(2, '0')} · último n.º ${businessUnit.quotation_seq_value ?? 0}`
+                            : 'Aún sin cotizaciones registradas.'}
+                    </p>
+                </div>
 
                 <div className={adminTableCardClass}>
                     <table className="min-w-[360px] w-full divide-y divide-slate-200 sm:min-w-full">
