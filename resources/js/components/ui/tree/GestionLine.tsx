@@ -1,12 +1,13 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { router } from '@inertiajs/react';
-import { CheckCircle2, GitBranch, Layers } from 'lucide-react';
-import React, { useRef, useState } from 'react';
+import { CheckCircle2, GitBranch, Layers, Loader2, SlidersHorizontal, UserRound } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { route } from 'ziggy-js';
 import GoSelect from '../goselect';
 import Header from '../header';
 import ServicesByLine from './ServicesByLine';
 
-interface ViewData {
+export interface ViewData {
     businessUnit: string;
     gestionLines: string[];
     services: {
@@ -35,6 +36,15 @@ export default function GestionLine({ viewData }: GestionLineProps) {
     const [history, setHistory] = useState<number[]>([]);
     const [answers, setAnswers] = useState<Record<string, any>>({});
     const [savedSnapshot, setSavedSnapshot] = useState<any | null>(null);
+    const [showProfessionalModal, setShowProfessionalModal] = useState(false);
+    const [selectedProfessionalId, setSelectedProfessionalId] = useState<number | null>(null);
+    const [professionalList, setProfessionalList] = useState<{ id: number; years_experience: number }[]>([]);
+    const [hasAnyProfessionalsInDb, setHasAnyProfessionalsInDb] = useState(false);
+    const [loadingProfessionals, setLoadingProfessionals] = useState(false);
+    const [professionalFetchError, setProfessionalFetchError] = useState<string | null>(null);
+    const [professionalPickerError, setProfessionalPickerError] = useState<string | null>(null);
+    const [filterMinYears, setFilterMinYears] = useState('');
+    const [filterMaxYears, setFilterMaxYears] = useState('');
     const [showContactModal, setShowContactModal] = useState(false);
 
     // contact form state (agregado campo 'role')
@@ -48,6 +58,57 @@ export default function GestionLine({ viewData }: GestionLineProps) {
     const conditionsRef = useRef<HTMLDivElement>(null);
 
     const visibleLines = viewData.gestionLines.filter((line) => (viewData.services[line]?.length ?? 0) > 0);
+
+    const fetchProfessionalsList = useCallback(async () => {
+        setLoadingProfessionals(true);
+        setProfessionalFetchError(null);
+        try {
+            const url = route('quotation.professionals.list');
+            const params = new URLSearchParams();
+            if (filterMinYears.trim() !== '') params.set('min_years', filterMinYears.trim());
+            if (filterMaxYears.trim() !== '') params.set('max_years', filterMaxYears.trim());
+            const qs = params.toString();
+            const res = await fetch(qs ? `${url}?${qs}` : url, {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            });
+            if (!res.ok) throw new Error('fetch');
+            const data = await res.json();
+            setProfessionalList(Array.isArray(data.professionals) ? data.professionals : []);
+            setHasAnyProfessionalsInDb(Boolean(data.has_any_professionals));
+        } catch {
+            setProfessionalFetchError('No se pudieron cargar los profesionales. Intente otra vez.');
+            setProfessionalList([]);
+            setHasAnyProfessionalsInDb(true);
+        } finally {
+            setLoadingProfessionals(false);
+        }
+    }, [filterMinYears, filterMaxYears]);
+
+    useEffect(() => {
+        if (!showProfessionalModal) return;
+        setSelectedProfessionalId(null);
+        setProfessionalPickerError(null);
+        void fetchProfessionalsList();
+        // Solo al abrir el paso; los filtros se aplican con el botón "Aplicar filtros"
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [showProfessionalModal]);
+
+    const handleContinueFromProfessionalPicker = () => {
+        if (professionalList.length > 0 && selectedProfessionalId === null) {
+            setProfessionalPickerError('Seleccione un profesional de la lista para continuar.');
+            return;
+        }
+        setProfessionalPickerError(null);
+        setShowProfessionalModal(false);
+        setShowContactModal(true);
+    };
+
+    const handleSkipProfessionalsWhenEmpty = () => {
+        setProfessionalPickerError(null);
+        setShowProfessionalModal(false);
+        setShowContactModal(true);
+    };
 
     // handlers for contact modal
     const handleSendContact = () => {
@@ -117,6 +178,9 @@ export default function GestionLine({ viewData }: GestionLineProps) {
             services: servicesArray,
             answers: readableAnswers,
         };
+        if (selectedProfessionalId !== null) {
+            payload.professional_id = selectedProfessionalId;
+        }
 
         // use Ziggy route helper if available; route name: quotation.store.proposal
         let url = '/cotizar';
@@ -139,6 +203,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                     setFormErrors({});
                     setShowContactModal(false);
                     setSavedSnapshot(null);
+                    setSelectedProfessionalId(null);
                     setContact({ name: '', company: '', role: '', email: '', phone: '' });
                     setShowSavedDetails(false);
                 },
@@ -159,6 +224,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
         const restoredId = savedSnapshot.snapshot?.currentId ?? viewData.initial_condition_id ?? null;
         setConditionInitialId(restoredId);
         setShowContactModal(false);
+        setShowProfessionalModal(false);
         setShowSavedDetails(false);
         // keep savedSnapshot so the stepper can receive initialHistory from it
     };
@@ -214,35 +280,43 @@ export default function GestionLine({ viewData }: GestionLineProps) {
     }, [selectedServices]);
 
     return (
-        <div className="flex min-h-screen flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-white to-slate-50">
-            {/* Blobs decorativos */}
-            <div className="blob pointer-events-none fixed -right-40 -top-40 h-96 w-96 rounded-full bg-[#0693e3]/10 blur-3xl" />
+        <div className="flex min-h-screen flex-col overflow-x-hidden bg-gradient-to-br from-slate-50 via-white to-slate-100">
+            <div className="pointer-events-none fixed -right-32 -top-32 h-80 w-80 rounded-full bg-[#0693e3]/12 blur-3xl sm:h-96 sm:w-96" aria-hidden />
             <div
-                className="blob pointer-events-none fixed -bottom-40 -left-40 h-96 w-96 rounded-full bg-emerald-500/10 blur-3xl"
+                className="pointer-events-none fixed -bottom-32 -left-32 h-80 w-80 rounded-full bg-emerald-500/10 blur-3xl sm:h-96 sm:w-96"
                 style={{ animationDelay: '-4s' }}
+                aria-hidden
             />
 
             <Header />
-            <GoSelect />
 
-            <main className="container mx-auto flex-1 px-4 pb-24 pt-4">
-                {/* Título */}
-                <div className="mb-10 text-center">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0693e3]/20 to-emerald-500/20 shadow-lg shadow-[#0693e3]/10">
-                        <GitBranch className="h-8 w-8 text-[#0693e3]" />
+            <main className="container mx-auto flex-1 px-4 pb-24 pt-28 sm:px-6 sm:pt-32">
+                <div className="mb-8">
+                    <GoSelect />
+                </div>
+
+                <div className="mb-12 text-center">
+                    <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0693e3]/25 to-emerald-500/20 shadow-lg shadow-[#0693e3]/10 sm:h-[4.5rem] sm:w-[4.5rem]">
+                        <GitBranch className="h-8 w-8 text-[#0693e3] sm:h-9 sm:w-9" strokeWidth={2} />
                     </div>
 
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#0693e3]/90">Unidad de negocio</p>
                     <h2 className="mb-3 text-3xl font-bold text-slate-900 md:text-4xl">
                         <span className="text-gradient">{capitalize(viewData.businessUnit)}</span>
                     </h2>
 
-                    <p className="mx-auto max-w-xl text-slate-600">Selecciona una línea de gestión para ver sus servicios</p>
+                    <p className="mx-auto max-w-lg text-slate-600">Selecciona una línea de gestión para ver sus servicios</p>
                 </div>
 
-                {/* Cards */}
                 <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {visibleLines.length === 0 && (
+                        <p className="col-span-full rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-10 text-center text-slate-600">
+                            No hay líneas de gestión con servicios disponibles para esta unidad.
+                        </p>
+                    )}
                     {visibleLines.map((line, index) => {
                         const isSelected = selectedLine === line;
+                        const staggerClass = ['stagger-1', 'stagger-2', 'stagger-3', 'stagger-4', 'stagger-5'][Math.min(index, 4)];
 
                         return (
                             <Card
@@ -251,7 +325,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                                     setSelectedLine(line);
                                     setSelectedServices([]);
                                 }}
-                                className={`animate-slide-up stagger-${index + 1} card-shine hover-lift group cursor-pointer overflow-hidden rounded-2xl border-2 transition-all duration-300 ${
+                                className={`card-shine hover-lift group cursor-pointer overflow-hidden rounded-2xl border-2 transition-all duration-300 animate-slide-up ${staggerClass} ${
                                     isSelected
                                         ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-white shadow-lg shadow-emerald-500/20'
                                         : 'border-slate-200 bg-white hover:border-[#0693e3]/50 hover:shadow-lg'
@@ -259,7 +333,6 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                             >
                                 <CardContent className="p-6">
                                     <div className="flex items-center gap-4">
-                                        {/* Icono */}
                                         <div
                                             className={`flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-300 ${
                                                 isSelected
@@ -270,11 +343,11 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                                             <Layers className="h-6 w-6" />
                                         </div>
 
-                                        <div className="flex-1">
+                                        <div className="min-w-0 flex-1 text-left">
                                             <h3 className="text-lg font-semibold text-slate-900">{capitalize(line)}</h3>
                                         </div>
 
-                                        {isSelected && <CheckCircle2 className="h-6 w-6 text-emerald-500" />}
+                                        {isSelected && <CheckCircle2 className="h-6 w-6 shrink-0 text-emerald-500" aria-hidden />}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -282,9 +355,8 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                     })}
                 </div>
 
-                {/* Servicios */}
                 {selectedLine && (
-                    <div ref={servicesRef} className="animate-fade-in mt-10 scroll-mt-24">
+                    <div ref={servicesRef} className="animate-fade-in scroll-mt-28">
                         <ServicesByLine
                             line={selectedLine}
                             services={viewData.services[selectedLine]}
@@ -305,18 +377,17 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                     if (!selectedServices || selectedServices.length === 0) return null;
 
                     return (
-                        <div ref={conditionsRef} className="mt-10 scroll-mt-24">
-                            <h3 className="mb-2 text-center text-2xl font-bold leading-tight text-slate-900 md:text-2xl">
+                        <div ref={conditionsRef} className="mt-12 scroll-mt-28">
+                            <h3 className="mb-2 text-center text-2xl font-bold text-slate-900 md:text-3xl">
                                 Condiciones para{' '}
                                 {selectedServices.length === 1 ? selectedServices[0] : `${selectedServices.length} servicios seleccionados`}
                             </h3>
-                            <p className="mb-6 text-center text-slate-600">Responde las condiciones una a una</p>
+                            <p className="mb-8 text-center text-slate-600">Responde las condiciones una a una</p>
 
                             {!viewData.conditions || Object.keys(viewData.conditions).length === 0 ? (
                                 <p className="text-center text-slate-500">No hay condiciones disponibles para este servicio.</p>
                             ) : (
                                 <div className="flex flex-col items-center">
-                                    {/* initialize currentConditionId when selecting a service */}
                                     <ConditionStepper
                                         conditions={viewData.conditions}
                                         initialConditionId={conditionInitialId}
@@ -332,8 +403,8 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                                                 snapshot,
                                             });
 
-                                            // show contact modal; do NOT redirect here — redirect happens on Enviar
-                                            setShowContactModal(true);
+                                            // elegir profesional (anonimizado) antes del formulario de contacto
+                                            setShowProfessionalModal(true);
                                         }}
                                     />
                                 </div>
@@ -343,17 +414,170 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                 })()}
             </main>
 
+            {/* Elegir profesional (solo ID + años de experiencia para el usuario) */}
+            {showProfessionalModal && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <button
+                        type="button"
+                        className="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]"
+                        aria-label="Cerrar"
+                        onClick={() => setShowProfessionalModal(false)}
+                    />
+                    <div className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xl shadow-slate-900/15 ring-1 ring-slate-900/5 sm:max-w-2xl sm:p-8">
+                        <div className="mb-6 flex items-start gap-3">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#0693e3]/25 to-[#0693e3]/5 text-[#047ac0]">
+                                <UserRound className="h-6 w-6" strokeWidth={2} />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">Elija un profesional</h3>
+                                <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                                    Por privacidad mostramos solo un identificador y los años de experiencia. Después podrá enviar sus datos de contacto.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mb-5 rounded-xl border border-slate-100 bg-slate-50/90 p-4">
+                            <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                <SlidersHorizontal className="h-3.5 w-3.5" />
+                                Filtrar por años de experiencia
+                            </div>
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                                <div className="flex-1">
+                                    <label className="mb-1 block text-xs font-medium text-slate-600">Mínimo</label>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        max={80}
+                                        value={filterMinYears}
+                                        onChange={(e) => setFilterMinYears(e.target.value)}
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-[#0693e3] focus:outline-none focus:ring-2 focus:ring-[#0693e3]/20"
+                                        placeholder="Ej. 3"
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="mb-1 block text-xs font-medium text-slate-600">Máximo</label>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        max={80}
+                                        value={filterMaxYears}
+                                        onChange={(e) => setFilterMaxYears(e.target.value)}
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-[#0693e3] focus:outline-none focus:ring-2 focus:ring-[#0693e3]/20"
+                                        placeholder="Ej. 15"
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => void fetchProfessionalsList()}
+                                    disabled={loadingProfessionals}
+                                    className="shrink-0 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:opacity-60"
+                                >
+                                    Aplicar filtros
+                                </button>
+                            </div>
+                        </div>
+
+                        {professionalFetchError && (
+                            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{professionalFetchError}</div>
+                        )}
+                        {professionalPickerError && (
+                            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">{professionalPickerError}</div>
+                        )}
+
+                        {loadingProfessionals ? (
+                            <div className="flex flex-col items-center justify-center gap-3 py-12 text-slate-600">
+                                <Loader2 className="h-8 w-8 animate-spin text-[#0693e3]" />
+                                <p className="text-sm">Cargando opciones…</p>
+                            </div>
+                        ) : professionalList.length === 0 ? (
+                            <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-8 text-center">
+                                {hasAnyProfessionalsInDb ? (
+                                    <>
+                                        <p className="text-sm font-medium text-slate-700">Ningún profesional coincide con el filtro de experiencia.</p>
+                                        <p className="mt-1 text-xs text-slate-500">Amplíe el rango o borre mínimo y máximo y pulse Aplicar filtros.</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="text-sm font-medium text-slate-700">Aún no hay profesionales registrados en el sistema.</p>
+                                        <p className="mt-1 text-xs text-slate-500">Puede continuar; su solicitud se registrará sin asignación de profesional.</p>
+                                        <button
+                                            type="button"
+                                            onClick={handleSkipProfessionalsWhenEmpty}
+                                            className="mt-5 inline-flex items-center justify-center rounded-xl bg-[#0693e3] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#0693e3]/25 transition hover:bg-[#047ac0]"
+                                        >
+                                            Continuar con datos de contacto
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        ) : (
+                            <ul className="grid max-h-[min(40vh,22rem)] gap-3 overflow-y-auto pr-1 sm:grid-cols-2">
+                                {professionalList.map((p) => {
+                                    const selected = selectedProfessionalId === p.id;
+                                    return (
+                                        <li key={p.id}>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedProfessionalId(p.id);
+                                                    setProfessionalPickerError(null);
+                                                }}
+                                                className={`flex w-full flex-col items-start rounded-xl border-2 px-4 py-3 text-left transition ${
+                                                    selected
+                                                        ? 'border-[#0693e3] bg-[#0693e3]/5 ring-2 ring-[#0693e3]/20'
+                                                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80'
+                                                }`}
+                                            >
+                                                <span className="text-sm font-bold text-slate-900">Profesional #{p.id}</span>
+                                                <span className="mt-1 text-xs text-slate-600">
+                                                    {p.years_experience} {p.years_experience === 1 ? 'año' : 'años'} de experiencia
+                                                </span>
+                                            </button>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+
+                        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-between sm:gap-3">
+                            <button
+                                type="button"
+                                onClick={handleReturnToSnapshot}
+                                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+                            >
+                                Volver a condiciones
+                            </button>
+                            {professionalList.length > 0 ? (
+                                <button
+                                    type="button"
+                                    onClick={handleContinueFromProfessionalPicker}
+                                    className="rounded-xl bg-gradient-to-b from-[#0693e3] to-[#0580c7] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#0693e3]/30 transition hover:from-[#0588d4] hover:to-[#0470b0] disabled:cursor-not-allowed disabled:opacity-40"
+                                    disabled={selectedProfessionalId === null}
+                                >
+                                    Continuar con datos de contacto
+                                </button>
+                            ) : null}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Contact modal shown after finalizar */}
             {showContactModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-black opacity-40" onClick={() => setShowContactModal(false)} />
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <button
+                        type="button"
+                        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+                        aria-label="Cerrar"
+                        onClick={() => setShowContactModal(false)}
+                    />
 
-                    <div className="relative z-10 w-full max-w-2xl rounded-lg bg-white p-6 shadow-lg">
+                    <div className="relative z-10 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xl sm:p-8">
                         <h3 className="mb-2 text-xl font-bold text-slate-900">Casi listo — déjanos tus datos</h3>
-                        <p className="mb-4 text-sm text-slate-600">Ingresa tus datos para que podamos contactarte sobre esta cotización.</p>
+                        <p className="mb-6 text-sm text-slate-600">Ingresa tus datos para que podamos contactarte sobre esta cotización.</p>
 
                         {(() => {
-                            const fieldKeys = ['name', 'company', 'role', 'email', 'phone'];
+                            const fieldKeys = ['name', 'company', 'role', 'email', 'phone', 'professional_id'];
                             const globalMsgs: string[] = formErrors._global ? [...formErrors._global] : [];
                             const otherMsgs: string[] = Object.entries(formErrors)
                                 .filter(([k]) => k !== '_global' && !fieldKeys.includes(k))
@@ -362,8 +586,8 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                             if (topMsgs.length === 0) return null;
 
                             return (
-                                <div className="mb-3 rounded border bg-red-50 p-3 text-sm text-red-700">
-                                    <ul className="list-inside list-disc">
+                                <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+                                    <ul className="list-inside list-disc space-y-0.5">
                                         {topMsgs.map((m, i) => (
                                             <li key={i}>{m}</li>
                                         ))}
@@ -372,13 +596,13 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                             );
                         })()}
 
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div className="col-span-2">
                                 <label className="mb-1 block text-sm font-medium text-slate-700">Nombre</label>
                                 <input
                                     value={contact.name}
                                     onChange={(e) => setContact((c) => ({ ...c, name: e.target.value }))}
-                                    className="w-full rounded border px-3 py-2"
+                                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-[#0693e3] focus:outline-none focus:ring-2 focus:ring-[#0693e3]/20"
                                     placeholder="Tu nombre"
                                 />
                                 {formErrors.name && <p className="mt-1 text-sm text-red-600">{formErrors.name[0]}</p>}
@@ -389,7 +613,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                                 <input
                                     value={contact.company}
                                     onChange={(e) => setContact((c) => ({ ...c, company: e.target.value }))}
-                                    className="w-full rounded border px-3 py-2"
+                                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-[#0693e3] focus:outline-none focus:ring-2 focus:ring-[#0693e3]/20"
                                     placeholder="Nombre de la empresa (opcional)"
                                 />
                                 {formErrors.company && <p className="mt-1 text-sm text-red-600">{formErrors.company[0]}</p>}
@@ -400,7 +624,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                                 <input
                                     value={contact.role}
                                     onChange={(e) => setContact((c) => ({ ...c, role: e.target.value }))}
-                                    className="w-full rounded border px-3 py-2"
+                                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-[#0693e3] focus:outline-none focus:ring-2 focus:ring-[#0693e3]/20"
                                     placeholder="Cargo o puesto en la empresa"
                                 />
                                 {formErrors.role && <p className="mt-1 text-sm text-red-600">{formErrors.role[0]}</p>}
@@ -411,7 +635,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                                 <input
                                     value={contact.email}
                                     onChange={(e) => setContact((c) => ({ ...c, email: e.target.value }))}
-                                    className="w-full rounded border px-3 py-2"
+                                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-[#0693e3] focus:outline-none focus:ring-2 focus:ring-[#0693e3]/20"
                                     placeholder="correo@ejemplo.com"
                                 />
                                 {formErrors.email && <p className="mt-1 text-sm text-red-600">{formErrors.email[0]}</p>}
@@ -422,30 +646,42 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                                 <input
                                     value={contact.phone}
                                     onChange={(e) => setContact((c) => ({ ...c, phone: e.target.value }))}
-                                    className="w-full rounded border px-3 py-2"
+                                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-[#0693e3] focus:outline-none focus:ring-2 focus:ring-[#0693e3]/20"
                                     placeholder="+57 300 123 4567"
                                 />
                                 {formErrors.phone && <p className="mt-1 text-sm text-red-600">{formErrors.phone[0]}</p>}
                             </div>
                         </div>
 
-                        <div className="mt-4 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <button onClick={handleSendContact} className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+                        <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                                <button
+                                    type="button"
+                                    onClick={handleSendContact}
+                                    className="rounded-xl bg-gradient-to-b from-[#0693e3] to-[#0580c7] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#0693e3]/25 transition hover:from-[#0588d4] hover:to-[#0470b0]"
+                                >
                                     Enviar
                                 </button>
-                                <button onClick={handleReturnToSnapshot} className="rounded border px-4 py-2 text-sm text-slate-700">
+                                <button
+                                    type="button"
+                                    onClick={handleReturnToSnapshot}
+                                    className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+                                >
                                     Volver
                                 </button>
-                                <button onClick={() => setShowSavedDetails((v) => !v)} className="rounded px-3 py-2 text-sm text-slate-700">
-                                    {showSavedDetails ? 'Ocultar' : 'Visualizar el resumen de la propuesta'}
+                                <button
+                                    type="button"
+                                    onClick={() => setShowSavedDetails((v) => !v)}
+                                    className="rounded-xl px-3 py-2 text-sm font-medium text-[#0693e3] hover:text-[#047ac0]"
+                                >
+                                    {showSavedDetails ? 'Ocultar resumen' : 'Visualizar el resumen de la propuesta'}
                                 </button>
                             </div>
                         </div>
 
                         {showSavedDetails && savedSnapshot && (
-                            <div className="mt-4 max-h-48 overflow-auto rounded border bg-slate-50 p-3">
-                                <h4 className="mb-2 text-sm font-semibold">Resumen previo</h4>
+                            <div className="mt-4 max-h-52 overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
+                                <h4 className="mb-3 font-semibold text-slate-900">Resumen previo</h4>
                                 <p className="text-sm text-slate-700">
                                     <strong>Línea de Gestión:</strong> {savedSnapshot.selectedLine || '-'}{' '}
                                 </p>
@@ -547,10 +783,17 @@ function ConditionStepper({
         setSelectedOption(null);
     }, [initialConditionId, initialHistory]);
 
-    if (!conditions || currentId === null) return <p className="text-center text-slate-500">Condición inicial no configurada.</p>;
+    if (!conditions || currentId === null) {
+        return <p className="text-center text-slate-500">Condición inicial no configurada.</p>;
+    }
 
     const cond = conditions[String(currentId)];
-    if (!cond) return <p className="text-center text-slate-500">Condición no encontrada ({currentId}).</p>;
+    if (!cond) {
+        return <p className="text-center text-slate-500">Condición no encontrada ({currentId}).</p>;
+    }
+
+    const inputClass =
+        'w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-[#0693e3] focus:outline-none focus:ring-2 focus:ring-[#0693e3]/20';
 
     const goNext = (nextId?: number | null) => {
         if (nextId === undefined || nextId === null) return;
@@ -575,7 +818,7 @@ function ConditionStepper({
             const val = answers[String(currentId)] ?? '';
             return (
                 <input
-                    className="w-full rounded-lg border p-2"
+                    className={inputClass}
                     type={inputType}
                     value={val}
                     onChange={(e) => onAnswer(String(currentId), e.target.value)}
@@ -587,16 +830,16 @@ function ConditionStepper({
             const t = cond.type === 'date' ? 'date' : cond.type === 'number' ? 'number' : 'text';
             const v = answers[String(currentId)] ?? { min: '', max: '' };
             return (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <input
-                        className="rounded-lg border p-2"
+                        className={inputClass}
                         type={t}
                         placeholder="Desde"
                         value={v.min}
                         onChange={(e) => onAnswer(String(currentId), { ...v, min: e.target.value })}
                     />
                     <input
-                        className="rounded-lg border p-2"
+                        className={inputClass}
                         type={t}
                         placeholder="Hasta"
                         value={v.max}
@@ -624,7 +867,7 @@ function ConditionStepper({
                 <div className="space-y-3">
                     {opts.map((o: any, i: number) => (
                         <div key={i} className="space-y-2">
-                            <label className="flex items-center gap-2">
+                            <label className="flex cursor-pointer items-center gap-3 rounded-lg py-1 transition-colors hover:text-[#0693e3]">
                                 <input
                                     type="radio"
                                     name={`opt-${currentId}`}
@@ -637,13 +880,14 @@ function ConditionStepper({
                                         }
                                         setSelectedOption(i);
                                     }}
+                                    className="h-4 w-4 shrink-0 border-slate-300 text-[#0693e3] focus:ring-[#0693e3]"
                                 />
-                                <span>{o.label || '(sin etiqueta)'}</span>
+                                <span className="text-sm font-medium text-slate-800">{o.label || '(sin etiqueta)'}</span>
                             </label>
 
                             {o.is_other && selectedIndex === i && (
                                 <input
-                                    className="w-full rounded-lg border p-2"
+                                    className={inputClass}
                                     type="text"
                                     placeholder="Escribe tu respuesta"
                                     value={selectedText}
@@ -727,47 +971,45 @@ function ConditionStepper({
     const canProceed = !validationError;
 
     return (
-        <Card className="w-full max-w-4xl">
-            <CardContent className="p-8">
-                <div className="mb-3 flex items-start justify-between">
-                    <div>
-                        <h4 className="text-xl font-bold text-slate-900">{cond.label}</h4>
-                        {cond.observation && <p className="mt-2 text-sm italic text-slate-600">{cond.observation}</p>}
-                    </div>
-                    {/* No mostrar marca de condición inicial */}
+        <Card className="w-full max-w-4xl overflow-hidden rounded-2xl border-2 border-slate-200/80 bg-white shadow-xl shadow-slate-900/5">
+            <CardContent className="p-6 sm:p-8 md:p-10">
+                <div className="mb-5">
+                    <h4 className="text-xl font-bold text-slate-900 md:text-2xl">{cond.label}</h4>
+                    {cond.observation && <p className="mt-2 text-sm italic leading-relaxed text-slate-600">{cond.observation}</p>}
                 </div>
 
-                <div className="mb-4">{renderControl()}</div>
+                <div className="mb-5">{renderControl()}</div>
 
-                {validationError && <div className="mb-4 text-sm text-red-600">{validationError}</div>}
+                {validationError && <div className="mb-4 text-sm font-medium text-red-600">{validationError}</div>}
 
-                <div className="flex items-center justify-between">
-                    <div>
-                        <button
-                            onClick={goBack}
-                            disabled={history.length === 0}
-                            className="mr-2 rounded px-3 py-1 text-sm text-slate-700 disabled:opacity-50"
-                        >
-                            Anterior
-                        </button>
-                    </div>
+                <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
+                    <button
+                        type="button"
+                        onClick={goBack}
+                        disabled={history.length === 0}
+                        className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                        Anterior
+                    </button>
                     <div>
                         {nextId ? (
                             <button
+                                type="button"
                                 onClick={() => canProceed && goNext(nextId)}
                                 disabled={!canProceed}
-                                className={`rounded px-3 py-1 text-sm text-white ${canProceed ? 'bg-blue-600 hover:bg-blue-700' : 'bg-slate-300'}`}
+                                className="w-full rounded-xl bg-[#0693e3] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#0693e3]/25 transition hover:bg-[#047ac0] disabled:cursor-not-allowed disabled:bg-slate-300 sm:w-auto"
                             >
                                 Siguiente
                             </button>
                         ) : (
                             <button
+                                type="button"
                                 onClick={() => {
                                     if (!canProceed) return;
                                     onComplete?.({ currentId, history, answers });
                                 }}
                                 disabled={!canProceed}
-                                className={`rounded px-3 py-1 text-sm text-white ${canProceed ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-300'}`}
+                                className="w-full rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-emerald-600/25 transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300 sm:w-auto"
                             >
                                 Finalizar
                             </button>

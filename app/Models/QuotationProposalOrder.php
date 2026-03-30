@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 class QuotationProposalOrder extends Model
 {
@@ -33,6 +34,7 @@ class QuotationProposalOrder extends Model
         'gestion_line',
         'services',
         'answers',
+        'professional_id',
         'is_generated',
         'quotation_url',
     ];
@@ -59,6 +61,11 @@ class QuotationProposalOrder extends Model
     public $incrementing = false;
 
     protected $keyType = 'string';
+
+    public function professional(): BelongsTo
+    {
+        return $this->belongsTo(Professional::class);
+    }
 
     /*
     |--------------------------------------------------------------------------

@@ -1,12 +1,14 @@
-import GoHome from '@/components/ui/gohome';
-import GestionLine from '@/components/ui/tree/GestionLine';
+import GestionLine, { type ViewData } from '@/components/ui/tree/GestionLine';
+import type { PageProps } from '@/types';
 import { usePage } from '@inertiajs/react';
 
+type QuotationPageProps = PageProps<{ viewData: ViewData }>;
+
 export default function Index() {
-    const { viewData } = usePage().props as any;
+    const { viewData } = usePage<QuotationPageProps>().props;
 
     return (
-        <div>
+        <div className="min-h-screen overflow-x-hidden">
             <GestionLine viewData={viewData} />
         </div>
     );

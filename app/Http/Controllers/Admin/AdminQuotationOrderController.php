@@ -5,13 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AdminUpdateQuotationUrlRequest;
 use App\Models\QuotationProposalOrder;
+use App\Services\MailService;
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Services\MailService;
+
 class AdminQuotationOrderController extends Controller
 {
     public function index(Request $request): Response
@@ -45,12 +46,11 @@ class AdminQuotationOrderController extends Controller
 
     public function show(string $quotationOrderId): Response|RedirectResponse
     {
-        try{
-        $quotationOrder = QuotationProposalOrder::findOrFail($quotationOrderId);
+        try {
+            $quotationOrder = QuotationProposalOrder::with('professional')->findOrFail($quotationOrderId);
         } catch (ModelNotFoundException $e) {
             return redirect()->route('dashboard.quotation-orders.index')->with('error', 'Orden de cotizacion con ID: '.$quotationOrderId.' no encontrada.');
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return redirect()->route('dashboard.quotation-orders.index')->with('error', 'Ha ocurrido un error al buscar la orden de cotización.');
         }
 
@@ -62,12 +62,11 @@ class AdminQuotationOrderController extends Controller
 
     public function uploadQuotationUrl(AdminUpdateQuotationurlRequest $request, string $quotationOrderId): Response|RedirectResponse
     {
-        try{
+        try {
             $quotationOrder = QuotationProposalOrder::findOrFail($quotationOrderId);
         } catch (ModelNotFoundException $e) {
             return redirect()->route('dashboard.quotation-orders.index')->with('error', 'Orden de cotizacion con ID: '.$quotationOrderId.' no encontrada.');
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return redirect()->route('dashboard.quotation-orders.index')->with('error', 'Ha ocurrido un error al buscar la orden de cotización.');
         }
 

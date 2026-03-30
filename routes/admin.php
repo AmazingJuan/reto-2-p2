@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AdminConfigurationController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDecisionTreeController;
 use App\Http\Controllers\Admin\AdminGestionLineController;
+use App\Http\Controllers\Admin\AdminProfessionalController;
 use App\Http\Controllers\Admin\AdminQuotationOrderController;
 use App\Http\Controllers\Admin\AdminServiceController;
 use App\Http\Controllers\Admin\AdminUserController;
@@ -29,6 +30,15 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
     Route::post('/servicios', [AdminServiceController::class, 'store'])->name('dashboard.services.store');
     Route::get('/servicios/{id}/editar', [AdminServiceController::class, 'edit'])->name('dashboard.services.edit');
     Route::put('/servicios/{id}', [AdminServiceController::class, 'update'])->name('dashboard.services.update');
+
+    // Profesionales
+    Route::get('/profesionales', [AdminProfessionalController::class, 'index'])->name('dashboard.professionals.index');
+    Route::get('/profesionales/crear', [AdminProfessionalController::class, 'create'])->name('dashboard.professionals.create');
+    Route::post('/profesionales', [AdminProfessionalController::class, 'store'])->name('dashboard.professionals.store');
+    Route::get('/profesionales/{id}', [AdminProfessionalController::class, 'show'])->where('id', '[0-9]+')->name('dashboard.professionals.show');
+    Route::get('/profesionales/{id}/editar', [AdminProfessionalController::class, 'edit'])->where('id', '[0-9]+')->name('dashboard.professionals.edit');
+    Route::put('/profesionales/{id}', [AdminProfessionalController::class, 'update'])->where('id', '[0-9]+')->name('dashboard.professionals.update');
+    Route::delete('/profesionales/{id}', [AdminProfessionalController::class, 'destroy'])->where('id', '[0-9]+')->name('dashboard.professionals.delete');
 
     // Lineas de gestion
     Route::get('/lineas-gestion', [AdminGestionLineController::class, 'index'])->name('dashboard.lines.index');
