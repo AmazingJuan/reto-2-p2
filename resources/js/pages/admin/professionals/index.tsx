@@ -1,8 +1,18 @@
 import { AdminPagination } from '@/components/admin/admin-pagination';
+import {
+    AdminPageHeader,
+    adminListShellClass,
+    adminPrimaryButtonClass,
+    adminTableCardClass,
+    adminTableTdClass,
+    adminTableThCenterClass,
+    adminTableThClass,
+} from '@/components/admin/admin-page-header';
 import { AdminTableToolbar } from '@/components/admin/admin-table-toolbar';
 import { Button } from '@/components/ui/button';
 import FlashAlert from '@/components/ui/flashalert';
 import AdminLayout from '@/layouts/admin-layout';
+import { cn } from '@/lib/utils';
 import type { PageProps } from '@/types';
 import { router, usePage } from '@inertiajs/react';
 import { Eye, Pencil, Plus, Trash2, UserCircle } from 'lucide-react';
@@ -45,59 +55,51 @@ export default function Index() {
 
     return (
         <AdminLayout>
-            <div className="w-full min-w-0 space-y-4">
-                <div className="mx-auto flex w-full min-w-0 max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-3">
-                        <UserCircle className="h-8 w-8 shrink-0 text-blue-600" />
-                        <div>
-                            <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Profesionales</h1>
-                            <p className="mt-1 text-sm text-slate-600">
-                                Asocie líneas de gestión para que el profesional aparezca solo en esas cotizaciones. En público solo se muestra ID y experiencia.
-                            </p>
-                        </div>
-                    </div>
+            <div className={adminListShellClass}>
+                <AdminPageHeader
+                    icon={UserCircle}
+                    title="Profesionales"
+                    description="Asocie líneas de gestión para que el profesional aparezca solo en esas cotizaciones. En público solo se muestra ID y experiencia."
+                >
                     <Button
+                        type="button"
                         onClick={() => router.get(route('dashboard.professionals.create'))}
-                        variant="crear"
-                        className="w-full bg-amber-600 hover:bg-amber-600 sm:w-auto"
+                        size="sm"
+                        className={cn(adminPrimaryButtonClass, 'w-full sm:w-auto')}
                     >
                         <Plus className="h-4 w-4" />
                         Nuevo profesional
                     </Button>
-                </div>
+                </AdminPageHeader>
 
-                <div className="mx-auto w-full max-w-6xl">
-                    <FlashAlert flash={flash} />
-                </div>
+                <FlashAlert flash={flash} />
 
                 <AdminTableToolbar routeName="dashboard.professionals.index" filters={filters} searchPlaceholder="Nombre, resumen o ID…" />
 
-                <div className="mx-auto w-full max-w-6xl overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm [-webkit-overflow-scrolling:touch]">
-                    <table className="min-w-[520px] w-full divide-y divide-gray-200 sm:min-w-full">
-                        <thead className="bg-gray-50">
+                <div className={adminTableCardClass}>
+                    <table className="min-w-[520px] w-full divide-y divide-slate-200 sm:min-w-full">
+                        <thead className="border-b border-slate-100 bg-slate-50/50">
                             <tr>
-                                <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">ID</th>
-                                <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">Nombre</th>
-                                <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">Años exp.</th>
-                                <th className="hidden px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 md:table-cell sm:px-6 sm:py-3">
-                                    Líneas
-                                </th>
-                                <th className="px-3 py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">Acciones</th>
+                                <th className={adminTableThClass}>ID</th>
+                                <th className={adminTableThClass}>Nombre</th>
+                                <th className={adminTableThClass}>Años exp.</th>
+                                <th className={cn(adminTableThClass, 'hidden md:table-cell')}>Líneas</th>
+                                <th className={adminTableThCenterClass}>Acciones</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 bg-white">
+                        <tbody className="divide-y divide-slate-100 bg-white">
                             {rows.length > 0 ? (
                                 rows.map((row) => (
-                                    <tr key={row.id} className="hover:bg-gray-50">
-                                        <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4">{row.id}</td>
-                                        <td className="px-3 py-3 text-sm font-medium text-gray-900 sm:px-6 sm:py-4">{row.name}</td>
-                                        <td className="px-3 py-3 text-sm text-gray-900 sm:px-6 sm:py-4">{row.years_experience}</td>
-                                        <td className="hidden max-w-[14rem] px-3 py-3 text-xs text-gray-700 md:table-cell sm:px-6 sm:py-4">
+                                    <tr key={row.id} className="hover:bg-slate-50/60">
+                                        <td className={adminTableTdClass}>{row.id}</td>
+                                        <td className={cn(adminTableTdClass, 'font-medium')}>{row.name}</td>
+                                        <td className={adminTableTdClass}>{row.years_experience}</td>
+                                        <td className={cn(adminTableTdClass, 'hidden max-w-[14rem] text-xs text-slate-700 md:table-cell')}>
                                             {row.gestion_lines?.length
                                                 ? row.gestion_lines.map((l) => l.name).join(', ')
                                                 : '—'}
                                         </td>
-                                        <td className="px-3 py-3 text-center sm:px-6 sm:py-4">
+                                        <td className={cn(adminTableTdClass, 'text-center')}>
                                             <div className="flex justify-center gap-2">
                                                 <button
                                                     type="button"
@@ -129,7 +131,7 @@ export default function Index() {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-500 sm:px-6">
+                                    <td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-500 sm:px-6">
                                         {filters.search ? 'Sin resultados.' : 'No hay profesionales. Cree el primero para el cotizador.'}
                                     </td>
                                 </tr>

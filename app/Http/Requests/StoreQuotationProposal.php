@@ -113,7 +113,16 @@ class StoreQuotationProposal extends FormRequest
         if ($answers = $this->input('answers')) {
             $trimmed = [];
             foreach ($answers as $k => $v) {
-                $trimmed[$k] = is_string($v) ? trim($v) : $v;
+                if (is_string($k) && trim($k) === '') {
+                    continue;
+                }
+                if (is_array($v) || is_object($v)) {
+                    $trimmed[$k] = json_encode($v, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+                } elseif (is_string($v)) {
+                    $trimmed[$k] = trim($v);
+                } else {
+                    $trimmed[$k] = trim((string) $v);
+                }
             }
             $input['answers'] = $trimmed;
         }
