@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AdminWelcomeBroadcastRequest;
-use App\Models\Configuration;
 use App\Services\MailService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -16,16 +15,9 @@ class AdminWelcomeBroadcastController extends Controller
 
     public function create(): InertiaResponse
     {
-        $config = Configuration::query()->first();
-        $applicationUrl = $config !== null ? trim($config->getApplicationUrl() ?? '') : '';
-        if ($applicationUrl === '') {
-            $applicationUrl = (string) config('app.url');
-        }
-
         return Inertia::render('admin/welcome-broadcast/create', [
             'viewData' => [
-                'platform_url' => $applicationUrl,
-                'has_custom_app_url' => $config !== null && trim($config->getApplicationUrl() ?? '') !== '',
+                'app_url' => (string) config('app.url'),
             ],
         ]);
     }
@@ -46,14 +38,8 @@ class AdminWelcomeBroadcastController extends Controller
             ]);
         }
 
-        $config = Configuration::query()->first();
-        $applicationUrl = $config !== null ? trim($config->getApplicationUrl() ?? '') : '';
-        if ($applicationUrl === '') {
-            $applicationUrl = (string) config('app.url');
-        }
-
         foreach ($parsed['valid'] as $email) {
-            MailService::sendWelcomeEmail($email, $applicationUrl);
+            MailService::sendWelcomeEmail($email);
         }
 
         $sent = count($parsed['valid']);
