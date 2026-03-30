@@ -30,8 +30,8 @@ class QuotationGenerated extends Mailable
      */
     public function build()
     {
-        $id = $this->order->getId();
-        $subject = 'Tu cotización #'.$id.' está lista';
+        $ref = $this->order->getQuotationCode() ?? $this->order->getId();
+        $subject = 'Tu cotización '.$ref.' está lista';
 
         return $this
             ->subject($subject)

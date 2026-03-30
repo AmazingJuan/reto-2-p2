@@ -24,7 +24,7 @@ class AdminQuotationOrderController extends Controller
         if ($search !== '') {
             $like = '%'.$search.'%';
             $query->where(function ($q) use ($like) {
-                $q->where('id', 'like', $like)
+                $q->where('quotation_code', 'like', $like)
                     ->orWhere('business_unit', 'like', $like)
                     ->orWhere('contact_info->name', 'like', $like)
                     ->orWhere('contact_info->email', 'like', $like)
@@ -60,7 +60,7 @@ class AdminQuotationOrderController extends Controller
         return Inertia::render('admin/quotation-orders/show', ['viewData' => $viewData]);
     }
 
-    public function uploadQuotationUrl(AdminUpdateQuotationurlRequest $request, string $quotationOrderId): Response|RedirectResponse
+    public function uploadQuotationUrl(AdminUpdateQuotationUrlRequest $request, string $quotationOrderId): Response|RedirectResponse
     {
         try {
             $quotationOrder = QuotationProposalOrder::findOrFail($quotationOrderId);

@@ -18,7 +18,7 @@
   </p>
 
   <p style="margin:16px 0 0 0;">
-    <a href="{{ $platformUrl }}" target="_blank" rel="noopener noreferrer" style="display:inline-block; background:#2563eb; color:#ffffff !important; text-decoration:none; padding:12px 24px; border-radius:8px; font-weight:bold; font-size:14px;">
+    <a href="{{ config('app.url') }}" target="_blank" rel="noopener noreferrer" style="display:inline-block; background:#2563eb; color:#ffffff !important; text-decoration:none; padding:12px 24px; border-radius:8px; font-weight:bold; font-size:14px;">
       Ir a la plataforma
     </a>
   </p>

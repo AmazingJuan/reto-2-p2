@@ -13,7 +13,7 @@
   </p>
 
   <p style="margin:0 0 20px 0; text-align:left;">
-    <span style="display:inline-block; background:#eef3ff; color:#1e3a8a; font-weight:600; padding:8px 16px; border-radius:6px; font-size:15px; font-family:Courier, monospace;">#{{ $quotationOrder->getId() }}</span>
+    <span style="display:inline-block; background:#eef3ff; color:#1e3a8a; font-weight:600; padding:8px 16px; border-radius:6px; font-size:15px; font-family:Courier, monospace;">{{ $quotationOrder->getQuotationCode() ? $quotationOrder->getQuotationCode() : '#'.$quotationOrder->getId() }}</span>
   </p>
 
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f3f4f6; border-left:4px solid #2563eb; padding:16px; border-radius:6px; text-align:left; margin:0 0 20px 0;">

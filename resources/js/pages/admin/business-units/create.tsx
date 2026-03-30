@@ -17,6 +17,7 @@ import { route } from 'ziggy-js';
 export default function Create() {
     const { data, setData, post, processing, errors } = useForm({
         display_name: '',
+        abbreviation: '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -32,7 +33,7 @@ export default function Create() {
                 <AdminPageHeader
                     icon={BriefcaseBusiness}
                     title="Crear unidad de negocio"
-                    description="Indique el nombre visible de la nueva unidad."
+                    description="Nombre visible y abreviado único (ej. CNN) para códigos de cotización."
                 />
 
                 <div className={adminFormCardClass}>
@@ -50,6 +51,23 @@ export default function Create() {
                                 placeholder="Nombre de la unidad de negocio"
                             />
                             {errors.display_name && <p className="mt-2 text-sm text-red-600">{errors.display_name}</p>}
+                        </div>
+
+                        <div>
+                            <label htmlFor="abbreviation" className={adminFieldLabelClass}>
+                                Abreviado <span className="text-red-500">*</span>
+                            </label>
+                            <p className="mb-2 text-xs text-slate-500">Solo letras y números, sin espacios. Se guarda en mayúsculas (ej. CNN). Se usa en códigos tipo CNN-2601.</p>
+                            <input
+                                id="abbreviation"
+                                type="text"
+                                value={data.abbreviation}
+                                onChange={(e) => setData('abbreviation', e.target.value.toUpperCase())}
+                                className={adminFieldInputClass}
+                                placeholder="CNN"
+                                maxLength={32}
+                            />
+                            {errors.abbreviation && <p className="mt-2 text-sm text-red-600">{errors.abbreviation}</p>}
                         </div>
 
                         <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end sm:pt-6">

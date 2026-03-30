@@ -18,6 +18,9 @@ import { route } from 'ziggy-js';
 interface BusinessUnit {
     id: number;
     display_name: string;
+    abbreviation: string;
+    quotation_seq_year?: number | null;
+    quotation_seq_value?: number | null;
 }
 
 type EditPageProps = PageProps<{
@@ -32,6 +35,7 @@ export default function Edit() {
 
     const { data, setData, put, processing, errors } = useForm({
         display_name: businessUnit.display_name ?? '',
+        abbreviation: businessUnit.abbreviation ?? '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -47,7 +51,7 @@ export default function Edit() {
                 <AdminPageHeader
                     icon={BriefcaseBusiness}
                     title="Editar unidad de negocio"
-                    description="Modifique el nombre y guarde los cambios."
+                    description="Modifique el nombre o el abreviado. El correlativo de cotizaciones del año se muestra solo como referencia."
                 />
 
                 <div className={adminFormCardClass}>
@@ -64,6 +68,32 @@ export default function Edit() {
                                 className={adminFieldInputClass}
                             />
                             {errors.display_name && <p className="mt-2 text-sm text-red-600">{errors.display_name}</p>}
+                        </div>
+
+                        <div>
+                            <label htmlFor="abbreviation" className={adminFieldLabelClass}>
+                                Abreviado <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                id="abbreviation"
+                                type="text"
+                                value={data.abbreviation}
+                                onChange={(e) => setData('abbreviation', e.target.value.toUpperCase())}
+                                className={adminFieldInputClass}
+                                maxLength={32}
+                            />
+                            {errors.abbreviation && <p className="mt-2 text-sm text-red-600">{errors.abbreviation}</p>}
+                        </div>
+
+                        <div className="rounded-lg border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-700">
+                            <p className="font-semibold text-slate-800">Contador de cotizaciones (solo lectura)</p>
+                            <p className="mt-1">
+                                Año del correlativo:{' '}
+                                <span className="font-mono">{businessUnit.quotation_seq_year ?? '—'}</span>
+                                {' · '}
+                                Último número en ese año:{' '}
+                                <span className="font-mono">{businessUnit.quotation_seq_value ?? 0}</span>
+                            </p>
                         </div>
 
                         <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end sm:pt-6">

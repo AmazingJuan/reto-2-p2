@@ -23,6 +23,9 @@ interface Service {
     id: number;
     name: string;
     business_unit_id: number;
+    gestion_line_id: number;
+    business_unit: { id: number; display_name: string };
+    gestion_line: { id: number; name: string };
 }
 
 interface BusinessUnit {
@@ -127,11 +130,13 @@ export default function Index() {
                 </AdminTableToolbar>
 
                 <div className={adminTableCardClass}>
-                    <table className="min-w-[520px] w-full divide-y divide-slate-200 sm:min-w-full">
+                    <table className="min-w-[720px] w-full divide-y divide-slate-200 sm:min-w-full">
                         <thead className="border-b border-slate-100 bg-slate-50/50">
                             <tr>
                                 <th className={adminTableThClass}>ID</th>
                                 <th className={adminTableThClass}>Nombre</th>
+                                <th className={adminTableThClass}>Unidad de negocio</th>
+                                <th className={adminTableThClass}>Línea de gestión</th>
                                 <th className={adminTableThCenterClass}>Acciones</th>
                             </tr>
                         </thead>
@@ -141,6 +146,8 @@ export default function Index() {
                                     <tr key={service.id} className="transition hover:bg-slate-50/80">
                                         <td className={adminTableTdClass}>{service.id}</td>
                                         <td className={adminTableTdClass}>{capitalize(service.name)}</td>
+                                        <td className={adminTableTdClass}>{service.business_unit.display_name}</td>
+                                        <td className={adminTableTdClass}>{service.gestion_line.name}</td>
                                         <td className={`${adminTableTdClass} text-center`}>
                                             <div className="flex justify-center gap-1 sm:gap-2">
                                                 <button
@@ -165,7 +172,7 @@ export default function Index() {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={3} className="px-4 py-8 text-center text-sm text-slate-500 sm:px-6">
+                                    <td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-500 sm:px-6">
                                         {filters.search || unitFilterValue !== 'all'
                                             ? 'No hay resultados con los filtros actuales.'
                                             : 'No hay servicios registrados.'}

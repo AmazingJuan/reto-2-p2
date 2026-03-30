@@ -19,7 +19,7 @@
   <p style="display:inline-block; background:#fef3c7; color:#92400e; font-weight:bold; padding:8px 16px; border-radius:8px; font-size:14px; margin:16px 0;">EN PROCESO DE GENERACIÓN</p>
 
   <p style="margin:16px 0;">
-    <span style="display:inline-block; background:#eef3ff; color:#1e3a8a; font-weight:bold; padding:8px 16px; border-radius:6px; font-family:Courier, monospace; font-size:15px;">#{{ $quotationOrder->id }}</span>
+    <span style="display:inline-block; background:#eef3ff; color:#1e3a8a; font-weight:bold; padding:8px 16px; border-radius:6px; font-family:Courier, monospace; font-size:15px;">{{ $quotationOrder->getQuotationCode() ? $quotationOrder->getQuotationCode() : '#'.$quotationOrder->id }}</span>
   </p>
 
   @if(!empty($contact))

@@ -16,9 +16,22 @@ import { Head, useForm, usePage } from '@inertiajs/react';
 import { Settings } from 'lucide-react';
 import { route } from 'ziggy-js';
 
+const FIELD_ORDER = [
+    'notification_email',
+    'company_contact_email',
+    'company_contact_phone',
+    'company_contact_address',
+    'company_website_url',
+    'company_website_label',
+] as const;
+
 const FIELD_LABELS: Record<string, string> = {
-    notification_email: 'Correo de notificaciones',
-    application_url: 'URL de la aplicación',
+    notification_email: 'Correo de notificaciones (admin)',
+    company_contact_email: 'Correo de contacto (pie de correos)',
+    company_contact_phone: 'Teléfono de contacto',
+    company_contact_address: 'Dirección',
+    company_website_url: 'URL del sitio web',
+    company_website_label: 'Texto visible del enlace web',
 };
 
 function fieldLabel(key: string): string {
@@ -26,7 +39,7 @@ function fieldLabel(key: string): string {
 }
 
 function inputType(key: string): string {
-    if (key === 'notification_email') {
+    if (key === 'notification_email' || key === 'company_contact_email') {
         return 'email';
     }
     if (key.endsWith('_url') || key.includes('url')) {
@@ -56,14 +69,24 @@ export default function Edit() {
         put(route('dashboard.configurations.update'));
     };
 
-    const entries = Object.entries(configuration);
+    const orderSet = new Set<string>([...FIELD_ORDER]);
+    const orderedKeys = FIELD_ORDER.filter((k) => k in configuration);
+    const extraKeys = Object.keys(configuration).filter((k) => !orderSet.has(k));
+    const entries = [...orderedKeys.map((k) => [k, configuration[k]] as const), ...extraKeys.map((k) => [k, configuration[k]] as const)];
+
+    const textareaClass =
+        'block min-h-[120px] w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20';
 
     return (
         <AdminLayout>
             <Head title="Configuración" />
 
             <div className={adminFormShellClass}>
-                <AdminPageHeader icon={Settings} title="Configuración" description="Ajustes generales del sistema" />
+                <AdminPageHeader
+                    icon={Settings}
+                    title="Configuración"
+                    description="Correo de notificaciones y datos de contacto que aparecen en los correos al cliente."
+                />
 
                 <FlashAlert flash={flash} />
 
@@ -76,14 +99,25 @@ export default function Edit() {
                                         <label htmlFor={key} className={adminFieldLabelClass}>
                                             {fieldLabel(key)}
                                         </label>
-                                        <input
-                                            id={key}
-                                            type={inputType(key)}
-                                            value={data[key] ?? ''}
-                                            onChange={(e) => setData(key, e.target.value)}
-                                            className={adminFieldInputClass}
-                                            autoComplete="off"
-                                        />
+                                        {key === 'company_contact_address' ? (
+                                            <textarea
+                                                id={key}
+                                                rows={4}
+                                                value={data[key] ?? ''}
+                                                onChange={(e) => setData(key, e.target.value)}
+                                                className={textareaClass}
+                                                autoComplete="off"
+                                            />
+                                        ) : (
+                                            <input
+                                                id={key}
+                                                type={inputType(key)}
+                                                value={data[key] ?? ''}
+                                                onChange={(e) => setData(key, e.target.value)}
+                                                className={adminFieldInputClass}
+                                                autoComplete="off"
+                                            />
+                                        )}
                                         {errors[key] && <p className="mt-2 text-sm text-red-600">{errors[key]}</p>}
                                     </div>
                                 ))}

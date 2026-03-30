@@ -10,15 +10,14 @@ import FlashAlert from '@/components/ui/flashalert';
 import AdminLayout from '@/layouts/admin-layout';
 import { cn } from '@/lib/utils';
 import type { PageProps } from '@/types';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { Mail } from 'lucide-react';
 import { useMemo } from 'react';
 import { route } from 'ziggy-js';
 
 type CreatePageProps = PageProps<{
     viewData: {
-        platform_url: string;
-        has_custom_app_url: boolean;
+        app_url: string;
     };
 }>;
 
@@ -70,20 +69,12 @@ export default function Create() {
 
                 <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 text-sm text-slate-800 sm:p-5">
                     <p>
-                        <span className="font-semibold text-slate-900">Enlace de la plataforma:</span>{' '}
-                        <a href={viewData.platform_url} className="break-all text-[#047ac0] underline hover:text-[#0693e3]">
-                            {viewData.platform_url || '—'}
+                        <span className="font-semibold text-slate-900">Enlace de la plataforma (APP_URL):</span>{' '}
+                        <a href={viewData.app_url} className="break-all text-[#047ac0] underline hover:text-[#0693e3]">
+                            {viewData.app_url || '—'}
                         </a>
                     </p>
-                    {!viewData.has_custom_app_url && (
-                        <p className="mt-2 text-slate-600">
-                            Se está usando la URL predeterminada de la aplicación. Para usar otra URL pública, configure la{' '}
-                            <Link href={route('dashboard.configurations.edit')} className="font-semibold text-[#047ac0] underline hover:text-[#0693e3]">
-                                URL de la aplicación
-                            </Link>
-                            .
-                        </p>
-                    )}
+                    <p className="mt-2 text-slate-600">La URL del botón «Ir a la plataforma» sale siempre de la variable APP_URL del entorno (.env).</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className={adminFormCardClass}>

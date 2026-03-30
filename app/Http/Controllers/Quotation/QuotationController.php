@@ -12,6 +12,7 @@ use App\Models\QuotationProposalOrder;
 use App\Models\Service;
 use App\Services\MailService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -98,15 +99,24 @@ class QuotationController extends Controller
         $quotationProposalData = $request->validated();
         $quotationProposalId = (string) Str::uuid();
 
-        $quotationProposalOrder = QuotationProposalOrder::create([
-            'id' => $quotationProposalId,
-            'contact_info' => $quotationProposalData['contact'],
-            'services' => $quotationProposalData['services'],
-            'business_unit' => $quotationProposalData['businessUnit'],
-            'gestion_line' => $quotationProposalData['gestionLine'],
-            'answers' => $quotationProposalData['answers'],
-            'professional_id' => $quotationProposalData['professional_id'] ?? null,
-        ]);
+        $quotationProposalOrder = DB::transaction(function () use ($quotationProposalData, $quotationProposalId) {
+            $businessUnit = BusinessUnit::query()
+                ->where('display_name', $quotationProposalData['businessUnit'])
+                ->firstOrFail();
+
+            $quotationCode = $businessUnit->lockAndAllocateNextQuotationCode();
+
+            return QuotationProposalOrder::create([
+                'id' => $quotationProposalId,
+                'quotation_code' => $quotationCode,
+                'contact_info' => $quotationProposalData['contact'],
+                'services' => $quotationProposalData['services'],
+                'business_unit' => $quotationProposalData['businessUnit'],
+                'gestion_line' => $quotationProposalData['gestionLine'],
+                'answers' => $quotationProposalData['answers'],
+                'professional_id' => $quotationProposalData['professional_id'] ?? null,
+            ]);
+        });
 
         MailService::sendQuotationPendingEmail($quotationProposalOrder);
 

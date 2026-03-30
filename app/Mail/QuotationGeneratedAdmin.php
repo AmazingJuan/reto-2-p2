@@ -19,8 +19,10 @@ class QuotationGeneratedAdmin extends Mailable
 
     public function envelope(): Envelope
     {
+        $ref = $this->quotationOrder->getQuotationCode() ?? '#'.$this->quotationOrder->getId();
+
         return new Envelope(
-            subject: 'Cotización #'.$this->quotationOrder->getId().' generada (cliente notificado)',
+            subject: 'Cotización '.$ref.' generada (cliente notificado)',
         );
     }
 

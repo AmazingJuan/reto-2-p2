@@ -18,6 +18,7 @@ import { route } from 'ziggy-js';
 
 interface QuotationOrder {
     id: number | string;
+    quotation_code?: string | null;
     contact_info?: {
         name: string;
         email: string;
@@ -88,7 +89,7 @@ export default function Show() {
 
     return (
         <AdminLayout>
-            <Head title={`Cotización #${quotationOrder.id}`} />
+            <Head title={quotationOrder.quotation_code ? `Cotización ${quotationOrder.quotation_code}` : `Cotización #${quotationOrder.id}`} />
 
             <div className={adminListShellClass}>
                 <FlashAlert flash={flash} />
@@ -104,7 +105,7 @@ export default function Show() {
                         </Link>
                         <AdminPageHeader
                             icon={ScrollText}
-                            title={`Cotización #${quotationOrder.id}`}
+                            title={quotationOrder.quotation_code ? `Cotización ${quotationOrder.quotation_code}` : `Cotización #${quotationOrder.id}`}
                             description="Detalle de la solicitud"
                         />
                     </div>
@@ -140,9 +141,16 @@ export default function Show() {
                 <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 [-webkit-overflow-scrolling:touch]">
                     <table className="w-full min-w-[280px]">
                         <tbody className="divide-y divide-slate-100">
+                            {quotationOrder.quotation_code && (
+                                <tr className={rowHover}>
+                                    <td className={labelTd}>Código</td>
+                                    <td className={`${valueTd} font-mono font-semibold`}>{quotationOrder.quotation_code}</td>
+                                </tr>
+                            )}
+
                             <tr className={rowHover}>
-                                <td className={labelTd}>ID</td>
-                                <td className={valueTd}>{quotationOrder.id}</td>
+                                <td className={labelTd}>ID interno</td>
+                                <td className={`${valueTd} font-mono text-sm text-slate-600`}>{quotationOrder.id}</td>
                             </tr>
 
                             <tr className={rowHover}>

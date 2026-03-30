@@ -17,6 +17,7 @@ import { route } from 'ziggy-js';
 
 interface QuotationOrder {
     business_unit?: string;
+    quotation_code?: string | null;
     id: number | string;
     contact_info?: {
         name: string;
@@ -71,14 +72,14 @@ export default function Index() {
                 <AdminTableToolbar
                     routeName="dashboard.quotation-orders.index"
                     filters={filters}
-                    searchPlaceholder="ID, correo, nombre, empresa, unidad…"
+                    searchPlaceholder="Código, correo, nombre, unidad…"
                 />
 
                 <div className={adminTableCardClass}>
                     <table className="min-w-[56rem] w-full divide-y divide-slate-200 lg:min-w-full">
                         <thead className="border-b border-slate-100 bg-slate-50/50">
                             <tr>
-                                <th className={adminTableThClass}>ID</th>
+                                <th className={adminTableThClass}>Código</th>
                                 <th className={adminTableThClass}>Nombre</th>
                                 <th className={adminTableThClass}>Email</th>
                                 <th className={adminTableThClass}>Empresa</th>
@@ -96,7 +97,7 @@ export default function Index() {
                                         className="cursor-pointer transition hover:bg-slate-50/80"
                                         onClick={() => router.visit(route('dashboard.quotation-orders.show', order.id))}
                                     >
-                                        <td className={adminTableTdClass}>{order.id}</td>
+                                        <td className={`${adminTableTdClass} font-mono text-sm`}>{order.quotation_code || '—'}</td>
                                         <td className={adminTableTdClass}>{order.contact_info?.name || '—'}</td>
                                         <td className={adminTableTdClass}>{order.contact_info?.email || '—'}</td>
                                         <td className={adminTableTdClass}>{order.contact_info?.company || '—'}</td>

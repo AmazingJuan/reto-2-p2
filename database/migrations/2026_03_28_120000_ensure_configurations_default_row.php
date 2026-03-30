@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -14,12 +15,15 @@ return new class extends Migration
             return;
         }
 
-        DB::table('configurations')->insert([
+        $row = [
             'notification_email' => null,
-            'application_url' => null,
             'created_at' => now(),
             'updated_at' => now(),
-        ]);
+        ];
+        if (Schema::hasColumn('configurations', 'application_url')) {
+            $row['application_url'] = null;
+        }
+        DB::table('configurations')->insert($row);
     }
 
     public function down(): void
