@@ -48,6 +48,9 @@
         @if(!empty($quotationOrder->gestion_line))
         <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Línea de gestión:</strong> {{ $quotationOrder->gestion_line }}</p>
         @endif
+        @if(!empty($quotationOrder->professional_id))
+        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Profesional asignado:</strong> #{{ $quotationOrder->professional_id }}</p>
+        @endif
       </td>
     </tr>
   </table>
