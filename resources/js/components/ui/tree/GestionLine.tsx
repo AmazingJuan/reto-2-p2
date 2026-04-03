@@ -19,6 +19,7 @@ export interface ViewData {
             type: string;
             observation?: string | null;
             next_condition?: number;
+            multiple?: boolean;
         };
     };
     initial_condition_id?: number | null;
@@ -140,16 +141,49 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                 let valueDisplay: string;
                 if (cond && cond.interaction_type === 'options') {
                     const opts = Array.isArray((cond as any).options) ? (cond as any).options : [];
-                    if (typeof v === 'object' && v !== null && 'optionIndex' in (v as Record<string, unknown>)) {
-                        const optionIndex = (v as { optionIndex: number }).optionIndex;
-                        const textValue = (v as { text?: string }).text;
-                        valueDisplay = textValue && textValue.trim() !== '' ? textValue : opts[optionIndex]?.label || String(optionIndex);
-                    } else if (typeof v === 'number' && opts[v]) {
-                        valueDisplay = opts[v].label || String(v);
-                    } else {
-                        valueDisplay = String(v);
+
+                    // Opción Múltiple
+                    if (cond.multiple) {
+                        if (Array.isArray(v)) {
+                            valueDisplay = [...v].sort((a: any, b: any) => {
+                            const aIsOther = typeof a === 'object' && a !== null && 'optionIndex' in a;
+                            const bIsOther = typeof b === 'object' && b !== null && 'optionIndex' in b;
+                            if (aIsOther && !bIsOther) return 1;
+                            if (!aIsOther && bIsOther) return -1;
+                            return 0;
+                        }).map((item: any) => {
+                                if (typeof item === 'number') {
+                                    return opts[item]?.label || String(item);
+                                }
+                                if (typeof item === 'object' && item !== null && 'optionIndex' in item) {
+                                    // es un "Otro" con texto libre
+                                    return item.text?.trim()
+                                        ? item.text
+                                        : opts[item.optionIndex]?.label || String(item.optionIndex);
+                                }
+                                return String(item);
+                            }).join(', ');
+                        } else {
+                            valueDisplay = '';
+                        }
                     }
-                } else if (cond && cond.interaction_type === 'range') {
+                    // Opción única
+                    else {
+                        if (typeof v === 'object' && v !== null && 'optionIndex' in (v as Record<string, unknown>)) {
+                            const optionIndex = (v as { optionIndex: number }).optionIndex;
+                            const textValue = (v as { text?: string }).text;
+                            valueDisplay =
+                                textValue && textValue.trim() !== ''
+                                    ? textValue
+                                    : opts[optionIndex]?.label || String(optionIndex);
+                        } else if (typeof v === 'number' && opts[v]) {
+                            valueDisplay = opts[v].label || String(v);
+                        } else {
+                            valueDisplay = String(v);
+                        }
+                    }
+                }
+                else if (cond && cond.interaction_type === 'range') {
                     const isRange =
                         typeof v === 'object' && v !== null && 'min' in (v as Record<string, unknown>) && 'max' in (v as Record<string, unknown>);
                     const min = isRange ? (v as { min: any; max: any }).min : '';
@@ -710,19 +744,50 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                                                 let valueDisplay: string;
                                                 if (cond && cond.interaction_type === 'options') {
                                                     const opts = Array.isArray((cond as any).options) ? (cond as any).options : [];
-                                                    if (typeof v === 'object' && v !== null && 'optionIndex' in (v as Record<string, unknown>)) {
-                                                        const optionIndex = (v as { optionIndex: number }).optionIndex;
-                                                        const textValue = (v as { text?: string }).text;
-                                                        valueDisplay =
-                                                            textValue && textValue.trim() !== ''
-                                                                ? textValue
-                                                                : opts[optionIndex]?.label || String(optionIndex);
-                                                    } else if (typeof v === 'number' && opts[v]) {
-                                                        valueDisplay = opts[v].label || String(v);
+
+                                                // Opción Múltiple
+                                                if (cond.multiple) {
+                                                    if (Array.isArray(v)) {
+                                                        valueDisplay = [...v].sort((a: any, b: any) => {
+                                                        const aIsOther = typeof a === 'object' && a !== null && 'optionIndex' in a;
+                                                        const bIsOther = typeof b === 'object' && b !== null && 'optionIndex' in b;
+                                                        if (aIsOther && !bIsOther) return 1;
+                                                        if (!aIsOther && bIsOther) return -1;
+                                                        return 0;
+                                                    }).map((item: any) => {
+                                                            if (typeof item === 'number') {
+                                                                return opts[item]?.label || String(item);
+                                                            }
+                                                            if (typeof item === 'object' && item !== null && 'optionIndex' in item) {
+                                                                // es un "Otro" con texto libre
+                                                                return item.text?.trim()
+                                                                    ? item.text
+                                                                    : opts[item.optionIndex]?.label || String(item.optionIndex);
+                                                            }
+                                                            return String(item);
+                                                        }).join(', ');
                                                     } else {
-                                                        valueDisplay = String(v);
+                                                        valueDisplay = '';
                                                     }
-                                                } else if (cond && cond.interaction_type === 'range') {
+                                                }
+                                                
+                                                    // Opción única
+                                                    else {
+                                                        if (typeof v === 'object' && v !== null && 'optionIndex' in (v as Record<string, unknown>)) {
+                                                            const optionIndex = (v as { optionIndex: number }).optionIndex;
+                                                            const textValue = (v as { text?: string }).text;
+                                                            valueDisplay =
+                                                                textValue && textValue.trim() !== ''
+                                                                    ? textValue
+                                                                    : opts[optionIndex]?.label || String(optionIndex);
+                                                        } else if (typeof v === 'number' && opts[v]) {
+                                                            valueDisplay = opts[v].label || String(v);
+                                                        } else {
+                                                            valueDisplay = String(v);
+                                                        }
+                                                    }
+                                                }
+                                                else if (cond && cond.interaction_type === 'range') {
                                                     // expect v to be { min, max }
                                                     const min =
                                                         typeof v === 'object' && v !== null && 'min' in (v as Record<string, unknown>)
@@ -878,29 +943,74 @@ function ConditionStepper({
                         <div key={i} className="space-y-2">
                             <label className="flex cursor-pointer items-center gap-3 rounded-lg py-1 transition-colors hover:text-[#0693e3]">
                                 <input
-                                    type="radio"
+                                    type={cond.multiple ? "checkbox" : "radio"}
                                     name={`opt-${currentId}`}
-                                    checked={selectedIndex === i}
+                                    checked={
+                                        cond.multiple
+                                            ? Array.isArray(currentAnswer) &&
+                                            currentAnswer.some((item: any) =>
+                                                typeof item === 'number' ? item === i : item?.optionIndex === i
+                                            )
+                                            : selectedIndex === i
+                                    }
                                     onChange={() => {
-                                        if (conditionOptionIsOther(o)) {
-                                            onAnswer(String(currentId), { optionIndex: i, text: '' });
+                                        if (cond.multiple) {
+                                            const current = Array.isArray(currentAnswer) ? currentAnswer : [];
+                                            const exists = current.some((item: any) =>
+                                                typeof item === 'number' ? item === i : item?.optionIndex === i
+                                            );
+                                            const updated = exists
+                                                ? current.filter((item: any) =>
+                                                    typeof item === 'number' ? item !== i : item?.optionIndex !== i
+                                                )
+                                                : conditionOptionIsOther(o)
+                                                    ? [...current, { optionIndex: i, text: '' }]
+                                                    : [...current, i];
+                                            onAnswer(String(currentId), updated);
                                         } else {
-                                            onAnswer(String(currentId), i);
+                                            if (conditionOptionIsOther(o)) {
+                                                onAnswer(String(currentId), { optionIndex: i, text: '' });
+                                            } else {
+                                                onAnswer(String(currentId), i);
+                                            }
+                                            setSelectedOption(i);
                                         }
-                                        setSelectedOption(i);
                                     }}
                                     className="h-4 w-4 shrink-0 border-slate-300 text-[#0693e3] focus:ring-[#0693e3]"
                                 />
                                 <span className="text-sm font-medium text-slate-800">{o.label || '(sin etiqueta)'}</span>
                             </label>
 
-                            {conditionOptionIsOther(o) && selectedIndex === i && (
+                            {conditionOptionIsOther(o) && (
+                                cond.multiple
+                                    ? Array.isArray(currentAnswer) && currentAnswer.some((item: any) => item?.optionIndex === i)
+                                    : selectedIndex === i
+                            ) && (
                                 <input
                                     className={inputClass}
                                     type="text"
                                     placeholder="Escribe tu respuesta"
-                                    value={selectedText}
-                                    onChange={(e) => onAnswer(String(currentId), { optionIndex: i, text: e.target.value })}
+                                    value={
+                                        cond.multiple
+                                            ? (Array.isArray(currentAnswer)
+                                                ? currentAnswer.find((item: any) => item?.optionIndex === i)
+                                                : null
+                                            )?.text ?? ''
+                                            : selectedText ?? ''
+                                    }
+                                    onChange={(e) => {
+                                        if (cond.multiple) {
+                                            const current = Array.isArray(currentAnswer) ? currentAnswer : [];
+                                            const updated = current.map((item: any) =>
+                                                typeof item === 'object' && item !== null && item.optionIndex === i
+                                                    ? { ...item, text: e.target.value }
+                                                    : item
+                                            );
+                                            onAnswer(String(currentId), updated);
+                                        } else {
+                                            onAnswer(String(currentId), { optionIndex: i, text: e.target.value });
+                                        }
+                                    }}
                                 />
                             )}
                         </div>
@@ -965,26 +1075,35 @@ function ConditionStepper({
             }
         }
 
+        const currentAnswer = answers[String(currentId)];
         if (cond.interaction_type === 'options') {
-            const sel = answers[String(currentId)];
-            const opts = Array.isArray((cond as any).options) ? (cond as any).options : [];
-            if (sel === undefined || sel === null) {
-                setValidationError('Selecciona una opción');
+            if (cond.multiple) {
+                if (!Array.isArray(currentAnswer) || currentAnswer.length === 0) {
+                    setValidationError('Selecciona al menos una opción');
+                    return;
+                }
+                // Verificar que si hay "Otro" seleccionado, tenga texto
+                const otherItem = currentAnswer.find((item: any) =>
+                    typeof item === 'object' && item !== null && 'optionIndex' in item
+                );
+                if (otherItem && (!otherItem.text || otherItem.text.trim() === '')) {
+                    setValidationError('Escribe tu respuesta en el campo "Otro"');
+                    return;
+                }
             } else {
-                const selectedIndex =
-                    typeof sel === 'number'
-                        ? sel
-                        : typeof sel === 'object' && sel !== null && 'optionIndex' in sel
-                          ? (sel as { optionIndex: number }).optionIndex
-                          : null;
-                if (selectedIndex === null || selectedIndex < 0 || selectedIndex >= opts.length) {
+                if (currentAnswer === undefined) {
                     setValidationError('Selecciona una opción');
-                } else if (conditionOptionIsOther(opts[selectedIndex])) {
-                    const textValue =
-                        typeof sel === 'object' && sel !== null && 'text' in sel
-                            ? ((sel as { text?: string }).text ?? '')
-                            : '';
-                    if (String(textValue).trim() === '') setValidationError('Escribe tu respuesta');
+                    return;
+                }
+                // Verificar que si eligió "Otro", tenga texto
+                if (
+                    typeof currentAnswer === 'object' &&
+                    currentAnswer !== null &&
+                    'optionIndex' in currentAnswer &&
+                    (!currentAnswer.text || currentAnswer.text.trim() === '')
+                ) {
+                    setValidationError('Escribe tu respuesta en el campo "Otro"');
+                    return;
                 }
             }
         }

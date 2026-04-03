@@ -34,6 +34,7 @@ class Condition extends Model
         'observation',
         'next_condition_id',
         'business_unit_id',
+        'multiple',
     ];
 
     public $timestamps = false;
@@ -129,6 +130,18 @@ class Condition extends Model
     public function setObservation(?string $value): void
     {
         $this->attributes['observation'] = $value;
+    }
+
+    // Multiple
+
+    public function getMultiple(): bool
+    {
+    return (bool) ($this->attributes['multiple'] ?? false);
+    }
+
+    public function setMultiple(bool $value): void
+    {
+        $this->attributes['multiple'] = $value;
     }
 
 }
