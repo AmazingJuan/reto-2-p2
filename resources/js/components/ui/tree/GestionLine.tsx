@@ -695,6 +695,11 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                                         ? savedSnapshot.selectedServices.join(', ')
                                         : '-'}{' '}
                                 </p>
+
+                                <p className="text-sm text-slate-700">
+                                    <strong>Profesional:</strong>{' '}
+                                    {selectedProfessionalId !== null ? `Profesional #${selectedProfessionalId}` : 'Sin preferencia'}
+                                </p>
                                 <div className="mt-2 text-sm">
                                     <strong>Respuestas:</strong>
                                     <ul className="mt-1 list-inside list-disc text-slate-700">

@@ -51,7 +51,7 @@ export default function Home() {
                         <span className="text-gradient">Módulo de cotizaciones</span>
                     </h1>
                     <p className="mx-auto mt-6 max-w-xl text-base text-slate-600 md:text-lg">
-                        Configure su solicitud en pocos pasos: unidad de negocio, servicios y condiciones.
+                        Configure su solicitud en pocos pasos
                     </p>
 
                     <div className="animate-slide-up mt-10 flex flex-col items-center gap-4 sm:mt-12">
@@ -64,7 +64,7 @@ export default function Home() {
                         </Link>
                         <a
                             href="https://www.trainingcorporation.com.co/portafolio-de-servicios/"
-                            className="group inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-300 bg-white/80 px-8 py-4 text-base font-semibold text-slate-700 shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-400 hover:bg-white hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
+                            className="group inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-gray-500 bg-gray-500 px-8 py-4 text-base font-semibold text-white shadow-md shadow-gray-500/30 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-gray-600 hover:bg-gray-600 hover:shadow-lg hover:shadow-gray-500/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
                         >
                             Regresar al portafolio
                             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
