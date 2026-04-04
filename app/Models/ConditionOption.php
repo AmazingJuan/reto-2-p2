@@ -25,6 +25,7 @@ class ConditionOption extends Model
      */
     protected $fillable = [
         'label',
+        'value',
         'condition_id',
         'next_condition_id',
         'is_other',
@@ -120,5 +121,12 @@ class ConditionOption extends Model
     public function setIsOther(bool $value): void
     {
         $this->attributes['is_other'] = $value;
+    }
+
+    // Value
+
+        public function getValue(): ?string
+    {
+        return $this->attributes['value'] ?? null;
     }
 }

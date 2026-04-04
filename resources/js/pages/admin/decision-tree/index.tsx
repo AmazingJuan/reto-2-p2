@@ -27,6 +27,8 @@ interface ConditionData {
     observation: string;
     next_condition?: number;
     options: OptionData[];
+    multiple?: boolean;
+    has_other?: boolean;
 }
 
 type DecisionTreePageProps = PageProps<{
@@ -265,6 +267,8 @@ export default function DecisionTreePage() {
                               is_other: !!o.is_other,
                           }))
                         : [],
+                    multiple: c.multiple === true || c.multiple === 1,
+                    has_other: c.has_other === true || c.has_other === 1,
                 }));
             } else if (raw && typeof raw === 'object') {
                 // received as an object keyed by condition id -> convert to array
@@ -282,6 +286,8 @@ export default function DecisionTreePage() {
                               is_other: !!o.is_other,
                           }))
                         : [],
+                    multiple: c.multiple === true || c.multiple === 1,
+                    checked: c.options ? c.options.some((o: any) => o.is_other) : false,
                 }));
             } else {
                 trees[id] = [];
@@ -321,6 +327,8 @@ export default function DecisionTreePage() {
             type: 'text',
             observation: '',
             options: [],
+            multiple: false,
+            has_other: false,
         };
         setConditionsByBU((prev) => {
             const prevList = prev[buId] ?? [];
@@ -367,6 +375,13 @@ export default function DecisionTreePage() {
         const allowedTypes: ValueType[] = ['text', 'number', 'date'];
 
         Object.entries(payload).forEach(([buId, data]) => {
+
+            if (data.initial_condition_id === null || data.initial_condition_id === undefined) {
+                if (data.conditions.length > 0) {
+                    errors.push(`Unidad ${buId}: debes marcar una condición como inicial antes de guardar`);
+                }
+            }
+
             if (!Array.isArray(data.conditions)) {
                 errors.push(`Unidad ${buId}: 'conditions' debe ser un arreglo`);
                 return;
@@ -422,7 +437,13 @@ export default function DecisionTreePage() {
 
             const cyclePath = findCyclePathInGraph(graph);
             if (cyclePath !== null) {
-                errors.push(`Unidad ${buId}: ciclo detectado entre condiciones: ${cyclePath.join(' -> ')}`);
+                const buConditions = data.conditions;
+                const cycleLabels = cyclePath.map((id) => {
+                const found = buConditions.find((c) => c.id === id);
+                
+                return found?.label?.trim() || `Condición #${id}`;
+                });
+                errors.push(`Unidad ${buId}: ciclo detectado entre condiciones: ${cycleLabels.join(' -> ')}`);
             }
         });
 
@@ -957,6 +978,7 @@ export default function DecisionTreePage() {
                                                                 interaction_type: e.target.value as InteractionType,
                                                                 options: e.target.value === 'options' ? (c.options ?? []) : [],
                                                                 next_condition: undefined,
+                                                                multiple: c.multiple ?? false,
                                                             })
                                                         }
                                                     >
@@ -1008,20 +1030,14 @@ export default function DecisionTreePage() {
                                                     Siguiente condición
                                                 </label>
                                                 <p className="mb-2 text-xs text-slate-500">
-                                                    A dónde salta el flujo al terminar esta pregunta (si no usas opciones con destino propio).
+                                                    A dónde salta el flujo al terminar esta pregunta.
                                                 </p>
                                                 {conditionSelectForBU(
                                                     Number(selectedBU),
                                                     idx,
                                                     c.next_condition,
                                                     (v) => isEditing && updateConditionForBU(Number(selectedBU), idx, { next_condition: v }),
-                                                    !isEditing || anyOptionLeads,
-                                                )}
-                                                {anyOptionLeads && (
-                                                    <p className="mt-2 flex items-start gap-1.5 text-xs text-slate-600">
-                                                        <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden />
-                                                        Desactivado: al menos una opción ya define el siguiente paso.
-                                                    </p>
+                                                    !isEditing,
                                                 )}
                                             </div>
 
@@ -1045,74 +1061,105 @@ export default function DecisionTreePage() {
                                                         </Button>
                                                     </div>
 
-                                                    {(c.options ?? []).map((option, optIdx) => (
-                                                        <div
-                                                            key={optIdx}
-                                                            className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
-                                                        >
-                                                            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
-                                                                <div className="min-w-0 flex-1">
-                                                                    <label className="mb-1 block text-xs font-medium text-slate-600">Texto mostrado</label>
-                                                                    <input
-                                                                        disabled={!isEditing}
-                                                                        className={textInputClass}
-                                                                        placeholder="Ej.: Sí / No / Otra"
-                                                                        value={option.label}
-                                                                        onChange={(e) =>
-                                                                            isEditing &&
-                                                                            updateOptionForBU(Number(selectedBU), idx, optIdx, {
-                                                                                label: e.target.value,
-                                                                            })
-                                                                        }
-                                                                    />
-                                                                </div>
-                                                                <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700 sm:pb-2">
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                                                                        checked={option.is_other}
-                                                                        disabled={!isEditing}
-                                                                        onChange={(e) =>
-                                                                            isEditing &&
-                                                                            updateOptionForBU(Number(selectedBU), idx, optIdx, {
-                                                                                is_other: e.target.checked,
-                                                                            })
-                                                                        }
-                                                                    />
-                                                                    Permitir &quot;Otro&quot;
-                                                                </label>
-                                                            </div>
-                                                            <div>
-                                                                <label className="mb-1 block text-xs font-medium text-slate-600">
-                                                                    Siguiente condición al elegir esta opción
-                                                                </label>
-                                                                {conditionSelectForBU(
-                                                                    Number(selectedBU),
-                                                                    idx,
-                                                                    option.next_condition,
-                                                                    (v) =>
-                                                                        isEditing &&
-                                                                        updateOptionForBU(Number(selectedBU), idx, optIdx, { next_condition: v }),
-                                                                    !isEditing || c.next_condition !== undefined,
-                                                                )}
-                                                            </div>
-                                                            <div className="flex justify-end border-t border-slate-100 pt-3">
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                                                                    disabled={!isEditing}
-                                                                    onClick={() =>
-                                                                        isEditing && removeOptionForBU(Number(selectedBU), idx, optIdx)
-                                                                    }
-                                                                >
-                                                                    <Trash2 className="h-4 w-4" aria-hidden />
-                                                                    Quitar opción
-                                                                </Button>
-                                                            </div>
+                                                    <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+                                                        <div>
+                                                            <p className="text-sm font-medium text-slate-800">Tipo de selección</p>
+                                                            <p className="text-xs text-slate-500">¿El usuario puede elegir una o varias opciones?</p>
                                                         </div>
-                                                    ))}
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                type="button"
+                                                                disabled={!isEditing}
+                                                                onClick={() => isEditing && updateConditionForBU(Number(selectedBU), idx, { multiple: false })}
+                                                                className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
+                                                                    !c.multiple
+                                                                        ? 'border-[#0693e3] bg-[#0693e3]/10 text-[#047ac0]'
+                                                                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                                                                } disabled:cursor-not-allowed disabled:opacity-50`}
+                                                            >
+                                                                Selección única
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                disabled={!isEditing}
+                                                                onClick={() => isEditing && updateConditionForBU(Number(selectedBU), idx, { multiple: true })}
+                                                                className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
+                                                                    c.multiple
+                                                                        ? 'border-[#0693e3] bg-[#0693e3]/10 text-[#047ac0]'
+                                                                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                                                                } disabled:cursor-not-allowed disabled:opacity-50`}
+                                                            >
+                                                                Selección múltiple
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700">
+                                                       <input
+                                                            type="checkbox"
+                                                            checked={c.options?.some(o => o.is_other)}
+                                                            onChange={(e) => {
+                                                                if (e.target.checked) {
+                                                                updateConditionForBU(Number(selectedBU), idx, {
+                                                                    options: [
+                                                                    ...(c.options ?? []),
+                                                                    { label: 'Otro', is_other: true }
+                                                                    ]
+                                                                });
+                                                                } else {
+                                                                updateConditionForBU(Number(selectedBU), idx, {
+                                                                    options: (c.options ?? []).filter(o => !o.is_other)
+                                                                });
+                                                                }
+                                                            }}
+                                                            />
+                                                        Permitir respuesta &quot;Otro&quot; (campo libre al final de las opciones)
+                                                    </label>
+                                                    
+                                                    {/* Opciones normales primero */}
+                                                    {(c.options ?? []).filter(option => !option.is_other).map((option, optIdx) => {
+                                                        const realIdx = (c.options ?? []).findIndex(o => o === option);
+                                                        return (
+                                                            <div key={realIdx} className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                                                                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
+                                                                    <div className="min-w-0 flex-1">
+                                                                        <label className="mb-1 block text-xs font-medium text-slate-600">Texto mostrado</label>
+                                                                        <input
+                                                                            disabled={!isEditing}
+                                                                            className={textInputClass}
+                                                                            placeholder="Ej.: Sí / No / Otra"
+                                                                            value={option.label}
+                                                                            onChange={(e) =>
+                                                                                isEditing && updateOptionForBU(Number(selectedBU), idx, realIdx, { label: e.target.value })
+                                                                            }
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex justify-end border-t border-slate-100 pt-3">
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                                        disabled={!isEditing}
+                                                                        onClick={() => isEditing && removeOptionForBU(Number(selectedBU), idx, realIdx)}
+                                                                    >
+                                                                        <Trash2 className="h-4 w-4" aria-hidden />
+                                                                        Quitar opción
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+
+                                                    {/* Opción "Otro" siempre al final */}
+                                                    {(c.options ?? []).filter(option => option.is_other).map((option) => {
+                                                        const realIdx = (c.options ?? []).findIndex(o => o === option);
+                                                        return (
+                                                            <div key={realIdx} className="space-y-3 rounded-lg border border-dashed border-slate-300 bg-slate-50/50 p-4">
+                                                                <p className="text-xs font-medium text-slate-500">Opción "Otro" — campo libre</p>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
 

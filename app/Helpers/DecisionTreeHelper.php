@@ -38,6 +38,7 @@ class DecisionTreeHelper
                 'interaction_type' => $currentCondition->getInteractionType(),
                 'type' => $currentCondition->getType(),
                 'observation' => $currentCondition->getObservation(),
+                'multiple' => $currentCondition->getMultiple(),
             ];
 
             if ($next = $currentCondition->getNextCondition()) {
@@ -51,6 +52,7 @@ class DecisionTreeHelper
                 foreach ($currentCondition->getOptions() as $option) {
                     $optionData = [
                         'label' => $option->getLabel(),
+                        'value' => $option->getValue(),
                         'is_other' => $option->isOther(),
                     ];
 
@@ -102,6 +104,7 @@ class DecisionTreeHelper
                         'interaction_type' => $c['interaction_type'] ?? 'input',
                         'type' => $c['type'] ?? 'text',
                         'observation' => $c['observation'] ?? null,
+                        'multiple' => $c['multiple'] ?? false,
                         'business_unit_id' => $businessUnit->getId(),
                     ]);
 
@@ -125,6 +128,7 @@ class DecisionTreeHelper
                         foreach ($c['options'] as $opt) {
                             ConditionOption::create([
                                 'label' => $opt['label'] ?? '',
+                                'value' => $opt['value'] ?? null, // 🔥 AQUÍ LO PONES
                                 'condition_id' => $newId,
                                 'next_condition_id' => (! empty($opt['next_condition']) ? ($idMap[$opt['next_condition']] ?? null) : null),
                                 'is_other' => ! empty($opt['is_other']),
