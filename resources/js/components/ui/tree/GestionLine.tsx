@@ -1,7 +1,8 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { router } from '@inertiajs/react';
 import { CheckCircle2, GitBranch, Layers, SlidersHorizontal, UserRound } from 'lucide-react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { route } from 'ziggy-js';
 import GoSelect from '../goselect';
 import Header from '../header';
 import ServicesByLine from './ServicesByLine';
@@ -61,7 +62,6 @@ export default function GestionLine({ viewData }: GestionLineProps) {
     const [selectedLine, setSelectedLine] = useState<string | null>(null);
     const [selectedServices, setSelectedServices] = useState<string[]>([]);
     const [conditionInitialId, setConditionInitialId] = useState<number | null>(viewData.initial_condition_id ?? null);
-    const [history, setHistory] = useState<number[]>([]);
     const [answers, setAnswers] = useState<Record<string, any>>({});
     const [savedSnapshot, setSavedSnapshot] = useState<any | null>(null);
     const [showProfessionalModal, setShowProfessionalModal] = useState(false);
@@ -85,10 +85,13 @@ export default function GestionLine({ viewData }: GestionLineProps) {
     const visibleLines = viewData.gestionLines.filter((line) => (viewData.services[line]?.length ?? 0) > 0);
 
     const lineNameForProfessionalPicker = (savedSnapshot?.selectedLine ?? selectedLine ?? '').trim();
-    const baseProfessionalsForLine =
-        lineNameForProfessionalPicker === ''
-            ? []
-            : (viewData.professionalsByGestionLine?.[lineNameForProfessionalPicker] ?? []);
+    const baseProfessionalsForLine = useMemo(
+        () =>
+            lineNameForProfessionalPicker === ''
+                ? []
+                : (viewData.professionalsByGestionLine?.[lineNameForProfessionalPicker] ?? []),
+        [lineNameForProfessionalPicker, viewData.professionalsByGestionLine],
+    );
 
     const applyProfessionalFilters = useCallback(() => {
         setProfessionalList(applyYearFilter(baseProfessionalsForLine, filterMinYears, filterMaxYears));
@@ -219,9 +222,8 @@ export default function GestionLine({ viewData }: GestionLineProps) {
         // use Ziggy route helper if available; route name: quotation.store.proposal
         let url = '/cotizar';
         try {
-            // @ts-ignore
-            if ((window as any).route) url = (window as any).route('quotation.store.proposal');
-        } catch (e) {
+            if (typeof route === 'function') url = route('quotation.store.proposal');
+        } catch {
             // fallback remains
         }
 
@@ -243,7 +245,6 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                 },
             });
         } catch (e) {
-            // eslint-disable-next-line no-console
             console.error('router.post error', e);
             setFormErrors({ _global: ['Ocurrió un error al enviar. Intenta nuevamente.'] });
         }
@@ -848,7 +849,8 @@ function ConditionStepper({
 }) {
     const [currentId, setCurrentId] = useState<number | null>(initialConditionId ?? null);
     const [history, setHistory] = useState<number[]>(initialHistory ? [...initialHistory] : []);
-    const [selectedOption, setSelectedOption] = useState<number | null>(null);
+    const [, setSelectedOption] = useState<number | null>(null);
+    const [validationError, setValidationError] = useState<string | null>(null);
 
     // reset when initialConditionId changes
     React.useEffect(() => {
@@ -856,6 +858,84 @@ function ConditionStepper({
         setHistory(initialHistory ? [...initialHistory] : []);
         setSelectedOption(null);
     }, [initialConditionId, initialHistory]);
+
+    // run validation for current control
+    React.useEffect(() => {
+        setValidationError(null);
+        if (!conditions || currentId === null) return;
+
+        const cond = conditions[String(currentId)];
+        if (!cond) return;
+
+        const val = answers[String(currentId)];
+
+        if (cond.interaction_type === 'input') {
+            if (val === undefined || val === null || String(val).trim() === '') {
+                setValidationError('Este campo es obligatorio');
+            }
+        }
+
+        if (cond.interaction_type === 'range') {
+            const t = cond.type === 'date' ? 'date' : cond.type === 'number' ? 'number' : 'text';
+            const v = val ?? { min: '', max: '' };
+            const min = v.min;
+            const max = v.max;
+            if (String(min).trim() === '' || String(max).trim() === '') {
+                setValidationError('Ambos valores son requeridos');
+            } else if (t === 'number') {
+                const nmin = Number(min);
+                const nmax = Number(max);
+                if (Number.isNaN(nmin) || Number.isNaN(nmax)) setValidationError('Valores numéricos inválidos');
+                else if (!(nmin < nmax)) setValidationError('El valor inicial debe ser menor que el valor final');
+            } else if (t === 'date') {
+                const dmin = new Date(min);
+                const dmax = new Date(max);
+                if (isNaN(dmin.getTime()) || isNaN(dmax.getTime())) setValidationError('Fechas inválidas');
+                else if (!(dmin < dmax)) setValidationError('La fecha inicial debe ser anterior a la fecha final');
+            } else {
+                if (!(String(min) < String(max))) setValidationError('Rango inválido');
+            }
+        }
+
+        const currentAnswer = answers[String(currentId)];
+        if (cond.interaction_type === 'options') {
+            if (cond.multiple) {
+                if (!Array.isArray(currentAnswer) || currentAnswer.length === 0) {
+                    setValidationError('Selecciona al menos una opción');
+                    return;
+                }
+                const otherItem = currentAnswer.find(
+                    (item: unknown) => typeof item === 'object' && item !== null && 'optionIndex' in item,
+                );
+                if (
+                    otherItem &&
+                    typeof otherItem === 'object' &&
+                    otherItem !== null &&
+                    'text' in otherItem &&
+                    (!(otherItem as { text?: string }).text || (otherItem as { text?: string }).text!.trim() === '')
+                ) {
+                    setValidationError('Escribe tu respuesta en el campo "Otro"');
+                    return;
+                }
+            } else {
+                if (currentAnswer === undefined) {
+                    setValidationError('Selecciona una opción');
+                    return;
+                }
+                if (
+                    typeof currentAnswer === 'object' &&
+                    currentAnswer !== null &&
+                    'optionIndex' in currentAnswer &&
+                    (!('text' in currentAnswer) ||
+                        !(currentAnswer as { text?: string }).text ||
+                        (currentAnswer as { text?: string }).text!.trim() === '')
+                ) {
+                    setValidationError('Escribe tu respuesta en el campo "Otro"');
+                    return;
+                }
+            }
+        }
+    }, [answers, currentId, conditions]);
 
     if (!conditions || currentId === null) {
         return <p className="text-center text-slate-500">Condición inicial no configurada.</p>;
@@ -1039,76 +1119,6 @@ function ConditionStepper({
     };
 
     const nextId = computeNextFromOption();
-
-    const [validationError, setValidationError] = useState<string | null>(null);
-
-    // run validation for current control
-    React.useEffect(() => {
-        setValidationError(null);
-        const val = answers[String(currentId)];
-
-        if (cond.interaction_type === 'input') {
-            if (val === undefined || val === null || String(val).trim() === '') {
-                setValidationError('Este campo es obligatorio');
-            }
-        }
-
-        if (cond.interaction_type === 'range') {
-            const t = cond.type === 'date' ? 'date' : cond.type === 'number' ? 'number' : 'text';
-            const v = val ?? { min: '', max: '' };
-            const min = v.min;
-            const max = v.max;
-            if (String(min).trim() === '' || String(max).trim() === '') {
-                setValidationError('Ambos valores son requeridos');
-            } else if (t === 'number') {
-                const nmin = Number(min);
-                const nmax = Number(max);
-                if (Number.isNaN(nmin) || Number.isNaN(nmax)) setValidationError('Valores numéricos inválidos');
-                else if (!(nmin < nmax)) setValidationError('El valor inicial debe ser menor que el valor final');
-            } else if (t === 'date') {
-                const dmin = new Date(min);
-                const dmax = new Date(max);
-                if (isNaN(dmin.getTime()) || isNaN(dmax.getTime())) setValidationError('Fechas inválidas');
-                else if (!(dmin < dmax)) setValidationError('La fecha inicial debe ser anterior a la fecha final');
-            } else {
-                if (!(String(min) < String(max))) setValidationError('Rango inválido');
-            }
-        }
-
-        const currentAnswer = answers[String(currentId)];
-        if (cond.interaction_type === 'options') {
-            if (cond.multiple) {
-                if (!Array.isArray(currentAnswer) || currentAnswer.length === 0) {
-                    setValidationError('Selecciona al menos una opción');
-                    return;
-                }
-                // Verificar que si hay "Otro" seleccionado, tenga texto
-                const otherItem = currentAnswer.find((item: any) =>
-                    typeof item === 'object' && item !== null && 'optionIndex' in item
-                );
-                if (otherItem && (!otherItem.text || otherItem.text.trim() === '')) {
-                    setValidationError('Escribe tu respuesta en el campo "Otro"');
-                    return;
-                }
-            } else {
-                if (currentAnswer === undefined) {
-                    setValidationError('Selecciona una opción');
-                    return;
-                }
-                // Verificar que si eligió "Otro", tenga texto
-                if (
-                    typeof currentAnswer === 'object' &&
-                    currentAnswer !== null &&
-                    'optionIndex' in currentAnswer &&
-                    (!currentAnswer.text || currentAnswer.text.trim() === '')
-                ) {
-                    setValidationError('Escribe tu respuesta en el campo "Otro"');
-                    return;
-                }
-            }
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [answers, currentId]);
 
     const canProceed = !validationError;
 

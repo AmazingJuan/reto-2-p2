@@ -9,7 +9,7 @@ interface BreadcrumbItem {
   href?: string;
 }
 
-export default function AppHeaderLayout({ children, breadcrumbs }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
+export default function AppHeaderLayout({ children }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
     return (
         <div>
             {/* <AppShell>

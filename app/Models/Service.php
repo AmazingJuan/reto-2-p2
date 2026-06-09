@@ -56,7 +56,7 @@ class Service extends Model
      */
     public function getBusinessUnit(): BusinessUnit
     {
-        return $this->businessUnit->get();
+        return $this->businessUnit;
     }
 
     /**
@@ -64,7 +64,7 @@ class Service extends Model
      */
     public function getGestionLine(): GestionLine
     {
-        return $this->gestionLine->get();
+        return $this->gestionLine;
     }
 
     /*

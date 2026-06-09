@@ -10,7 +10,7 @@ interface BreadcrumbItem {
   href?: string;
 }
 
-export default function AppSidebarLayout({ children, breadcrumbs = [] }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
+export default function AppSidebarLayout({ children }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
     return (
         <div>
             {/* <AppShell variant="sidebar">
