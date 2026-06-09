@@ -3,7 +3,6 @@ import { route as ziggyRoute } from 'ziggy-js';
 import { PageProps as AppPageProps } from './';
 
 declare global {
-    /* eslint-disable no-var */
     var route: typeof ziggyRoute;
 }
 

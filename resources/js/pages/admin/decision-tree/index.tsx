@@ -7,7 +7,7 @@ import type { RequestPayload } from '@inertiajs/core';
 import { router, usePage } from '@inertiajs/react';
 import { AlertCircle, GitBranch, Info, Pencil, Plus, Save, Star, Trash2, Trees, X } from 'lucide-react';
 import { route } from 'ziggy-js';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Types (kept minimal for runtime flexibility)
 type InteractionType = 'range' | 'options' | 'input';
@@ -357,7 +357,7 @@ export default function DecisionTreePage() {
         });
     };
 
-    const buildPayload = () => {
+    const buildPayload = useCallback(() => {
         const out: Record<string, { initial_condition_id: number | null; conditions: ConditionData[] }> = {};
         const buIds = new Set<number>([...Object.keys(conditionsByBU).map((k) => Number(k)), ...businessUnits.map((b) => b.id)]);
         buIds.forEach((id) => {
@@ -367,7 +367,7 @@ export default function DecisionTreePage() {
             };
         });
         return out;
-    };
+    }, [conditionsByBU, initialConditionByBU, businessUnits]);
 
     const validatePayload = (payload: Record<string, { initial_condition_id: number | null; conditions: ConditionData[] }>) => {
         const errors: string[] = [];
@@ -467,7 +467,7 @@ export default function DecisionTreePage() {
         const payload = buildPayload();
         const errors = validatePayload(payload);
         setSubmitErrors(errors);
-    }, [conditionsByBU, initialConditionByBU]);
+    }, [conditionsByBU, initialConditionByBU, buildPayload]);
 
     const deleteCondition = (buId: number, index: number) => {
         setConditionsByBU((prev) => {
@@ -595,7 +595,10 @@ export default function DecisionTreePage() {
         'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500';
 
     const currentBU = selectedBU !== null ? businessUnits.find((b) => b.id === selectedBU) : undefined;
-    const conditionsForBU = selectedBU !== null ? (conditionsByBU[selectedBU] ?? []) : [];
+    const conditionsForBU = useMemo(
+        () => (selectedBU !== null ? (conditionsByBU[selectedBU] ?? []) : []),
+        [selectedBU, conditionsByBU],
+    );
     const initialForSelectedBU = selectedBU !== null ? (initialConditionByBU[selectedBU] ?? null) : null;
     const flow = useMemo(
         () => buildFlowContext(conditionsForBU, initialForSelectedBU),
@@ -1116,7 +1119,7 @@ export default function DecisionTreePage() {
                                                     </label>
                                                     
                                                     {/* Opciones normales primero */}
-                                                    {(c.options ?? []).filter(option => !option.is_other).map((option, optIdx) => {
+                                                    {(c.options ?? []).filter(option => !option.is_other).map((option) => {
                                                         const realIdx = (c.options ?? []).findIndex(o => o === option);
                                                         return (
                                                             <div key={realIdx} className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
