@@ -88,34 +88,11 @@ export default function Index() {
         return match ? decodeURIComponent(match[2]) : '';
     };
 
-    const pollExportStatus = async (token: string, attempt = 0) => {
-        // ~3 min de margen (120 * 1.5s) por si el worker tarda en arrancar
-        if (attempt > 120) {
-            setExporting(false);
-            setExportError('La generación está tardando demasiado. Verifica que el worker de la cola esté en ejecución.');
-            return;
-        }
+    const filenameFromDisposition = (header: string | null): string | null => {
+        if (!header) return null;
+        const match = header.match(/filename=\"?([^\";]+)\"?/i);
 
-        try {
-            const res = await fetch(route('dashboard.clients.export.status', token), {
-                headers: { Accept: 'application/json' },
-                credentials: 'same-origin',
-            });
-            const { status } = (await res.json()) as { status: string };
-
-            if (status === 'ready') {
-                window.location.href = route('dashboard.clients.export.download', token);
-                setExporting(false);
-            } else if (status === 'failed' || status === 'unknown') {
-                setExporting(false);
-                setExportError('No se pudo generar el archivo. Intenta nuevamente.');
-            } else {
-                setTimeout(() => pollExportStatus(token, attempt + 1), 1500);
-            }
-        } catch {
-            setExporting(false);
-            setExportError('Se perdió la conexión durante la exportación.');
-        }
+        return match?.[1] ?? null;
     };
 
     const handleExport = async () => {
@@ -128,7 +105,7 @@ export default function Index() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    Accept: 'application/json',
+                    Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/json',
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-XSRF-TOKEN': readCookie('XSRF-TOKEN'),
                 },
@@ -140,20 +117,29 @@ export default function Index() {
                 }),
             });
 
-            if (!res.ok) throw new Error('start failed');
+            const contentType = res.headers.get('Content-Type') ?? '';
 
-            const body = (await res.json()) as { token: string; status?: string };
-
-            if (body.status === 'ready') {
-                window.location.href = route('dashboard.clients.export.download', body.token);
-                setExporting(false);
-                return;
+            if (!res.ok || contentType.includes('application/json')) {
+                throw new Error('start failed');
             }
 
-            pollExportStatus(body.token);
+            const blob = await res.blob();
+            const filename =
+                filenameFromDisposition(res.headers.get('Content-Disposition')) ??
+                `clientes_${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
         } catch {
+            setExportError('No se pudo generar el archivo. Intenta nuevamente.');
+        } finally {
             setExporting(false);
-            setExportError('No se pudo iniciar la exportación. Intenta nuevamente.');
         }
     };
 

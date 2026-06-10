@@ -86,9 +86,9 @@ class AdminClientController extends Controller
     }
 
     /**
-     * Queue the Excel generation and return a token the frontend can poll.
+     * Genera el Excel y lo devuelve en la misma respuesta (evita un segundo GET /descargar).
      */
-    public function startExport(Request $request): JsonResponse
+    public function startExport(Request $request): JsonResponse|BinaryFileResponse
     {
         $filters = $this->resolveFilters($request);
         $token = (string) Str::uuid();
@@ -96,7 +96,6 @@ class AdminClientController extends Controller
         cache()->put(GenerateClientsExport::statusKey($token), 'pending', now()->addHours(GenerateClientsExport::RETENTION_HOURS));
 
         try {
-            // Genera en el mismo contenedor web para que el archivo exista al descargar.
             GenerateClientsExport::dispatchSync($token, $filters);
         } catch (\Throwable $e) {
             cache()->put(GenerateClientsExport::statusKey($token), 'failed', now()->addHours(GenerateClientsExport::RETENTION_HOURS));
@@ -105,12 +104,7 @@ class AdminClientController extends Controller
             return response()->json(['message' => 'No se pudo generar el archivo.'], 500);
         }
 
-        $status = cache()->get(GenerateClientsExport::statusKey($token), 'unknown');
-
-        return response()->json([
-            'token' => $token,
-            'status' => $status,
-        ]);
+        return $this->downloadExport($token);
     }
 
     public function exportStatus(string $token): JsonResponse
@@ -124,18 +118,19 @@ class AdminClientController extends Controller
     {
         $path = GenerateClientsExport::relativePath($token);
 
-        if (! Storage::disk('local')->exists($path)) {
-            Log::warning('Client export download missing file', [
+        $downloadName = 'clientes_'.now()->format('d-m-Y_h-iA').'.xlsx';
+        $fullPath = Storage::disk('local')->path($path);
+
+        if (! is_readable($fullPath)) {
+            Log::warning('Client export download missing or unreadable file', [
                 'token' => $token,
-                'path' => Storage::disk('local')->path($path),
+                'path' => $fullPath,
                 'cache_status' => Cache::get(GenerateClientsExport::statusKey($token)),
+                'file_exists' => is_file($fullPath),
             ]);
 
             abort(404);
         }
-
-        $downloadName = 'clientes_'.now()->format('d-m-Y_h-iA').'.xlsx';
-        $fullPath = Storage::disk('local')->path($path);
 
         Cache::forget(GenerateClientsExport::statusKey($token));
 
