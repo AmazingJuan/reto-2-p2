@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -107,15 +108,14 @@ class AdminClientController extends Controller
 
     public function downloadExport(string $token): BinaryFileResponse
     {
-        $status = cache()->get(GenerateClientsExport::statusKey($token));
         $path = GenerateClientsExport::relativePath($token);
 
-        abort_if($status !== 'ready' || ! Storage::disk('local')->exists($path), 404);
+        abort_unless(Storage::disk('local')->exists($path), 404);
 
         $downloadName = 'clientes_'.now()->format('d-m-Y_h-iA').'.xlsx';
         $fullPath = Storage::disk('local')->path($path);
 
-        cache()->forget(GenerateClientsExport::statusKey($token));
+        Cache::forget(GenerateClientsExport::statusKey($token));
 
         return response()->download($fullPath, $downloadName)->deleteFileAfterSend(true);
     }
