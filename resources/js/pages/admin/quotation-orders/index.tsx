@@ -27,6 +27,7 @@ interface QuotationOrder {
         role?: string;
     };
     is_generated: boolean;
+    viewed_by_client?: boolean;
     quotation_url?: string;
 }
 
@@ -85,6 +86,7 @@ export default function Index() {
                                 <th className={adminTableThClass}>Empresa</th>
                                 <th className={adminTableThClass}>Cargo</th>
                                 <th className={adminTableThClass}>Estado</th>
+                                <th className={adminTableThClass}>Vista cliente</th>
                                 <th className={adminTableThClass}>Unidad</th>
                                 <th className={adminTableThCenterClass}>Propuesta</th>
                             </tr>
@@ -113,6 +115,19 @@ export default function Index() {
                                                 </span>
                                             )}
                                         </td>
+                                        <td className={adminTableTdClass}>
+                                            {!order.is_generated ? (
+                                                <span className="text-sm text-slate-400">—</span>
+                                            ) : order.viewed_by_client ? (
+                                                <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-800 ring-1 ring-blue-200/80">
+                                                    Vista
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200/80">
+                                                    No vista
+                                                </span>
+                                            )}
+                                        </td>
                                         <td className={adminTableTdClass}>{order.business_unit ?? '—'}</td>
                                         <td className={`${adminTableTdClass} text-center`} onClick={(e) => e.stopPropagation()}>
                                             {order.is_generated && order.quotation_url ? (
@@ -132,7 +147,7 @@ export default function Index() {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={8} className="px-4 py-8 text-center text-sm text-slate-500 sm:px-6">
+                                    <td colSpan={9} className="px-4 py-8 text-center text-sm text-slate-500 sm:px-6">
                                         {filters.search ? 'No hay resultados para tu búsqueda.' : 'No hay órdenes de cotización registradas.'}
                                     </td>
                                 </tr>
