@@ -89,6 +89,20 @@ La aplicación quedará disponible en:
 
 ---
 
+## ⏱️ Procesamiento de colas (correos y exportaciones)
+
+Algunas tareas se ejecutan en segundo plano mediante la **cola** de Laravel para no bloquear la aplicación, como el **envío de correos** y la **exportación de clientes a Excel**.
+
+Para que estas tareas se procesen, deja corriendo el _worker_ en una terminal aparte:
+
+```bash
+php artisan queue:work
+```
+
+> ⚠️ Si el worker no está en ejecución, los correos no se enviarán y la exportación a Excel se quedará en estado "Generando…" sin completarse.
+
+---
+
 ## 📦 Compilación para producción
 
 Genera los archivos optimizados de frontend con:
@@ -120,6 +134,10 @@ php artisan route:clear
 - Compilar assets sin levantar servidor:
   ```bash
   npm run build
+  ```
+- Procesar la cola (correos y exportaciones):
+  ```bash
+  php artisan queue:work
   ```
 
 ---
