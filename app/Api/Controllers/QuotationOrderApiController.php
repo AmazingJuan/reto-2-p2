@@ -11,8 +11,8 @@ class QuotationOrderApiController extends Controller
 {
     public function index(): JsonResponse
     {
-        $requiredColumns = ['id', 'quotation_code', 'contact_info', 'business_unit', 'gestion_line', 'services', 'answers'];
-        $quotationOrders = QuotationProposalOrder::select($requiredColumns)->get();
+        $requiredColumns = ['id', 'quotation_code', 'client_id', 'business_unit', 'gestion_line', 'services', 'answers'];
+        $quotationOrders = QuotationProposalOrder::with('client')->select($requiredColumns)->get();
         if ($quotationOrders->isEmpty()) {
             return response()->json(['message' => 'No quotation orders found',
                 'status' => 'error',

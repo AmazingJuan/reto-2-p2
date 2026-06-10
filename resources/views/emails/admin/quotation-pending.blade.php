@@ -6,7 +6,7 @@
 
 @section('content')
   @php
-    $contact = $quotationOrder->contact_info ?? [];
+    $contact = $quotationOrder->client;
   @endphp
   <p style="font-size:16px; margin:0 0 16px 0; text-align:left;">
     Un usuario envió una nueva solicitud de cotización desde la plataforma.
@@ -20,11 +20,11 @@
     <tr>
       <td>
         <h3 style="margin:0 0 8px 0; font-size:15px; font-weight:bold; color:#1f2937;">Contacto</h3>
-        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Nombre:</strong> {{ $contact['name'] ?? '—' }}</p>
-        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Empresa:</strong> {{ $contact['company'] ?? '—' }}</p>
-        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Cargo:</strong> {{ $contact['role'] ?? '—' }}</p>
-        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Email:</strong> {{ $contact['email'] ?? '—' }}</p>
-        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Teléfono:</strong> {{ $contact['phone'] ?? '—' }}</p>
+        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Nombre:</strong> {{ $contact?->name ?? '—' }}</p>
+        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Empresa:</strong> {{ $contact?->company ?? '—' }}</p>
+        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Cargo:</strong> {{ $contact?->role ?? '—' }}</p>
+        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Email:</strong> {{ $contact?->email ?? '—' }}</p>
+        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Teléfono:</strong> {{ $contact?->phone ?? '—' }}</p>
         <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Unidad de negocio:</strong> {{ $quotationOrder->business_unit ?? '—' }}</p>
       </td>
     </tr>

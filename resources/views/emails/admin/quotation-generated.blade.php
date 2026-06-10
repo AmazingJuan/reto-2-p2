@@ -6,7 +6,7 @@
 
 @section('content')
   @php
-    $contact = $quotationOrder->contact_info ?? [];
+    $contact = $quotationOrder->client;
   @endphp
   <p style="font-size:16px; margin:0 0 16px 0; text-align:left;">
     Se cargó la URL del documento y se notificó al cliente por correo.
@@ -20,8 +20,8 @@
     <tr>
       <td>
         <h3 style="margin:0 0 8px 0; font-size:15px; font-weight:bold; color:#065f46;">Cliente</h3>
-        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Nombre:</strong> {{ $contact['name'] ?? '—' }}</p>
-        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Email:</strong> {{ $contact['email'] ?? '—' }}</p>
+        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Nombre:</strong> {{ $contact?->name ?? '—' }}</p>
+        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Email:</strong> {{ $contact?->email ?? '—' }}</p>
         @if($quotationOrder->getQuotationUrl())
         <p style="margin:8px 0 0 0; font-size:14px; color:#4b5563;"><strong>Documento:</strong>
           <a href="{{ $quotationOrder->getQuotationUrl() }}" style="color:#2563eb;">Abrir enlace</a>

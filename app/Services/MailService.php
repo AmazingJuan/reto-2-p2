@@ -15,15 +15,21 @@ class MailService
 {
     public static function sendQuotationPendingEmail(QuotationProposalOrder $quotationOrder): void
     {
-        $email = $quotationOrder->getContactInfo()['email'];
-        Mail::to($email)->queue(new QuotationPending($quotationOrder));
+        $quotationOrder->loadMissing('client');
+        $email = $quotationOrder->getClient()?->getEmail();
+        if ($email !== null && $email !== '') {
+            Mail::to($email)->queue(new QuotationPending($quotationOrder));
+        }
         self::sendAdminQuotationPendingNotification($quotationOrder);
     }
 
     public static function sendQuotationGeneratedEmail(QuotationProposalOrder $quotationOrder): void
     {
-        $email = $quotationOrder->getContactInfo()['email'];
-        Mail::to($email)->queue(new QuotationGenerated($quotationOrder));
+        $quotationOrder->loadMissing('client');
+        $email = $quotationOrder->getClient()?->getEmail();
+        if ($email !== null && $email !== '') {
+            Mail::to($email)->queue(new QuotationGenerated($quotationOrder));
+        }
         self::sendAdminQuotationGeneratedNotification($quotationOrder);
     }
 

@@ -15,17 +15,20 @@ import { router, usePage } from '@inertiajs/react';
 import { Download, ScrollText } from 'lucide-react';
 import { route } from 'ziggy-js';
 
+interface Client {
+    id: number;
+    name: string;
+    email: string;
+    company?: string | null;
+    phone?: string | null;
+    role?: string | null;
+}
+
 interface QuotationOrder {
     business_unit?: string;
     quotation_code?: string | null;
     id: number | string;
-    contact_info?: {
-        name: string;
-        email: string;
-        company?: string | null;
-        phone?: string;
-        role?: string;
-    };
+    client?: Client | null;
     is_generated: boolean;
     quotation_url?: string;
 }
@@ -98,10 +101,10 @@ export default function Index() {
                                         onClick={() => router.visit(route('dashboard.quotation-orders.show', order.id))}
                                     >
                                         <td className={`${adminTableTdClass} font-mono text-sm`}>{order.quotation_code || '—'}</td>
-                                        <td className={adminTableTdClass}>{order.contact_info?.name || '—'}</td>
-                                        <td className={adminTableTdClass}>{order.contact_info?.email || '—'}</td>
-                                        <td className={adminTableTdClass}>{order.contact_info?.company || '—'}</td>
-                                        <td className={adminTableTdClass}>{order.contact_info?.role || '—'}</td>
+                                        <td className={adminTableTdClass}>{order.client?.name || '—'}</td>
+                                        <td className={adminTableTdClass}>{order.client?.email || '—'}</td>
+                                        <td className={adminTableTdClass}>{order.client?.company || '—'}</td>
+                                        <td className={adminTableTdClass}>{order.client?.role || '—'}</td>
                                         <td className={adminTableTdClass}>
                                             {order.is_generated ? (
                                                 <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-800 ring-1 ring-emerald-200/80">

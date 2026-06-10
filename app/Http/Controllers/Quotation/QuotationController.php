@@ -6,6 +6,7 @@ use App\Helpers\DecisionTreeHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreQuotationProposal;
 use App\Models\BusinessUnit;
+use App\Models\Client;
 use App\Models\GestionLine;
 use App\Models\Professional;
 use App\Models\QuotationProposalOrder;
@@ -106,10 +107,12 @@ class QuotationController extends Controller
 
             $quotationCode = $businessUnit->lockAndAllocateNextQuotationCode();
 
+            $client = $this->resolveClient($quotationProposalData['contact']);
+
             return QuotationProposalOrder::create([
                 'id' => $quotationProposalId,
                 'quotation_code' => $quotationCode,
-                'contact_info' => $quotationProposalData['contact'],
+                'client_id' => $client->getId(),
                 'services' => $quotationProposalData['services'],
                 'business_unit' => $quotationProposalData['businessUnit'],
                 'gestion_line' => $quotationProposalData['gestionLine'],
@@ -121,5 +124,35 @@ class QuotationController extends Controller
         MailService::sendQuotationPendingEmail($quotationProposalOrder);
 
         return redirect()->route('home')->with('success', 'Su cotización ha sido procesada exitosamente.');
+    }
+
+    /**
+     * Find the client by email (case-insensitive) or create it, refreshing the
+     * contact data with the latest values provided in this quotation.
+     *
+     * @param  array<string, mixed>  $contact
+     */
+    private function resolveClient(array $contact): Client
+    {
+        $email = Str::lower(trim((string) ($contact['email'] ?? '')));
+
+        $normalize = static function ($value): ?string {
+            if (! is_string($value)) {
+                return null;
+            }
+            $trimmed = trim($value);
+
+            return $trimmed === '' ? null : $trimmed;
+        };
+
+        return Client::updateOrCreate(
+            ['email' => $email],
+            [
+                'name' => trim((string) ($contact['name'] ?? '')),
+                'company' => $normalize($contact['company'] ?? null),
+                'phone' => $normalize($contact['phone'] ?? null),
+                'role' => $normalize($contact['role'] ?? null),
+            ]
+        );
     }
 }
