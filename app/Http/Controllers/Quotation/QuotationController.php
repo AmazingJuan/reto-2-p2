@@ -126,7 +126,7 @@ class QuotationController extends Controller
 
     public function receiveQuotation(Request $request, string $quotationId): RedirectResponse
     {
-        $quotation = QuotationProposalOrder::find('id', $quotationId);
+        $quotation = QuotationProposalOrder::find($quotationId);
 
         if (! $quotation) {
             return redirect()->route('home')->with('error', 'No se encontró la cotización.');
