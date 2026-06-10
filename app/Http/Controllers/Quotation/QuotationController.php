@@ -155,4 +155,28 @@ class QuotationController extends Controller
             ]
         );
     }
+
+    public function receiveQuotation(Request $request, string $quotationId): RedirectResponse
+    {
+        $quotation = QuotationProposalOrder::find($quotationId);
+
+        if (! $quotation) {
+            return redirect()->route('home')->with('error', 'No se encontró la cotización.');
+        }
+
+        if (! $request->hasValidSignature()) {
+            return redirect()->route('home')->with('error', 'La URL de la cotización ha expirado o no es válida.');
+        }
+
+        if (! $quotation->getQuotationUrl()) {
+            return redirect()->route('home')->with('error', 'La cotización aún no tiene un documento disponible.');
+        }
+
+        if (! $quotation->getViewedByClient()) {
+            $quotation->setViewedByClient(true);
+            $quotation->save();
+        }
+
+        return redirect($quotation->getQuotationUrl());
+    }
 }
