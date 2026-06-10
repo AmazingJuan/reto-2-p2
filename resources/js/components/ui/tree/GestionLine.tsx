@@ -119,7 +119,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
         // basic validation (inline)
         const errors: Record<string, string[]> = {};
         if (!contact.name.trim()) errors.name = ['Por favor ingresa nombre.'];
-        if (!contact.role.trim()) errors.role = ['Por favor ingresa el cargo.'];
+        if (!contact.phone.trim()) errors.phone = ['Por favor ingresa teléfono.'];
         if (!contact.email.trim()) errors.email = ['Por favor ingresa correo.'];
         else {
             const emailOk = /\S+@\S+\.\S+/.test(contact.email);
@@ -637,7 +637,9 @@ export default function GestionLine({ viewData }: GestionLineProps) {
 
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div className="col-span-2">
-                                <label className="mb-1 block text-sm font-medium text-slate-700">Nombre</label>
+                                <label className="mb-1 block text-sm font-medium text-slate-700">
+                                    Nombre <span className="text-red-500">*</span>
+                                </label>
                                 <input
                                     value={contact.name}
                                     onChange={(e) => setContact((c) => ({ ...c, name: e.target.value }))}
@@ -653,7 +655,7 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                                     value={contact.company}
                                     onChange={(e) => setContact((c) => ({ ...c, company: e.target.value }))}
                                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-[#0693e3] focus:outline-none focus:ring-2 focus:ring-[#0693e3]/20"
-                                    placeholder="Nombre de la empresa (opcional)"
+                                    placeholder="Nombre de la empresa"
                                 />
                                 {formErrors.company && <p className="mt-1 text-sm text-red-600">{formErrors.company[0]}</p>}
                             </div>
@@ -670,7 +672,9 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-slate-700">Correo</label>
+                                <label className="mb-1 block text-sm font-medium text-slate-700">
+                                    Correo <span className="text-red-500">*</span>
+                                </label>
                                 <input
                                     value={contact.email}
                                     onChange={(e) => setContact((c) => ({ ...c, email: e.target.value }))}
@@ -681,7 +685,9 @@ export default function GestionLine({ viewData }: GestionLineProps) {
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-slate-700">Teléfono</label>
+                                <label className="mb-1 block text-sm font-medium text-slate-700">
+                                    Teléfono <span className="text-red-500">*</span>
+                                </label>
                                 <input
                                     value={contact.phone}
                                     onChange={(e) => setContact((c) => ({ ...c, phone: e.target.value }))}
