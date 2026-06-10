@@ -9,3 +9,5 @@ Route::prefix('cotizar')->group(function () {
     Route::post('/', [QuotationController::class, 'storeQuotationProposal'])->name('quotation.store.proposal');
     Route::get('/{businessUnitName}', [QuotationController::class, 'getQuoteForBusinessUnit'])->name('quotation.quote.business_unit');
 });
+
+Route::get('/recibir-cotizacion/{quotationId}', [QuotationController::class, 'receiveQuotation'])->name('quotation.receive');
