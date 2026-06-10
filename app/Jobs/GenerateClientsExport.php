@@ -83,6 +83,11 @@ class GenerateClientsExport implements ShouldQueue
 
         $disk->makeDirectory('exports');
 
+        $privateDir = storage_path('app/private');
+        if (is_dir($privateDir)) {
+            @chmod($privateDir, 0755);
+        }
+
         $exportsDir = $disk->path('exports');
         if (is_dir($exportsDir)) {
             @chmod($exportsDir, 0775);
