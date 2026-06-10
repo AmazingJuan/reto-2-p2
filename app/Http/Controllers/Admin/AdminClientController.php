@@ -8,6 +8,7 @@ use App\Models\Client;
 use App\Models\QuotationProposalOrder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -88,7 +89,7 @@ class AdminClientController extends Controller
     /**
      * Genera el Excel y lo devuelve en la misma respuesta (evita un segundo GET /descargar).
      */
-    public function startExport(Request $request): JsonResponse|BinaryFileResponse
+    public function startExport(Request $request): JsonResponse|BinaryFileResponse|RedirectResponse
     {
         $filters = $this->resolveFilters($request);
         $token = (string) Str::uuid();
@@ -101,10 +102,24 @@ class AdminClientController extends Controller
             cache()->put(GenerateClientsExport::statusKey($token), 'failed', now()->addHours(GenerateClientsExport::RETENTION_HOURS));
             report($e);
 
-            return response()->json(['message' => 'No se pudo generar el archivo.'], 500);
+            return $this->exportFailedResponse($request, 'No se pudo generar el archivo.');
         }
 
-        return $this->downloadExport($token);
+        $path = GenerateClientsExport::relativePath($token);
+        $fullPath = Storage::disk('local')->path($path);
+
+        if (cache()->get(GenerateClientsExport::statusKey($token)) !== 'ready' || ! is_readable($fullPath)) {
+            GenerateClientsExport::purge($token);
+            Log::error('Client export file unavailable after generation', [
+                'token' => $token,
+                'path' => $fullPath,
+                'file_exists' => is_file($fullPath),
+            ]);
+
+            return $this->exportFailedResponse($request, 'No se pudo generar el archivo.');
+        }
+
+        return $this->exportFileResponse($fullPath, $token);
     }
 
     public function exportStatus(string $token): JsonResponse
@@ -117,8 +132,6 @@ class AdminClientController extends Controller
     public function downloadExport(string $token): BinaryFileResponse
     {
         $path = GenerateClientsExport::relativePath($token);
-
-        $downloadName = 'clientes_'.now()->format('d-m-Y_h-iA').'.xlsx';
         $fullPath = Storage::disk('local')->path($path);
 
         if (! is_readable($fullPath)) {
@@ -131,6 +144,24 @@ class AdminClientController extends Controller
 
             abort(404);
         }
+
+        return $this->exportFileResponse($fullPath, $token);
+    }
+
+    private function exportFailedResponse(Request $request, string $message): JsonResponse|RedirectResponse
+    {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message], 500);
+        }
+
+        return redirect()
+            ->route('dashboard.clients.index', $this->resolveFilters($request))
+            ->with('error', $message);
+    }
+
+    private function exportFileResponse(string $fullPath, string $token): BinaryFileResponse
+    {
+        $downloadName = 'clientes_'.now()->format('d-m-Y_h-iA').'.xlsx';
 
         Cache::forget(GenerateClientsExport::statusKey($token));
 

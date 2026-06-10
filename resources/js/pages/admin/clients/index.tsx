@@ -67,7 +67,9 @@ function formatDate(value?: string | null): string {
 }
 
 export default function Index() {
-    const { viewData, flash } = usePage<IndexPageProps & { flash: Record<string, unknown> }>().props;
+    const { viewData, flash, csrf_token } = usePage<
+        IndexPageProps & { flash: Record<string, unknown>; csrf_token: string }
+    >().props;
     const { clients, filters, options } = viewData;
     const rows = clients.data;
 
@@ -81,67 +83,6 @@ export default function Index() {
     };
 
     const [exporting, setExporting] = useState(false);
-    const [exportError, setExportError] = useState<string | null>(null);
-
-    const readCookie = (name: string): string => {
-        const match = document.cookie.match(new RegExp('(^|;\\s*)' + name + '=([^;]*)'));
-        return match ? decodeURIComponent(match[2]) : '';
-    };
-
-    const filenameFromDisposition = (header: string | null): string | null => {
-        if (!header) return null;
-        const match = header.match(/filename=\"?([^\";]+)\"?/i);
-
-        return match?.[1] ?? null;
-    };
-
-    const handleExport = async () => {
-        if (exporting) return;
-        setExportError(null);
-        setExporting(true);
-
-        try {
-            const res = await fetch(route('dashboard.clients.export.start'), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-XSRF-TOKEN': readCookie('XSRF-TOKEN'),
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify({
-                    search: filters.search ?? '',
-                    company: filters.company ?? '',
-                    business_unit: filters.business_unit ?? '',
-                }),
-            });
-
-            const contentType = res.headers.get('Content-Type') ?? '';
-
-            if (!res.ok || contentType.includes('application/json')) {
-                throw new Error('start failed');
-            }
-
-            const blob = await res.blob();
-            const filename =
-                filenameFromDisposition(res.headers.get('Content-Disposition')) ??
-                `clientes_${new Date().toISOString().slice(0, 10)}.xlsx`;
-
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            URL.revokeObjectURL(url);
-        } catch {
-            setExportError('No se pudo generar el archivo. Intenta nuevamente.');
-        } finally {
-            setExporting(false);
-        }
-    };
 
     return (
         <AdminLayout>
@@ -153,24 +94,28 @@ export default function Index() {
                     title="Clientes"
                     description="Clientes que han generado cotizaciones y su historial"
                 >
-                    <button
-                        type="button"
-                        onClick={handleExport}
-                        disabled={exporting}
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+                    <form
+                        method="POST"
+                        action={route('dashboard.clients.export.start')}
+                        onSubmit={() => setExporting(true)}
+                        className="w-full sm:w-auto"
                     >
-                        {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                        {exporting ? 'Generando…' : 'Exportar a Excel'}
-                    </button>
+                        <input type="hidden" name="_token" value={csrf_token} />
+                        <input type="hidden" name="search" value={filters.search ?? ''} />
+                        <input type="hidden" name="company" value={filters.company ?? ''} />
+                        <input type="hidden" name="business_unit" value={filters.business_unit ?? ''} />
+                        <button
+                            type="submit"
+                            disabled={exporting}
+                            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+                        >
+                            {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                            {exporting ? 'Generando…' : 'Exportar a Excel'}
+                        </button>
+                    </form>
                 </AdminPageHeader>
 
                 <FlashAlert flash={flash} />
-
-                {exportError && (
-                    <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-                        {exportError}
-                    </div>
-                )}
 
                 <AdminTableToolbar
                     routeName="dashboard.clients.index"
