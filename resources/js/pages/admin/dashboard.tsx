@@ -1,6 +1,6 @@
 import AdminLayout from '@/layouts/admin-layout';
 import { Link } from '@inertiajs/react';
-import { ChevronRight, GitBranch, Mail, ScrollText, Settings, UserCircle, Users, Wrench, BriefcaseBusiness, Trees } from 'lucide-react';
+import { ChevronRight, Contact, GitBranch, Mail, ScrollText, Settings, UserCircle, Users, Wrench, BriefcaseBusiness, Trees } from 'lucide-react';
 import React from 'react';
 import { route } from 'ziggy-js';
 
@@ -40,6 +40,13 @@ const Dashboard: React.FC = () => {
             desc: 'Visualiza y gestiona cotizaciones',
             icon: ScrollText,
             accent: 'indigo',
+        },
+        {
+            label: 'Clientes',
+            name: 'dashboard.clients.index',
+            desc: 'Clientes que han cotizado y su historial',
+            icon: Contact,
+            accent: 'emerald',
         },
         {
             label: 'Unidad de negocio',

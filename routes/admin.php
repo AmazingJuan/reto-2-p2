@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminBusinessUnitController;
+use App\Http\Controllers\Admin\AdminClientController;
 use App\Http\Controllers\Admin\AdminConfigurationController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDecisionTreeController;
@@ -47,6 +48,13 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
     Route::post('/lineas-gestion', [AdminGestionLineController::class, 'store'])->name('dashboard.lines.store');
     Route::get('/lineas-gestion/{id}/editar', [AdminGestionLineController::class, 'edit'])->name('dashboard.lines.edit');
     Route::put('/lineas-gestion/{id}', [AdminGestionLineController::class, 'update'])->name('dashboard.lines.update');
+
+    // Clientes
+    Route::get('/clientes', [AdminClientController::class, 'index'])->name('dashboard.clients.index');
+    Route::post('/clientes/exportar', [AdminClientController::class, 'startExport'])->name('dashboard.clients.export.start');
+    Route::get('/clientes/exportar/{token}/estado', [AdminClientController::class, 'exportStatus'])->where('token', '[A-Za-z0-9\-]+')->name('dashboard.clients.export.status');
+    Route::get('/clientes/exportar/{token}/descargar', [AdminClientController::class, 'downloadExport'])->where('token', '[A-Za-z0-9\-]+')->name('dashboard.clients.export.download');
+    Route::get('/clientes/{client}', [AdminClientController::class, 'show'])->where('client', '[0-9]+')->name('dashboard.clients.show');
 
     // Ordenes de cotización
     Route::get('/ordenes-cotizacion', [AdminQuotationOrderController::class, 'index'])->name('dashboard.quotation-orders.index');
