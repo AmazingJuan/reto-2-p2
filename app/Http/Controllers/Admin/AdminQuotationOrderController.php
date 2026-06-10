@@ -19,18 +19,20 @@ class AdminQuotationOrderController extends Controller
     {
         $search = $request->string('search')->trim()->toString();
 
-        $query = QuotationProposalOrder::query()->orderByDesc('created_at');
+        $query = QuotationProposalOrder::query()->with('client')->orderByDesc('created_at');
 
         if ($search !== '') {
             $like = '%'.$search.'%';
             $query->where(function ($q) use ($like) {
                 $q->where('quotation_code', 'like', $like)
                     ->orWhere('business_unit', 'like', $like)
-                    ->orWhere('contact_info->name', 'like', $like)
-                    ->orWhere('contact_info->email', 'like', $like)
-                    ->orWhere('contact_info->company', 'like', $like)
-                    ->orWhere('contact_info->phone', 'like', $like)
-                    ->orWhere('contact_info->role', 'like', $like);
+                    ->orWhereHas('client', function ($clientQuery) use ($like) {
+                        $clientQuery->where('name', 'like', $like)
+                            ->orWhere('email', 'like', $like)
+                            ->orWhere('company', 'like', $like)
+                            ->orWhere('phone', 'like', $like)
+                            ->orWhere('role', 'like', $like);
+                    });
             });
         }
 
@@ -47,7 +49,7 @@ class AdminQuotationOrderController extends Controller
     public function show(string $quotationOrderId): Response|RedirectResponse
     {
         try {
-            $quotationOrder = QuotationProposalOrder::with('professional')->findOrFail($quotationOrderId);
+            $quotationOrder = QuotationProposalOrder::with(['professional', 'client'])->findOrFail($quotationOrderId);
         } catch (ModelNotFoundException $e) {
             return redirect()->route('dashboard.quotation-orders.index')->with('error', 'Orden de cotizacion con ID: '.$quotationOrderId.' no encontrada.');
         } catch (Exception $e) {

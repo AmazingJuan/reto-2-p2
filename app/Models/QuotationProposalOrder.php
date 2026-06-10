@@ -15,7 +15,7 @@ class QuotationProposalOrder extends Model
      * Attributes:
      *
      * $this->attributes['id'] - int - Primary key identifier
-     * $this->attributes['contact_info'] - array - Contact information related to the quotation
+     * $this->attributes['client_id'] - int|null - FK referencing the client that owns the quotation
      * $this->attributes['bussiness_unit'] - string - Business unit associated with the quotation
      * $this->attributes['gestion_line'] - string - String referencing to a gestion line name
      * $this->attributes['services'] - array - JSON-encoded list of services included in the quotation
@@ -31,7 +31,7 @@ class QuotationProposalOrder extends Model
     protected $fillable = [
         'id',
         'quotation_code',
-        'contact_info',
+        'client_id',
         'business_unit',
         'gestion_line',
         'services',
@@ -48,7 +48,6 @@ class QuotationProposalOrder extends Model
     |--------------------------------------------------------------------------
     */
     protected $casts = [
-        'contact_info' => 'array',
         'services' => 'array',
         'answers' => 'array',
         'options' => 'array',
@@ -70,6 +69,16 @@ class QuotationProposalOrder extends Model
     public function professional(): BelongsTo
     {
         return $this->belongsTo(Professional::class);
+    }
+
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(Client::class);
+    }
+
+    public function getClient(): ?Client
+    {
+        return $this->client;
     }
 
     /*
@@ -95,16 +104,18 @@ class QuotationProposalOrder extends Model
         return $t === '' ? null : $t;
     }
 
-    // Contact Info
+    // Client
 
-    public function getContactInfo(): array
+    public function getClientId(): ?int
     {
-        return $this->getAttribute('contact_info');
+        $v = $this->attributes['client_id'] ?? null;
+
+        return $v === null ? null : (int) $v;
     }
 
-    public function setContactInfo(array $value): void
+    public function setClientId(?int $value): void
     {
-        $this->setAttribute('contact_info', $value);
+        $this->attributes['client_id'] = $value;
     }
 
     // Business Unit
@@ -133,12 +144,12 @@ class QuotationProposalOrder extends Model
     // Services
     public function getServices(): array
     {
-        return $this->attributes['services'];
+        return $this->getAttribute('services') ?? [];
     }
 
     public function setServices(array $value): void
     {
-        $this->attributes['services'] = $value;
+        $this->setAttribute('services', $value);
     }
 
     // Answers

@@ -30,7 +30,7 @@ class StoreQuotationProposal extends FormRequest
             'contact.company' => ['nullable', 'string', 'max:255'],
             'contact.email' => ['required', 'email', 'max:255'],
             'contact.phone' => ['required', 'string', 'max:30', 'regex:/^[0-9+\s().-]{7,30}$/'],
-            'contact.role' => ['required', 'string', 'max:255'],
+            'contact.role' => ['nullable', 'string', 'max:255'],
 
             'businessUnit' => ['required', 'string', 'max:255', Rule::exists('business_units', 'display_name')],
             'gestionLine' => ['required', 'string', 'max:255'],
@@ -156,7 +156,7 @@ class StoreQuotationProposal extends FormRequest
             'contact.email.email' => 'El email del contacto debe ser una dirección válida.',
 
             'contact.phone.required' => 'El teléfono del contacto es requerido.',
-            'contact.phone.regex' => 'El teléfono contiene caracteres inválidos.',
+            'contact.phone.regex' => 'Por favor ingresa un teléfono válido.',
 
             'businessUnit.required' => 'La unidad de negocio es requerida.',
             'gestionLine.required' => 'La línea de gestión es requerida.',

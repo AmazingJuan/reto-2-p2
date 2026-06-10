@@ -16,16 +16,19 @@ import { ArrowLeft, Download, ScrollText, Upload } from 'lucide-react';
 import { useState } from 'react';
 import { route } from 'ziggy-js';
 
+interface Client {
+    id: number;
+    name: string;
+    email: string;
+    company?: string | null;
+    phone?: string | null;
+    role?: string | null;
+}
+
 interface QuotationOrder {
     id: number | string;
     quotation_code?: string | null;
-    contact_info?: {
-        name: string;
-        email: string;
-        company?: string | null;
-        phone?: string;
-        role?: string;
-    };
+    client?: Client | null;
     business_unit?: string;
     gestion_line?: string;
     professional?: {
@@ -169,49 +172,34 @@ export default function Show() {
                                 </td>
                             </tr>
 
-                            <tr className={rowHover}>
-                                <td className={labelTd}>Vista por el cliente</td>
-                                <td className={valueTd}>
-                                    {!quotationOrder.is_generated ? (
-                                        <span className="text-sm text-slate-500">Propuesta aún no enviada</span>
-                                    ) : quotationOrder.viewed_by_client ? (
-                                        <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-800 ring-1 ring-blue-200/80">
-                                            El cliente abrió la cotización
-                                        </span>
-                                    ) : (
-                                        <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700 ring-1 ring-slate-200/80">
-                                            El cliente aún no la ha visto
-                                        </span>
-                                    )}
-                                </td>
-                            </tr>
-
-                            {quotationOrder.contact_info && (
+                            {quotationOrder.client && (
                                 <>
                                     <tr className={rowHover}>
                                         <td className={labelTd}>Nombre</td>
-                                        <td className={valueTd}>{quotationOrder.contact_info.name}</td>
+                                        <td className={valueTd}>{quotationOrder.client.name}</td>
                                     </tr>
                                     <tr className={rowHover}>
                                         <td className={labelTd}>Email</td>
-                                        <td className={valueTd}>{quotationOrder.contact_info.email}</td>
+                                        <td className={valueTd}>{quotationOrder.client.email}</td>
                                     </tr>
-                                    {quotationOrder.contact_info.company && (
+                                    {quotationOrder.client.company && (
                                         <tr className={rowHover}>
                                             <td className={labelTd}>Empresa</td>
-                                            <td className={valueTd}>{quotationOrder.contact_info.company}</td>
+                                            <td className={valueTd}>{quotationOrder.client.company}</td>
                                         </tr>
                                     )}
-                                    {quotationOrder.contact_info.phone && (
+                                    {quotationOrder.client.phone && (
                                         <tr className={rowHover}>
                                             <td className={labelTd}>Teléfono</td>
-                                            <td className={valueTd}>{quotationOrder.contact_info.phone}</td>
+                                            <td className={valueTd}>{quotationOrder.client.phone}</td>
                                         </tr>
                                     )}
-                                    <tr className={rowHover}>
-                                        <td className={labelTd}>Cargo</td>
-                                        <td className={valueTd}>{quotationOrder.contact_info.role}</td>
-                                    </tr>
+                                    {quotationOrder.client.role && (
+                                        <tr className={rowHover}>
+                                            <td className={labelTd}>Cargo</td>
+                                            <td className={valueTd}>{quotationOrder.client.role}</td>
+                                        </tr>
+                                    )}
                                 </>
                             )}
 
