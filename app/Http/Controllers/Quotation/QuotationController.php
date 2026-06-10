@@ -15,8 +15,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
 use Inertia\Response as InertiaResponse;
-
 class QuotationController extends Controller
 {
     public function selectBusinessUnit(): InertiaResponse
@@ -121,5 +121,32 @@ class QuotationController extends Controller
         MailService::sendQuotationPendingEmail($quotationProposalOrder);
 
         return redirect()->route('home')->with('success', 'Su cotización ha sido procesada exitosamente.');
+    }
+
+
+    public function receiveQuotation(Request $request, string $quotationId): InertiaResponse|RedirectResponse
+    {
+        $quotation = QuotationProposalOrder::findOrFail($quotationId);
+
+        if (! $request->hasValidSignature()) {
+            return Inertia::render('home', [
+                'flash' => [
+                    'error' => 'La URL de la cotización ha expirado o no es válida.',
+                ],
+            ]);
+        }
+
+        if (! $quotation->getQuotationUrl()) {
+            return Inertia::render('home', [
+                'flash' => [
+                    'error' => 'La cotización aún no tiene un documento disponible.',
+                ],
+            ]);
+        }
+
+        $quotation->setViewedByClient(true);
+        $quotation->save();
+
+        return redirect($quotation->getQuotationUrl());
     }
 }

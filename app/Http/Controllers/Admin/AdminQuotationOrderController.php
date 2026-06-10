@@ -75,6 +75,7 @@ class AdminQuotationOrderController extends Controller
 
         $quotationOrder->setQuotationUrl($quotationUrl);
         $quotationOrder->setIsGenerated(true);
+        $quotationOrder->setViewedByClient(false);
         $quotationOrder->save();
 
         MailService::sendQuotationGeneratedEmail($quotationOrder);

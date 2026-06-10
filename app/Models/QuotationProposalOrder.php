@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\URL;
 
 class QuotationProposalOrder extends Model
 {
@@ -37,6 +38,7 @@ class QuotationProposalOrder extends Model
         'answers',
         'professional_id',
         'is_generated',
+        'viewed_by_client',
         'quotation_url',
     ];
 
@@ -50,6 +52,8 @@ class QuotationProposalOrder extends Model
         'services' => 'array',
         'answers' => 'array',
         'options' => 'array',
+        'is_generated' => 'boolean',
+        'viewed_by_client' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -159,6 +163,16 @@ class QuotationProposalOrder extends Model
         $this->attributes['is_generated'] = $value;
     }
 
+    public function getViewedByClient(): bool
+    {
+        return (bool) ($this->attributes['viewed_by_client'] ?? false);
+    }
+
+    public function setViewedByClient(bool $value): void
+    {
+        $this->attributes['viewed_by_client'] = $value;
+    }
+
     // Quotation URL
     public function getQuotationUrl(): ?string
     {
@@ -168,6 +182,18 @@ class QuotationProposalOrder extends Model
     public function setQuotationUrl(?string $value): void
     {
         $this->attributes['quotation_url'] = $value;
+    }
+
+    public function getReceiveQuotationSignedUrl(): ?string
+    {
+        if (! $this->getQuotationUrl()) {
+            return null;
+        }
+
+        return URL::signedRoute(
+            'quotation.receive',
+            ['quotationId' => $this->getId()],
+        );
     }
 
     // Created At

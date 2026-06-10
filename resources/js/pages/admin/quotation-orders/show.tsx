@@ -37,6 +37,7 @@ interface QuotationOrder {
     services?: string[];
     answers?: Record<string, unknown>;
     is_generated: boolean;
+    viewed_by_client?: boolean;
     quotation_url?: string;
     created_at?: string;
     updated_at?: string;
@@ -163,6 +164,23 @@ export default function Show() {
                                     ) : (
                                         <span className="inline-flex rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-900 ring-1 ring-amber-200/80">
                                             Pendiente
+                                        </span>
+                                    )}
+                                </td>
+                            </tr>
+
+                            <tr className={rowHover}>
+                                <td className={labelTd}>Vista por el cliente</td>
+                                <td className={valueTd}>
+                                    {!quotationOrder.is_generated ? (
+                                        <span className="text-sm text-slate-500">Propuesta aún no enviada</span>
+                                    ) : quotationOrder.viewed_by_client ? (
+                                        <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-800 ring-1 ring-blue-200/80">
+                                            El cliente abrió la cotización
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700 ring-1 ring-slate-200/80">
+                                            El cliente aún no la ha visto
                                         </span>
                                     )}
                                 </td>
