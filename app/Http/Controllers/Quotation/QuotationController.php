@@ -124,28 +124,26 @@ class QuotationController extends Controller
     }
 
 
-    public function receiveQuotation(Request $request, string $quotationId): InertiaResponse|RedirectResponse
+    public function receiveQuotation(Request $request, string $quotationId): RedirectResponse
     {
         $quotation = QuotationProposalOrder::findOrFail($quotationId);
 
         if (! $request->hasValidSignature()) {
-            return Inertia::render('home', [
-                'flash' => [
-                    'error' => 'La URL de la cotización ha expirado o no es válida.',
-                ],
+            return redirect()->route('home', [
+                'error' => 'La URL de la cotización ha expirado o no es válida.',
             ]);
         }
 
         if (! $quotation->getQuotationUrl()) {
-            return Inertia::render('home', [
-                'flash' => [
-                    'error' => 'La cotización aún no tiene un documento disponible.',
-                ],
+            return redirect()->route('home', [
+                'error' => 'La cotización aún no tiene un documento disponible.',
             ]);
         }
 
-        $quotation->setViewedByClient(true);
-        $quotation->save();
+        if (! $quotation->getViewedByClient()) {
+            $quotation->setViewedByClient(true);
+            $quotation->save();
+        }
 
         return redirect($quotation->getQuotationUrl());
     }
