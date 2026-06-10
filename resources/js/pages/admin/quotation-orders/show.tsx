@@ -292,7 +292,7 @@ export default function Show() {
                             </label>
                             <input
                                 id="quotation_url"
-                                type="url"
+                                type="text"
                                 value={quotationUrl}
                                 onChange={(e) => setQuotationUrl(e.target.value)}
                                 placeholder="https://ejemplo.com/propuesta.pdf"

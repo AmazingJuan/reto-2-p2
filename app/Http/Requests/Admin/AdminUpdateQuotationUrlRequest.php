@@ -23,7 +23,7 @@ class AdminUpdateQuotationUrlRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'quotation_url' => ['required', 'string', 'max:2048', 'url'],
+            'quotation_url' => ['required', 'string', 'url'],
         ];
     }
 
@@ -37,7 +37,6 @@ class AdminUpdateQuotationUrlRequest extends FormRequest
         return [
             'quotation_url.required' => 'La URL de la cotización es obligatoria.',
             'quotation_url.string' => 'La URL debe ser una cadena de texto.',
-            'quotation_url.max' => 'La URL no puede exceder los 2048 caracteres.',
             'quotation_url.url' => 'La URL debe ser una dirección válida.',
         ];
     }
