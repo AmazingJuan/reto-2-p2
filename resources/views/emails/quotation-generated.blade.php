@@ -12,9 +12,9 @@
     <span style="display:inline-block; background:#eef3ff; color:#1e3a8a; font-weight:600; padding:8px 16px; border-radius:6px; font-size:15px; font-family:Courier, monospace;">{{ $order->getQuotationCode() ? $order->getQuotationCode() : '#'.$order->getId() }}</span>
   </p>
 
-  @if($order->getQuotationUrl())
+  @if($receiveUrl = $order->getReceiveQuotationSignedUrl())
     <p style="font-size:15px; margin:0 0 16px 0; color:#4b5563;">Puedes descargar tu documento haciendo clic en el siguiente botón:</p>
-    <a href="{{ $order->getQuotationUrl() }}" target="_blank" rel="noopener noreferrer" style="display:inline-block; background:#2563eb; color:#ffffff !important; text-decoration:none; padding:12px 28px; border-radius:8px; font-size:15px; font-weight:bold;">
+    <a href="{{ $receiveUrl }}" target="_blank" rel="noopener noreferrer" style="display:inline-block; background:#2563eb; color:#ffffff !important; text-decoration:none; padding:12px 28px; border-radius:8px; font-size:15px; font-weight:bold;">
       Descargar cotización
     </a>
   @else

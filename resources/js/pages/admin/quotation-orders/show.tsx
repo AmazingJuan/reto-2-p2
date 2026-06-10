@@ -40,6 +40,7 @@ interface QuotationOrder {
     services?: string[];
     answers?: Record<string, unknown>;
     is_generated: boolean;
+    viewed_by_client?: boolean;
     quotation_url?: string;
     created_at?: string;
     updated_at?: string;

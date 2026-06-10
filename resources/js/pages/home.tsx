@@ -11,11 +11,17 @@ type HomePageProps = PageProps & {
 export default function Home() {
     const { props } = usePage<HomePageProps>();
     const successMessage = props.flash?.success;
+    const errorMessage = props.flash?.error;
     const [showSuccess, setShowSuccess] = useState(false);
+    const [showError, setShowError] = useState(false);
 
     useEffect(() => {
         if (successMessage) setShowSuccess(true);
     }, [successMessage]);
+
+    useEffect(() => {
+        if (errorMessage) setShowError(true);
+    }, [errorMessage]);
 
     return (
         <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-50 via-white to-slate-100 text-slate-900">
@@ -36,6 +42,21 @@ export default function Home() {
                             type="button"
                             className="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold text-emerald-800 underline-offset-2 hover:bg-emerald-100/80 hover:underline"
                             onClick={() => setShowSuccess(false)}
+                        >
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {showError && errorMessage && (
+                <div className="animate-fade-in fixed left-1/2 top-24 z-[60] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-xl border border-red-200/80 bg-red-50/95 px-4 py-3 text-sm text-red-900 shadow-lg backdrop-blur-sm sm:top-28">
+                    <div className="flex items-start justify-between gap-3">
+                        <span>{errorMessage}</span>
+                        <button
+                            type="button"
+                            className="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold text-red-800 underline-offset-2 hover:bg-red-100/80 hover:underline"
+                            onClick={() => setShowError(false)}
                         >
                             Cerrar
                         </button>
