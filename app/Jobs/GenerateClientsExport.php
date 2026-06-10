@@ -38,6 +38,8 @@ class GenerateClientsExport implements ShouldQueue
 
         Excel::store(new ClientsExport($this->filters), self::relativePath($this->token), 'local');
 
+        self::ensureExportReadable(self::relativePath($this->token));
+
         Cache::put(self::statusKey($this->token), 'ready', $expiresAt);
 
         DeleteClientsExportFile::dispatch($this->token)->delay($expiresAt);
@@ -73,5 +75,22 @@ class GenerateClientsExport implements ShouldQueue
     public static function relativePath(string $token): string
     {
         return 'exports/clientes_'.$token.'.xlsx';
+    }
+
+    public static function ensureExportReadable(string $relativePath): void
+    {
+        $disk = Storage::disk('local');
+
+        $disk->makeDirectory('exports');
+
+        $exportsDir = $disk->path('exports');
+        if (is_dir($exportsDir)) {
+            @chmod($exportsDir, 0775);
+        }
+
+        $fullPath = $disk->path($relativePath);
+        if (is_file($fullPath)) {
+            @chmod($fullPath, 0644);
+        }
     }
 }

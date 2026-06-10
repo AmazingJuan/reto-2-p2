@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -94,9 +95,22 @@ class AdminClientController extends Controller
 
         cache()->put(GenerateClientsExport::statusKey($token), 'pending', now()->addHours(GenerateClientsExport::RETENTION_HOURS));
 
-        GenerateClientsExport::dispatch($token, $filters);
+        try {
+            // Genera en el mismo contenedor web para que el archivo exista al descargar.
+            GenerateClientsExport::dispatchSync($token, $filters);
+        } catch (\Throwable $e) {
+            cache()->put(GenerateClientsExport::statusKey($token), 'failed', now()->addHours(GenerateClientsExport::RETENTION_HOURS));
+            report($e);
 
-        return response()->json(['token' => $token]);
+            return response()->json(['message' => 'No se pudo generar el archivo.'], 500);
+        }
+
+        $status = cache()->get(GenerateClientsExport::statusKey($token), 'unknown');
+
+        return response()->json([
+            'token' => $token,
+            'status' => $status,
+        ]);
     }
 
     public function exportStatus(string $token): JsonResponse
@@ -110,7 +124,15 @@ class AdminClientController extends Controller
     {
         $path = GenerateClientsExport::relativePath($token);
 
-        abort_unless(Storage::disk('local')->exists($path), 404);
+        if (! Storage::disk('local')->exists($path)) {
+            Log::warning('Client export download missing file', [
+                'token' => $token,
+                'path' => Storage::disk('local')->path($path),
+                'cache_status' => Cache::get(GenerateClientsExport::statusKey($token)),
+            ]);
+
+            abort(404);
+        }
 
         $downloadName = 'clientes_'.now()->format('d-m-Y_h-iA').'.xlsx';
         $fullPath = Storage::disk('local')->path($path);
