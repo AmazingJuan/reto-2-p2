@@ -142,8 +142,15 @@ export default function Index() {
 
             if (!res.ok) throw new Error('start failed');
 
-            const { token } = (await res.json()) as { token: string };
-            pollExportStatus(token);
+            const body = (await res.json()) as { token: string; status?: string };
+
+            if (body.status === 'ready') {
+                window.location.href = route('dashboard.clients.export.download', body.token);
+                setExporting(false);
+                return;
+            }
+
+            pollExportStatus(body.token);
         } catch {
             setExporting(false);
             setExportError('No se pudo iniciar la exportación. Intenta nuevamente.');
