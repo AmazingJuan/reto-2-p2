@@ -9,12 +9,16 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use Throwable;
 
 class GenerateClientsExport implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public const RETENTION_HOURS = 2;
 
     /**
      * @param  array{search?:string, company?:string, business_unit?:string}  $filters
@@ -26,16 +30,39 @@ class GenerateClientsExport implements ShouldQueue
 
     public function handle(): void
     {
-        Cache::put(self::statusKey($this->token), 'processing', now()->addHours(2));
+        $expiresAt = now()->addHours(self::RETENTION_HOURS);
+
+        Cache::put(self::statusKey($this->token), 'processing', $expiresAt);
+
+        Storage::disk('local')->makeDirectory('exports');
 
         Excel::store(new ClientsExport($this->filters), self::relativePath($this->token), 'local');
 
-        Cache::put(self::statusKey($this->token), 'ready', now()->addHours(2));
+        Cache::put(self::statusKey($this->token), 'ready', $expiresAt);
+
+        DeleteClientsExportFile::dispatch($this->token)->delay($expiresAt);
     }
 
     public function failed(Throwable $exception): void
     {
-        Cache::put(self::statusKey($this->token), 'failed', now()->addHours(2));
+        Log::error('GenerateClientsExport failed', [
+            'token' => $this->token,
+            'message' => $exception->getMessage(),
+            'exception' => $exception,
+        ]);
+
+        Cache::put(self::statusKey($this->token), 'failed', now()->addHours(self::RETENTION_HOURS));
+    }
+
+    public static function purge(string $token): void
+    {
+        $path = self::relativePath($token);
+
+        if (Storage::disk('local')->exists($path)) {
+            Storage::disk('local')->delete($path);
+        }
+
+        Cache::forget(self::statusKey($token));
     }
 
     public static function statusKey(string $token): string

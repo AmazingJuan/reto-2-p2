@@ -109,17 +109,26 @@ class ClientsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
         ];
     }
 
-    public function drawings(): Drawing
+    /**
+     * @return array<int, Drawing>
+     */
+    public function drawings(): array
     {
+        $logoPath = public_path('logo_training.png');
+
+        if (! is_file($logoPath)) {
+            return [];
+        }
+
         $drawing = new Drawing();
         $drawing->setName('Training Corporation');
-        $drawing->setPath(public_path('logo_training.png'));
+        $drawing->setPath($logoPath);
         $drawing->setHeight(56);
         $drawing->setCoordinates('F1');
         $drawing->setOffsetX(12);
         $drawing->setOffsetY(8);
 
-        return $drawing;
+        return [$drawing];
     }
 
     /**

@@ -11,7 +11,9 @@ services:
         condition: service_healthy
     environment:
       - APP_ENV=production
-    command: bash -c "php artisan migrate --force && exec apache2-foreground"
+    command: bash -c "php artisan migrate --force && php artisan package:discover --ansi && exec apache2-foreground"
+    volumes:
+      - laravel_exports:/var/www/html/storage/app/private/exports
 
   db:
     image: mysql:8
@@ -30,18 +32,18 @@ services:
       timeout: 5s
       retries: 5
   worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     container_name: laravel_worker
     restart: always
-    working_dir: /var/www
-    volumes:
-      - ./:/var/www
+    working_dir: /var/www/html
     depends_on:
       db:
         condition: service_healthy
-    command: php artisan queue:work --tries=3 --timeout=90 --sleep=3
+    environment:
+      - APP_ENV=production
+    command: bash -c "php artisan package:discover --ansi; php artisan schedule:work & exec php artisan queue:work --tries=3 --timeout=90 --sleep=3"
+    volumes:
+      - laravel_exports:/var/www/html/storage/app/private/exports
 
   nginx:
     image: nginx:latest
@@ -57,3 +59,4 @@ services:
 
 volumes:
   db_data:
+  laravel_exports:

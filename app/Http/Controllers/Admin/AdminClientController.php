@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AdminClientController extends Controller
 {
@@ -91,7 +91,7 @@ class AdminClientController extends Controller
         $filters = $this->resolveFilters($request);
         $token = (string) Str::uuid();
 
-        cache()->put(GenerateClientsExport::statusKey($token), 'pending', now()->addHours(2));
+        cache()->put(GenerateClientsExport::statusKey($token), 'pending', now()->addHours(GenerateClientsExport::RETENTION_HOURS));
 
         GenerateClientsExport::dispatch($token, $filters);
 
@@ -105,7 +105,7 @@ class AdminClientController extends Controller
         return response()->json(['status' => $status]);
     }
 
-    public function downloadExport(string $token): StreamedResponse
+    public function downloadExport(string $token): BinaryFileResponse
     {
         $status = cache()->get(GenerateClientsExport::statusKey($token));
         $path = GenerateClientsExport::relativePath($token);
@@ -113,8 +113,11 @@ class AdminClientController extends Controller
         abort_if($status !== 'ready' || ! Storage::disk('local')->exists($path), 404);
 
         $downloadName = 'clientes_'.now()->format('d-m-Y_h-iA').'.xlsx';
+        $fullPath = Storage::disk('local')->path($path);
 
-        return Storage::disk('local')->download($path, $downloadName);
+        cache()->forget(GenerateClientsExport::statusKey($token));
+
+        return response()->download($fullPath, $downloadName)->deleteFileAfterSend(true);
     }
 
     /**

@@ -1,6 +1,6 @@
 import Footer from '@/components/admin/footer';
 import { Link, usePage } from '@inertiajs/react';
-import { Box, FileText, Home, Layers, Mail, Menu, Settings, Trees, UserCircle, Users, X } from 'lucide-react';
+import { Box, Contact, FileText, Home, Layers, Mail, Menu, Settings, Trees, UserCircle, Users, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { route } from 'ziggy-js';
 
@@ -16,6 +16,7 @@ const navItems = [
     { to: route('dashboard.services.index'), label: 'Servicios', icon: Box },
     { to: route('dashboard.business-unit.decision-tree'), label: 'Árbol de decisión', icon: Trees },
     { to: route('dashboard.quotation-orders.index'), label: 'Cotizaciones', icon: FileText },
+    { to: route('dashboard.clients.index'), label: 'Clientes', icon: Contact },
     { to: route('dashboard.welcome-broadcast.create'), label: 'Correos de bienvenida', icon: Mail },
     { to: route('dashboard.configurations.edit'), label: 'Configuración', icon: Settings },
 ];
