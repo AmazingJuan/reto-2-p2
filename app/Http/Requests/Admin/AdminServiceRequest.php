@@ -2,36 +2,31 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Service;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class AdminServiceRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return Auth::check();
+        return $this->user() !== null;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, mixed>
      */
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'business_unit_id' => ['required', 'exists:business_units,id'],
-            'gestion_line_id' => ['required', 'exists:gestion_lines,id'],
+            'name' => ['required', 'string', 'max:255', Rule::unique(Service::class)->ignore($this->route('service'))],
+            'business_unit_id' => ['required', 'integer', 'exists:business_units,id'],
+            'gestion_line_id' => ['required', 'integer', 'exists:gestion_lines,id'],
         ];
     }
 
     /**
-     * Mensajes de validación en español.
+     * @return array<string, string>
      */
     public function messages(): array
     {
@@ -39,8 +34,7 @@ class AdminServiceRequest extends FormRequest
             'name.required' => 'El nombre es obligatorio.',
             'name.string' => 'El nombre debe ser un texto.',
             'name.max' => 'El nombre no puede superar los 255 caracteres.',
-
-            'description.string' => 'La descripción debe ser un texto.',
+            'name.unique' => 'Ya existe un servicio con ese nombre.',
 
             'business_unit_id.required' => 'La unidad de negocio es obligatoria.',
             'business_unit_id.exists' => 'La unidad de negocio seleccionada no es válida.',

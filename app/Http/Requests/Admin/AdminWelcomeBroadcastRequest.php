@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,7 +14,7 @@ class AdminWelcomeBroadcastRequest extends FormRequest
     }
 
     /**
-     * @return array<string, array<int, \Illuminate\Contracts\Validation\ValidationRule|string>>
+     * @return array<string, array<int, ValidationRule|string>>
      */
     public function rules(): array
     {

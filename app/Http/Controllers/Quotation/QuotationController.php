@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Quotation;
 
-use App\Helpers\DecisionTreeHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreQuotationProposal;
 use App\Models\BusinessUnit;
@@ -11,165 +10,116 @@ use App\Models\GestionLine;
 use App\Models\Professional;
 use App\Models\QuotationProposalOrder;
 use App\Models\Service;
+use App\Services\DecisionTreeService;
 use App\Services\MailService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
-use Inertia\Inertia;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
+
 class QuotationController extends Controller
 {
+    public function __construct(
+        private readonly DecisionTreeService $trees,
+        private readonly MailService $mail,
+    ) {}
+
     public function selectBusinessUnit(): InertiaResponse
     {
-        $businessUnitNames = BusinessUnit::select('name', 'display_name')->get();
-
-        $viewData['businessUnits'] = $businessUnitNames;
-
-        return Inertia::render('business-units/select', compact('viewData'));
+        return Inertia::render('business-units/select', [
+            'viewData' => [
+                // Units without services can't be quoted, so they aren't offered.
+                'businessUnits' => BusinessUnit::query()
+                    ->whereHas('services')
+                    ->withCount('services')
+                    ->orderBy('display_name')
+                    ->get(['id', 'name', 'display_name'])
+                    ->map(fn (BusinessUnit $unit) => [
+                        'name' => $unit->getName(),
+                        'display_name' => $unit->getDisplayName(),
+                        'services_count' => $unit->services_count,
+                    ]),
+            ],
+        ]);
     }
 
     public function getQuoteForBusinessUnit(string $businessUnitName): InertiaResponse|RedirectResponse
     {
-        $selectedBusinessUnit = BusinessUnit::where('name', $businessUnitName)->first();
+        $businessUnit = BusinessUnit::query()->where('name', $businessUnitName)->first();
 
-        if (! $selectedBusinessUnit) {
-            return redirect()->route('quotation.select.business_unit')->with('error', 'No hay ninguna unidad de negocio con ese nombre');
+        if (! $businessUnit) {
+            return $this->backToSelection('No hay ninguna unidad de negocio con ese nombre.');
         }
 
-        $services = Service::query()
-            ->where('business_unit_id', $selectedBusinessUnit->getId())
-            ->whereNotNull('gestion_line_id')
-            ->select('id', 'name', 'gestion_line_id')
+        $servicesByLine = Service::query()
+            ->where('business_unit_id', $businessUnit->getId())
             ->with('gestionLine:id,name')
             ->orderBy('name')
-            ->get();
+            ->get(['id', 'name', 'gestion_line_id'])
+            ->groupBy(fn (Service $service) => $service->getGestionLine()->getName())
+            ->sortKeys()
+            ->map(fn ($services) => $services->map(fn (Service $service) => $service->getName())->values());
 
-        if ($services->isEmpty()) {
-            return redirect()->route('quotation.select.business_unit')->with('error', 'No existen servicios configurados para esta unidad de negocio.');
+        if ($servicesByLine->isEmpty()) {
+            return $this->backToSelection('No existen servicios configurados para esta unidad de negocio.');
         }
 
-        $decisionTree = DecisionTreeHelper::buildTree($selectedBusinessUnit);
+        $conditions = $this->trees->reachableTree($businessUnit);
 
-        if (empty($decisionTree)) {
-            return redirect()->route('quotation.select.business_unit')->with('error', 'No existen condiciones definidas para la unidad de negocio seleccionada.');
+        if ($conditions === []) {
+            return $this->backToSelection('No existen condiciones definidas para la unidad de negocio seleccionada.');
         }
 
-        $formattedServices = $services
-            ->filter(fn (Service $s) => $s->gestionLine !== null)
-            ->groupBy(fn (Service $s) => $s->gestionLine->getName())
-            ->map(fn ($group) => $group->map(fn (Service $s) => $s->getName())->values());
-
-        if ($formattedServices->isEmpty()) {
-            return redirect()->route('quotation.select.business_unit')->with('error', 'Los servicios de esta unidad no tienen línea de gestión válida. Revise la configuración.');
-        }
-
-        $gestionLineNames = $formattedServices->keys()->sort()->values();
-
-        $viewData['businessUnit'] = $selectedBusinessUnit->getDisplayName();
-        $viewData['gestionLines'] = $gestionLineNames;
-        $viewData['services'] = $formattedServices;
-        $viewData['conditions'] = $decisionTree;
-        $viewData['initial_condition_id'] = $selectedBusinessUnit->getInitialCondition()?->getId() ?? null;
-
-        $lineNamesForQuote = $gestionLineNames->all();
-
-        $viewData['professionalsByGestionLine'] = GestionLine::query()
-            ->whereIn('name', $lineNamesForQuote)
-            ->with(['professionals' => function ($q) {
-                $q->select(['professionals.id', 'professionals.years_experience'])
-                    ->orderBy('professionals.years_experience')
-                    ->orderBy('professionals.id');
-            }])
-            ->orderBy('name')
-            ->get()
-            ->mapWithKeys(fn (GestionLine $line) => [
-                $line->getName() => $line->professionals->map(fn (Professional $p) => [
-                    'id' => $p->id,
-                    'years_experience' => $p->years_experience,
-                ])->values()->all(),
-            ])
-            ->all();
-        $viewData['hasAnyProfessionalsInDb'] = Professional::query()->exists();
-
-        return Inertia::render('quotation/index', compact('viewData'));
+        return Inertia::render('quotation/index', [
+            'viewData' => [
+                'businessUnit' => $businessUnit->getDisplayName(),
+                'gestionLines' => $servicesByLine->keys(),
+                'services' => $servicesByLine,
+                'conditions' => $conditions,
+                'initial_condition_id' => $businessUnit->initial_condition_id,
+                'professionalsByGestionLine' => $this->professionalsByLine($servicesByLine->keys()->all()),
+            ],
+        ]);
     }
 
     public function storeQuotationProposal(StoreQuotationProposal $request): RedirectResponse
     {
-        $quotationProposalData = $request->validated();
-        $quotationProposalId = (string) Str::uuid();
+        $data = $request->validated();
 
-        $quotationProposalOrder = DB::transaction(function () use ($quotationProposalData, $quotationProposalId) {
-            $businessUnit = BusinessUnit::query()
-                ->where('display_name', $quotationProposalData['businessUnit'])
-                ->firstOrFail();
-
-            $quotationCode = $businessUnit->lockAndAllocateNextQuotationCode();
-
-            $client = $this->resolveClient($quotationProposalData['contact']);
+        $order = DB::transaction(function () use ($data) {
+            $businessUnit = BusinessUnit::query()->where('display_name', $data['businessUnit'])->firstOrFail();
 
             return QuotationProposalOrder::create([
-                'id' => $quotationProposalId,
-                'quotation_code' => $quotationCode,
-                'client_id' => $client->getId(),
-                'services' => $quotationProposalData['services'],
-                'business_unit' => $quotationProposalData['businessUnit'],
-                'gestion_line' => $quotationProposalData['gestionLine'],
-                'answers' => $quotationProposalData['answers'],
-                'professional_id' => $quotationProposalData['professional_id'] ?? null,
+                'quotation_code' => $businessUnit->lockAndAllocateNextQuotationCode(),
+                'client_id' => Client::upsertFromContact($data['contact'])->getId(),
+                'services' => $data['services'],
+                'business_unit' => $data['businessUnit'],
+                'gestion_line' => implode(', ', $data['gestionLines']),
+                'answers' => $data['answers'],
+                'professional_id' => $data['professional_id'] ?? null,
             ]);
         });
 
-        MailService::sendQuotationPendingEmail($quotationProposalOrder);
+        $this->mail->sendQuotationPending($order);
 
-        return redirect()->route('home')->with('success', 'Su cotización ha sido procesada exitosamente.');
+        return to_route('home')->with('success', 'Su cotización ha sido procesada exitosamente.');
     }
 
     /**
-     * Find the client by email (case-insensitive) or create it, refreshing the
-     * contact data with the latest values provided in this quotation.
-     *
-     * @param  array<string, mixed>  $contact
+     * Link sent by e-mail: marks the quotation as seen and forwards the client
+     * to the document.
      */
-    private function resolveClient(array $contact): Client
-    {
-        $email = Str::lower(trim((string) ($contact['email'] ?? '')));
-
-        $normalize = static function ($value): ?string {
-            if (! is_string($value)) {
-                return null;
-            }
-            $trimmed = trim($value);
-
-            return $trimmed === '' ? null : $trimmed;
-        };
-
-        return Client::updateOrCreate(
-            ['email' => $email],
-            [
-                'name' => trim((string) ($contact['name'] ?? '')),
-                'company' => $normalize($contact['company'] ?? null),
-                'phone' => $normalize($contact['phone'] ?? null),
-                'role' => $normalize($contact['role'] ?? null),
-            ]
-        );
-    }
-
     public function receiveQuotation(Request $request, string $quotationId): RedirectResponse
     {
+        if (! $request->hasValidSignature()) {
+            return to_route('home')->with('error', 'La URL de la cotización ha expirado o no es válida.');
+        }
+
         $quotation = QuotationProposalOrder::find($quotationId);
 
-        if (! $quotation) {
-            return redirect()->route('home')->with('error', 'No se encontró la cotización.');
-        }
-
-        if (! $request->hasValidSignature()) {
-            return redirect()->route('home')->with('error', 'La URL de la cotización ha expirado o no es válida.');
-        }
-
-        if (! $quotation->getQuotationUrl()) {
-            return redirect()->route('home')->with('error', 'La cotización aún no tiene un documento disponible.');
+        if (! $quotation?->getQuotationUrl()) {
+            return to_route('home')->with('error', 'La cotización aún no tiene un documento disponible.');
         }
 
         if (! $quotation->getViewedByClient()) {
@@ -177,6 +127,34 @@ class QuotationController extends Controller
             $quotation->save();
         }
 
-        return redirect($quotation->getQuotationUrl());
+        return redirect()->away($quotation->getQuotationUrl());
+    }
+
+    /**
+     * Professionals per gestion line, anonymised (id + experience only).
+     *
+     * @param  list<string>  $lineNames
+     * @return array<string, list<array{id:int, years_experience:int}>>
+     */
+    private function professionalsByLine(array $lineNames): array
+    {
+        return GestionLine::query()
+            ->whereIn('name', $lineNames)
+            ->with(['professionals' => fn ($query) => $query
+                ->select('professionals.id', 'professionals.years_experience')
+                ->orderBy('professionals.years_experience')
+                ->orderBy('professionals.id')])
+            ->get()
+            ->mapWithKeys(fn (GestionLine $line) => [
+                $line->getName() => $line->professionals
+                    ->map(fn (Professional $professional) => $professional->only('id', 'years_experience'))
+                    ->all(),
+            ])
+            ->all();
+    }
+
+    private function backToSelection(string $error): RedirectResponse
+    {
+        return to_route('quotation.select.business_unit')->with('error', $error);
     }
 }

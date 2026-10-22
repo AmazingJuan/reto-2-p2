@@ -9,52 +9,47 @@ use App\Mail\QuotationPendingAdmin;
 use App\Mail\WelcomeEmail;
 use App\Models\Configuration;
 use App\Models\QuotationProposalOrder;
+use Illuminate\Mail\Mailable;
 use Illuminate\Support\Facades\Mail;
 
+/**
+ * Queues every outgoing e-mail. Each quotation event notifies the client
+ * (when it has an address) and the admin notification inbox (when configured).
+ */
 class MailService
 {
-    public static function sendQuotationPendingEmail(QuotationProposalOrder $quotationOrder): void
+    public function sendQuotationPending(QuotationProposalOrder $order): void
     {
-        $quotationOrder->loadMissing('client');
-        $email = $quotationOrder->getClient()?->getEmail();
-        if ($email !== null && $email !== '') {
-            Mail::to($email)->queue(new QuotationPending($quotationOrder));
-        }
-        self::sendAdminQuotationPendingNotification($quotationOrder);
+        $this->notifyClient($order, new QuotationPending($order));
+        $this->notifyAdmin(new QuotationPendingAdmin($order));
     }
 
-    public static function sendQuotationGeneratedEmail(QuotationProposalOrder $quotationOrder): void
+    public function sendQuotationGenerated(QuotationProposalOrder $order): void
     {
-        $quotationOrder->loadMissing('client');
-        $email = $quotationOrder->getClient()?->getEmail();
-        if ($email !== null && $email !== '') {
-            Mail::to($email)->queue(new QuotationGenerated($quotationOrder));
-        }
-        self::sendAdminQuotationGeneratedNotification($quotationOrder);
+        $this->notifyClient($order, new QuotationGenerated($order));
+        $this->notifyAdmin(new QuotationGeneratedAdmin($order));
     }
 
-    public static function sendAdminQuotationPendingNotification(QuotationProposalOrder $quotationOrder): void
+    public function sendWelcome(string $email): void
     {
-        $adminEmail = Configuration::first()->getNotificationEmail();
-        if ($adminEmail === null) {
-            return;
-        }
-
-        Mail::to($adminEmail)->queue(new QuotationPendingAdmin($quotationOrder));
+        Mail::to($email)->queue(new WelcomeEmail);
     }
 
-    public static function sendAdminQuotationGeneratedNotification(QuotationProposalOrder $quotationOrder): void
+    private function notifyClient(QuotationProposalOrder $order, Mailable $mail): void
     {
-        $adminEmail = Configuration::first()->getNotificationEmail();
-        if ($adminEmail === null) {
-            return;
-        }
+        $email = $order->loadMissing('client')->getClient()?->getEmail();
 
-        Mail::to($adminEmail)->queue(new QuotationGeneratedAdmin($quotationOrder));
+        if ($email) {
+            Mail::to($email)->queue($mail);
+        }
     }
 
-    public static function sendWelcomeEmail(string $toEmail, ?string $recipientName = null): void
+    private function notifyAdmin(Mailable $mail): void
     {
-        Mail::to($toEmail)->queue(new WelcomeEmail($recipientName));
+        $email = Configuration::current()?->getNotificationEmail();
+
+        if ($email) {
+            Mail::to($email)->queue($mail);
+        }
     }
 }

@@ -5,6 +5,7 @@ namespace App\Mail;
 use App\Models\QuotationProposalOrder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -54,7 +55,7 @@ class QuotationPending extends Mailable
     /**
      * Archivos adjuntos (si los hubiera).
      *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * @return array<int, Attachment>
      */
     public function attachments(): array
     {

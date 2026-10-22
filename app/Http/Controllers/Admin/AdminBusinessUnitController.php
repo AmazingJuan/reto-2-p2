@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AdminBusinessUnitRequest;
 use App\Models\BusinessUnit;
-use App\Utils\NameNormalizer;
-use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -14,49 +12,35 @@ use Inertia\Response as InertiaResponse;
 
 class AdminBusinessUnitController extends Controller
 {
+    private const PUBLIC_COLUMNS = ['id', 'display_name', 'abbreviation', 'quotation_seq_year', 'quotation_seq_value'];
+
     public function index(Request $request): InertiaResponse
     {
         $search = $request->string('search')->trim()->toString();
 
-        $query = BusinessUnit::query()
-            ->select('id', 'display_name', 'abbreviation', 'quotation_seq_year', 'quotation_seq_value')
-            ->orderBy('id');
+        $businessUnits = BusinessUnit::query()
+            ->select(self::PUBLIC_COLUMNS)
+            ->search($search, ['display_name', 'abbreviation'])
+            ->orderBy('id')
+            ->paginate(self::PER_PAGE)
+            ->withQueryString();
 
-        if ($search !== '') {
-            $like = '%'.$search.'%';
-            $query->where(function ($q) use ($like, $search) {
-                $q->where('display_name', 'like', $like)
-                    ->orWhere('abbreviation', 'like', $like);
-                if (ctype_digit($search)) {
-                    $q->orWhere('id', (int) $search);
-                }
-            });
-        }
-
-        $viewData['businessUnits'] = $query->paginate(15)->withQueryString();
-        $viewData['filters'] = [
-            'search' => $search,
-        ];
-
-        return Inertia::render('admin/business-units/index', compact('viewData'));
+        return Inertia::render('admin/business-units/index', [
+            'viewData' => [
+                'businessUnits' => $businessUnits,
+                'filters' => ['search' => $search],
+            ],
+        ]);
     }
 
-    public function show(int $businessUnitId): InertiaResponse|RedirectResponse
+    public function show(BusinessUnit $businessUnit): InertiaResponse
     {
-        $businessUnit = BusinessUnit::where('id', $businessUnitId)
-            ->select('id', 'display_name', 'abbreviation', 'quotation_seq_year', 'quotation_seq_value')
-            ->first();
-
-        if (! $businessUnit) {
-            return redirect()->route('dashboard.business-unit.index')->with('error', 'Unidad de negocio con ID: '.$businessUnitId.' no encontrada.');
-        }
-
-        $associatedServices = $businessUnit->getServices();
-
-        $viewData['businessUnit'] = $businessUnit;
-        $viewData['services'] = $associatedServices;
-
-        return Inertia::render('admin/business-units/show', compact('viewData'));
+        return Inertia::render('admin/business-units/show', [
+            'viewData' => [
+                'businessUnit' => $businessUnit->only(self::PUBLIC_COLUMNS),
+                'services' => $businessUnit->services()->orderBy('name')->get(['id', 'name']),
+            ],
+        ]);
     }
 
     public function create(): InertiaResponse
@@ -66,82 +50,39 @@ class AdminBusinessUnitController extends Controller
 
     public function store(AdminBusinessUnitRequest $request): RedirectResponse
     {
-        $validatedData = $request->validated();
-        try {
-            $displayName = $validatedData['display_name'];
-            $normalizedName = NameNormalizer::normalize($displayName);
-            $validatedData['name'] = $normalizedName;
+        $businessUnit = BusinessUnit::create($request->validated());
 
-            BusinessUnit::create($validatedData);
-            $successMessage = 'La unidad de negocio: '.$validatedData['name'].', ha sido creada exitosamente.';
-
-            return redirect()->route('dashboard.business-unit.index')->with('success', $successMessage);
-        } catch (Exception $e) {
-            return redirect()->route('dashboard.business-unit.index')->with('error', 'Ha ocurrido un error al crear la unidad de negocio.');
-        }
+        return to_route('dashboard.business-unit.index')
+            ->with('success', 'La unidad de negocio «'.$businessUnit->getDisplayName().'» ha sido creada exitosamente.');
     }
 
-    public function edit(int $businessUnitId): InertiaResponse|RedirectResponse
+    public function edit(BusinessUnit $businessUnit): InertiaResponse
     {
-        $businessUnit = BusinessUnit::where('id', $businessUnitId)
-            ->select('id', 'display_name', 'abbreviation', 'quotation_seq_year', 'quotation_seq_value')
-            ->first();
-
-        if (! $businessUnit) {
-            return redirect()->route('dashboard.business-unit.index')->with('error', 'Unidad de negocio con ID: '.$businessUnitId.' no encontrada.');
-        }
-
-        $viewData['businessUnit'] = $businessUnit;
-
-        return Inertia::render('admin/business-units/edit', compact('viewData'));
+        return Inertia::render('admin/business-units/edit', [
+            'viewData' => [
+                'businessUnit' => $businessUnit->only(self::PUBLIC_COLUMNS),
+            ],
+        ]);
     }
 
-    public function update(AdminBusinessUnitRequest $request, int $businessUnitId): RedirectResponse
+    public function update(AdminBusinessUnitRequest $request, BusinessUnit $businessUnit): RedirectResponse
     {
-        $businessUnit = BusinessUnit::where('id', $businessUnitId)
-            ->select('id', 'name', 'display_name', 'abbreviation')
-            ->first();
+        $businessUnit->update($request->validated());
 
-        if (! $businessUnit) {
-            return redirect()->route('dashboard.business-unit.index')->with('error', 'Unidad de negocio con ID: '.$businessUnitId.' no encontrada.');
-        }
-
-        $validatedData = $request->validated();
-
-        try {
-            $businessUnitName = $validatedData['display_name'];
-            $normalizedName = NameNormalizer::normalize($businessUnitName);
-            $validatedData['name'] = $normalizedName;
-            $businessUnit->update($validatedData);
-            $successMessage = 'La unidad de negocio: '.$validatedData['name'].', ha sido actualizada exitosamente.';
-
-            return redirect()->route('dashboard.business-unit.index')->with('success', $successMessage);
-        } catch (Exception $e) {
-            return redirect()->route('dashboard.business-unit.index')->with('error', 'Ha ocurrido un error al actualizar la unidad de negocio.');
-        }
+        return to_route('dashboard.business-unit.index')
+            ->with('success', 'La unidad de negocio «'.$businessUnit->getDisplayName().'» ha sido actualizada exitosamente.');
     }
 
-    public function delete(int $businessUnitId): RedirectResponse
+    public function destroy(BusinessUnit $businessUnit): RedirectResponse
     {
-        $businessUnit = BusinessUnit::where('id', $businessUnitId)->first();
-
-        if (! $businessUnit) {
-            return redirect()->route('dashboard.business-unit.index')->with('error', 'Unidad de negocio con ID: '.$businessUnitId.' no encontrada.');
+        if ($businessUnit->services()->exists()) {
+            return to_route('dashboard.business-unit.index')
+                ->with('error', 'No se puede eliminar la unidad de negocio «'.$businessUnit->getDisplayName().'» porque tiene servicios asociados.');
         }
 
-        $associatedServices = $businessUnit->getServices();
-        if (count($associatedServices) > 0) {
-            return redirect()->route('dashboard.business-unit.index')->with('error', 'No se puede eliminar la unidad de negocio: '.$businessUnit->name.' porque tiene servicios asociados.');
-        }
+        $businessUnit->delete();
 
-        try {
-
-            $businessUnit->delete();
-            $successMessage = 'La unidad de negocio: '.$businessUnit->name.', ha sido eliminada exitosamente.';
-
-            return redirect()->route('dashboard.business-unit.index')->with('success', $successMessage);
-        } catch (Exception $e) {
-            return redirect()->route('dashboard.business-unit.index')->with('error', 'Ha ocurrido un error al eliminar la unidad de negocio.');
-        }
+        return to_route('dashboard.business-unit.index')
+            ->with('success', 'La unidad de negocio «'.$businessUnit->getDisplayName().'» ha sido eliminada exitosamente.');
     }
 }

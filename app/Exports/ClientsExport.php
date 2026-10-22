@@ -22,14 +22,20 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 class ClientsExport implements FromQuery, WithColumnWidths, WithCustomStartCell, WithDrawings, WithEvents, WithHeadings, WithMapping, WithTitle
 {
     private const HEADER_ROW = 5;
+
     private const FIRST_DATA_ROW = 6;
+
     private const LAST_COLUMN = 'H';
 
     // Brand palette
     private const COLOR_PRIMARY = '0473C2';   // logo blue (title + header band)
+
     private const COLOR_TITLE = '1F2937';     // slate-800
+
     private const COLOR_ZEBRA = 'EAF3FB';     // very light blue
+
     private const COLOR_BORDER = 'D1D5DB';    // gray-300
+
     private const COLOR_MUTED = '6B7280';     // gray-500
 
     /**
@@ -120,7 +126,7 @@ class ClientsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             return [];
         }
 
-        $drawing = new Drawing();
+        $drawing = new Drawing;
         $drawing->setName('Training Corporation');
         $drawing->setPath($logoPath);
         $drawing->setHeight(56);
