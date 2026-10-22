@@ -2,15 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Searchable;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 class Client extends Model
 {
-    use HasFactory;
+    use Searchable;
+
+    /** Columns matched by the free-text search (also used by quotation orders). */
+    public const SEARCHABLE_COLUMNS = ['name', 'email', 'company', 'phone', 'role'];
 
     /**
      * Attributes:
@@ -56,16 +59,26 @@ class Client extends Model
     */
 
     /**
+     * Derived quotation counters, usable with withCount() / loadCount().
+     *
+     * @return array<int|string, mixed>
+     */
+    public static function statsCounts(): array
+    {
+        return [
+            'quotationProposalOrders as quotations_count',
+            'quotationProposalOrders as generated_count' => fn (Builder $q) => $q->where('is_generated', true),
+            'quotationProposalOrders as pending_count' => fn (Builder $q) => $q->where('is_generated', false),
+        ];
+    }
+
+    /**
      * Attach the derived counters and the latest-quotation timestamp.
      */
     public function scopeWithClientStats(Builder $query): Builder
     {
         return $query
-            ->withCount([
-                'quotationProposalOrders as quotations_count',
-                'quotationProposalOrders as generated_count' => fn (Builder $q) => $q->where('is_generated', true),
-                'quotationProposalOrders as pending_count' => fn (Builder $q) => $q->where('is_generated', false),
-            ])
+            ->withCount(self::statsCounts())
             ->withMax('quotationProposalOrders as last_quotation_at', 'created_at');
     }
 
@@ -75,16 +88,7 @@ class Client extends Model
     public function scopeApplyClientFilters(Builder $query, array $filters): Builder
     {
         return $query
-            ->when(($filters['search'] ?? '') !== '', function (Builder $q) use ($filters) {
-                $like = '%'.$filters['search'].'%';
-                $q->where(function (Builder $inner) use ($like) {
-                    $inner->where('name', 'like', $like)
-                        ->orWhere('email', 'like', $like)
-                        ->orWhere('company', 'like', $like)
-                        ->orWhere('phone', 'like', $like)
-                        ->orWhere('role', 'like', $like);
-                });
-            })
+            ->search($filters['search'] ?? '', self::SEARCHABLE_COLUMNS)
             ->when(($filters['company'] ?? '') !== '', fn (Builder $q) => $q->where('company', $filters['company']))
             ->when(($filters['business_unit'] ?? '') !== '', fn (Builder $q) => $q->whereHas(
                 'quotationProposalOrders',
@@ -95,6 +99,27 @@ class Client extends Model
     public function scopeOrderByActivity(Builder $query): Builder
     {
         return $query->orderByDesc('last_quotation_at')->orderBy('name');
+    }
+
+    /**
+     * Find the client by e-mail (case-insensitive) or create it, refreshing the
+     * contact data with the latest values provided.
+     *
+     * @param  array{name:string, email:string, company?:string|null, phone?:string|null, role?:string|null}  $contact
+     */
+    public static function upsertFromContact(array $contact): self
+    {
+        $blankToNull = fn (?string $value) => ($value = trim((string) $value)) === '' ? null : $value;
+
+        return static::updateOrCreate(
+            ['email' => strtolower(trim($contact['email']))],
+            [
+                'name' => trim($contact['name']),
+                'company' => $blankToNull($contact['company'] ?? null),
+                'phone' => $blankToNull($contact['phone'] ?? null),
+                'role' => $blankToNull($contact['role'] ?? null),
+            ],
+        );
     }
 
     /*

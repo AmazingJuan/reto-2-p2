@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -10,13 +10,14 @@ use Illuminate\Support\Facades\URL;
 
 class QuotationProposalOrder extends Model
 {
-    use HasFactory;
+    use HasUuids;
+
     /**
      * Attributes:
      *
-     * $this->attributes['id'] - int - Primary key identifier
+     * $this->attributes['id'] - string - UUID primary key
      * $this->attributes['client_id'] - int|null - FK referencing the client that owns the quotation
-     * $this->attributes['bussiness_unit'] - string - Business unit associated with the quotation
+     * $this->attributes['business_unit'] - string - Business unit associated with the quotation
      * $this->attributes['gestion_line'] - string - String referencing to a gestion line name
      * $this->attributes['services'] - array - JSON-encoded list of services included in the quotation
      * $this->attributes['answers'] - array - JSON-encoded list of answers provided in the quotation form
@@ -29,7 +30,6 @@ class QuotationProposalOrder extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'id',
         'quotation_code',
         'client_id',
         'business_unit',
@@ -50,21 +50,9 @@ class QuotationProposalOrder extends Model
     protected $casts = [
         'services' => 'array',
         'answers' => 'array',
-        'options' => 'array',
         'is_generated' => 'boolean',
         'viewed_by_client' => 'boolean',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
     ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | Options
-    |--------------------------------------------------------------------------
-    */
-    public $incrementing = false;
-
-    protected $keyType = 'string';
 
     public function professional(): BelongsTo
     {
@@ -95,13 +83,9 @@ class QuotationProposalOrder extends Model
 
     public function getQuotationCode(): ?string
     {
-        $v = $this->attributes['quotation_code'] ?? null;
-        if ($v === null) {
-            return null;
-        }
-        $t = trim((string) $v);
+        $code = trim((string) ($this->attributes['quotation_code'] ?? ''));
 
-        return $t === '' ? null : $t;
+        return $code === '' ? null : $code;
     }
 
     // Client
@@ -155,7 +139,7 @@ class QuotationProposalOrder extends Model
     // Answers
     public function getAnswers(): array
     {
-        return $this->getAttribute('answers');
+        return $this->getAttribute('answers') ?? [];
     }
 
     public function setAnswers(array $value): void
@@ -166,7 +150,7 @@ class QuotationProposalOrder extends Model
     // Is Generated
     public function getIsGenerated(): bool
     {
-        return (bool) $this->attributes['is_generated'];
+        return (bool) ($this->attributes['is_generated'] ?? false);
     }
 
     public function setIsGenerated(bool $value): void

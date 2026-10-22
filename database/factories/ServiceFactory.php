@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Models\GestionLine;
+use App\Models\Model;
 use App\Models\ServiceType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Model>
+ * @extends Factory<Model>
  */
 class ServiceFactory extends Factory
 {

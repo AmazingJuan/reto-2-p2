@@ -6,7 +6,9 @@ use App\Models\BusinessUnit;
 use App\Models\Condition;
 use App\Models\ConditionOption;
 use App\Models\GestionLine;
+use App\Models\Professional;
 use App\Models\Service;
+use App\Services\DecisionTreeService;
 use Illuminate\Database\Seeder;
 
 class ExampleDataSeeder extends Seeder
@@ -335,10 +337,33 @@ class ExampleDataSeeder extends Seeder
         $formacion->initial_condition_id = $condModalidad->id;
         $formacion->save();
 
+        // =============================================
+        // PROFESIONALES (el cliente solo ve n.º y experiencia)
+        // =============================================
+        $profesionales = [
+            ['Ana María Restrepo', 'Auditora líder ISO 9001, 14001 y 45001.', 15, [$hseq, $calidad, $ambiental, $sst]],
+            ['Carlos Andrés Mejía', 'Especialista en gestión de activos, auditor ISO 55001.', 12, [$activos, $riesgos]],
+            ['Laura Patricia Gómez', 'Consultora en seguridad y salud en el trabajo.', 6, [$sst, $hseq]],
+            ['Jorge Iván Ospina', 'Ingeniero ambiental, consultor en planes de gestión ambiental.', 9, [$ambiental]],
+            ['Diana Marcela Vélez', 'Consultora en calidad y gestión de riesgos.', 3, [$calidad, $riesgos]],
+        ];
+
+        foreach ($profesionales as [$nombre, $resumen, $anios, $lineas]) {
+            Professional::create(['name' => $nombre, 'summary' => $resumen, 'years_experience' => $anios])
+                ->gestionLines()
+                ->sync(array_map(fn (GestionLine $linea) => $linea->id, $lineas));
+        }
+
+        // The example options all lead to the same question: store that as plain order.
+        foreach ([$auditoria, $consultoria, $formacion] as $unit) {
+            app(DecisionTreeService::class)->normalizeBranches($unit->fresh());
+        }
+
         $this->command->info('✅ Datos de ejemplo creados exitosamente:');
         $this->command->info('   - 3 Unidades de Negocio (Auditoría, Consultoría, Formación)');
         $this->command->info('   - 6 Líneas de Gestión (HSEQ, SST, Gestión de Activos, etc.)');
         $this->command->info('   - '.Service::count().' Servicios');
         $this->command->info('   - '.Condition::count().' Condiciones con sus opciones');
+        $this->command->info('   - '.Professional::count().' Profesionales asignados a líneas');
     }
 }

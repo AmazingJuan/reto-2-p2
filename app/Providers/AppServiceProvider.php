@@ -30,7 +30,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
         View::composer('emails.partials.company-contact', function ($view) {
-            $c = Configuration::query()->first();
+            $c = Configuration::current();
             $view->with([
                 'companyContactEmail' => $c?->getCompanyContactEmail(),
                 'companyContactPhone' => $c?->getCompanyContactPhone(),
