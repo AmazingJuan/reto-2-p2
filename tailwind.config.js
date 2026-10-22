@@ -1,19 +1,60 @@
-import defaultTheme from 'tailwindcss/defaultTheme';
 import forms from '@tailwindcss/forms';
 
-/** @type {import('tailwindcss').Config} */
+const token = (name) => `hsl(var(--${name}) / <alpha-value>)`;
+
+/**
+ * Tokens copied from the Training Corporation site (training/docs/BRAND.md) with
+ * the same names, so both apps can later share one design system.
+ *
+ * @type {import('tailwindcss').Config}
+ */
 export default {
-    content: [
-        './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
-        './storage/framework/views/*.php',
-        './resources/views/**/*.blade.php',
-        './resources/js/**/*.tsx',
-    ],
+    content: ['./resources/views/**/*.blade.php', './resources/js/**/*.tsx', './resources/js/**/*.ts'],
 
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                display: ['Montserrat', '"Segoe UI"', 'system-ui', 'sans-serif'],
+                sans: ['"Source Sans 3"', '"Source Sans Pro"', '"Segoe UI"', 'system-ui', 'sans-serif'],
+            },
+            colors: {
+                azul: { DEFAULT: '#0072af', hondo: '#005a8c', vivo: '#1391da' }, // logo blue · hover · ring strokes / large type only
+                cielo: '#7fd0f5', // accents on noche
+                noche: '#0b2c47', // deep brand navy
+                tinta: '#102a3f', // body text
+                pizarra: '#4a5a67', // secondary text
+                'gris-marca': '#8f9392', // logo grey, graphics only
+                niebla: '#a9c6dc', // secondary text on noche
+                bruma: '#93abc0', // tertiary text on noche
+                nube: '#eef4f8', // alternate ground
+                linea: '#d5e2eb', // rules and field borders
+                error: '#b3261e',
+                // shadcn/ui semantic tokens (app.css)
+                border: token('border'),
+                input: token('input'),
+                ring: token('ring'),
+                background: token('background'),
+                foreground: token('foreground'),
+                primary: { DEFAULT: token('primary'), foreground: token('primary-foreground') },
+                secondary: { DEFAULT: token('secondary'), foreground: token('secondary-foreground') },
+                destructive: { DEFAULT: token('destructive'), foreground: token('destructive-foreground') },
+                muted: { DEFAULT: token('muted'), foreground: token('muted-foreground') },
+                accent: { DEFAULT: token('accent'), foreground: token('accent-foreground') },
+                card: { DEFAULT: token('card'), foreground: token('card-foreground') },
+            },
+            borderRadius: {
+                control: '6px',
+            },
+            letterSpacing: {
+                tight: '-0.03em',
+                snug: '-0.015em',
+            },
+            maxWidth: {
+                page: '90rem',
+                measure: '40rem',
+            },
+            transitionTimingFunction: {
+                out: 'cubic-bezier(0.22, 1, 0.36, 1)',
             },
         },
     },
