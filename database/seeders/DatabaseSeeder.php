@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Christian Correa',
             'email' => 'profesional-INN@trainingcorporation.com.co',
             'password' => Hash::make('profesionalINN'),
-            'phone'=> '3107288219',
+            'phone' => '3107288219',
         ]);
 
         User::create([

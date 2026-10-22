@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Single-row table with the application settings editable from the admin.
+ */
 class Configuration extends Model
 {
     protected $fillable = [
@@ -15,6 +18,14 @@ class Configuration extends Model
         'company_website_label',
     ];
 
+    /**
+     * The settings row (created by migration). Null only on a broken install.
+     */
+    public static function current(): ?self
+    {
+        return static::query()->first();
+    }
+
     public function getId(): int
     {
         return $this->attributes['id'];
@@ -22,13 +33,7 @@ class Configuration extends Model
 
     public function getNotificationEmail(): ?string
     {
-        $v = $this->notification_email;
-        if ($v === null) {
-            return null;
-        }
-        $t = trim((string) $v);
-
-        return $t === '' ? null : $t;
+        return $this->nullableTrimmedString('notification_email');
     }
 
     public function getCompanyContactEmail(): ?string
@@ -56,19 +61,10 @@ class Configuration extends Model
         return $this->nullableTrimmedString('company_website_label');
     }
 
-    public function setNotificationEmail(string $notificationEmail): void
-    {
-        $this->notification_email = trim($notificationEmail);
-    }
-
     private function nullableTrimmedString(string $key): ?string
     {
-        $v = $this->attributes[$key] ?? null;
-        if ($v === null) {
-            return null;
-        }
-        $t = trim((string) $v);
+        $value = trim((string) ($this->attributes[$key] ?? ''));
 
-        return $t === '' ? null : $t;
+        return $value === '' ? null : $value;
     }
 }

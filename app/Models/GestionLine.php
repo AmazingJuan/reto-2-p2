@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Searchable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class GestionLine extends Model
 {
+    use Searchable;
+
     /**
      * Attributes:
      *
