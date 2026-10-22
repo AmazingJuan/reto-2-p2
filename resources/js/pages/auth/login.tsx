@@ -7,13 +7,7 @@ import GuestLayout from '@/layouts/guest-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 
-export default function Login({
-    status,
-    canResetPassword,
-}: {
-    status?: string;
-    canResetPassword: boolean;
-}) {
+export default function Login({ status, canResetPassword }: { status?: string; canResetPassword: boolean }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -30,17 +24,15 @@ export default function Login({
 
     return (
         <GuestLayout>
-            <Head title="Log in" />
+            <Head title="Iniciar sesión" />
 
-            {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
+            {status && <div className="mb-4 text-sm font-medium text-green-600">{status}</div>}
+
+            <h1 className="mb-7 font-display text-[1.75rem] font-extrabold leading-tight tracking-tight text-azul">Panel de cotizaciones</h1>
 
             <form onSubmit={submit}>
                 <div>
-                    <InputLabel htmlFor="email" value="Email" />
+                    <InputLabel htmlFor="email" value="Correo electrónico" />
 
                     <TextInput
                         id="email"
@@ -57,7 +49,7 @@ export default function Login({
                 </div>
 
                 <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+                    <InputLabel htmlFor="password" value="Contraseña" />
 
                     <TextInput
                         id="password"
@@ -77,16 +69,9 @@ export default function Login({
                         <Checkbox
                             name="remember"
                             checked={data.remember}
-                            onChange={(e) =>
-                                setData(
-                                    'remember',
-                                    (e.target.checked || false) as false,
-                                )
-                            }
+                            onChange={(e) => setData('remember', (e.target.checked || false) as false)}
                         />
-                        <span className="ms-2 text-sm text-gray-600">
-                            Recuerdáme
-                        </span>
+                        <span className="ms-2 text-sm text-pizarra">Mantener la sesión iniciada</span>
                     </label>
                 </div>
 
@@ -94,9 +79,9 @@ export default function Login({
                     {canResetPassword && (
                         <Link
                             href={route('password.request')}
-                            className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            className="rounded-md text-sm text-pizarra underline hover:text-tinta focus:ring-2 focus:ring-azul focus:ring-offset-2"
                         >
-                            Olvidaste tu contraseña?
+                            ¿Olvidó su contraseña?
                         </Link>
                     )}
 

@@ -1,74 +1,55 @@
+import { AdminPageHeader } from '@/components/admin/admin-page-header';
+import { BackLink } from '@/components/admin/back-link';
+import { StatusBadge } from '@/components/admin/status-badge';
+import { adminCardClass, adminFormShellClass, adminOutlineButtonClass } from '@/components/admin/styles';
+import type { Professional } from '@/features/professionals/types';
 import AdminLayout from '@/layouts/admin-layout';
+import { capitalize, pluralize } from '@/lib/format';
+import { cn } from '@/lib/utils';
 import type { PageProps } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowLeft, Pencil, UserCircle } from 'lucide-react';
-import { route } from 'ziggy-js';
-
-interface Professional {
-    id: number;
-    name: string;
-    summary: string;
-    years_experience: number;
-    gestion_lines: { id: number; name: string }[];
-}
-
-type ShowProps = PageProps<{
-    viewData: { professional: Professional };
-}>;
+import { Link, usePage } from '@inertiajs/react';
+import { Pencil } from 'lucide-react';
 
 export default function Show() {
-    const { viewData } = usePage<ShowProps>().props;
-    const { professional } = viewData;
+    const { professional } = usePage<PageProps<{ viewData: { professional: Professional } }>>().props.viewData;
 
     return (
-        <AdminLayout>
-            <Head title={`Profesional #${professional.id}`} />
+        <AdminLayout title={`Profesional #${professional.id}`}>
+            <div className={adminFormShellClass}>
+                <BackLink href={route('dashboard.professionals.index')} label="Profesionales" />
 
-            <div className="mx-auto w-full max-w-3xl space-y-6">
-                <Link
-                    href={route('dashboard.professionals.index')}
-                    className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-blue-600"
+                <AdminPageHeader
+                    title={professional.name}
+                    description={`Profesional #${professional.id} · ${pluralize(professional.years_experience, 'año', 'años')} de experiencia`}
                 >
-                    <ArrowLeft className="h-4 w-4" />
-                    Volver al listado
-                </Link>
-
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex items-start gap-3">
-                        <UserCircle className="h-10 w-10 shrink-0 text-blue-600" />
-                        <div>
-                            <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{professional.name}</h1>
-                            <p className="mt-1 text-sm text-slate-600">
-                                ID {professional.id} · {professional.years_experience} años de experiencia
-                            </p>
-                        </div>
-                    </div>
                     <Link
                         href={route('dashboard.professionals.edit', professional.id)}
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-amber-700 sm:w-auto"
+                        className={cn(adminOutlineButtonClass, 'inline-flex items-center justify-center gap-2 text-sm')}
                     >
-                        <Pencil className="h-4 w-4" />
+                        <Pencil className="h-4 w-4" aria-hidden />
                         Editar
                     </Link>
-                </div>
+                </AdminPageHeader>
 
-                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Líneas de gestión</h2>
+                <section className={cn(adminCardClass, 'p-6')}>
+                    <h2 className="text-sm font-semibold text-tinta">Líneas de gestión</h2>
                     {professional.gestion_lines.length === 0 ? (
-                        <p className="mt-2 text-sm text-slate-600">Sin líneas asignadas.</p>
+                        <p className="mt-2 text-sm text-pizarra">Sin líneas asignadas.</p>
                     ) : (
-                        <ul className="mt-3 list-inside list-disc text-sm text-slate-800">
-                            {professional.gestion_lines.map((l) => (
-                                <li key={l.id}>{l.name}</li>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                            {professional.gestion_lines.map((line) => (
+                                <StatusBadge key={line.id} tone="info">
+                                    {capitalize(line.name ?? '')}
+                                </StatusBadge>
                             ))}
-                        </ul>
+                        </div>
                     )}
-                </div>
+                </section>
 
-                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Resumen</h2>
-                    <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">{professional.summary}</div>
-                </div>
+                <section className={cn(adminCardClass, 'p-6')}>
+                    <h2 className="text-sm font-semibold text-tinta">Resumen</h2>
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-tinta">{professional.summary}</p>
+                </section>
             </div>
         </AdminLayout>
     );

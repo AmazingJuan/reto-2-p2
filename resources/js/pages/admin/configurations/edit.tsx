@@ -1,149 +1,86 @@
-import {
-    AdminPageHeader,
-    adminFieldInputClass,
-    adminFieldLabelClass,
-    adminFormCardClass,
-    adminFormShellClass,
-    adminOutlineButtonClass,
-    adminPrimaryButtonClass,
-} from '@/components/admin/admin-page-header';
-import { Button } from '@/components/ui/button';
-import FlashAlert from '@/components/ui/flashalert';
+import { AdminPageHeader } from '@/components/admin/admin-page-header';
+import { FormActions, FormCard, FormField } from '@/components/admin/form';
+import { adminFieldInputClass, adminFormShellClass, adminSectionTitleClass } from '@/components/admin/styles';
 import AdminLayout from '@/layouts/admin-layout';
-import { cn } from '@/lib/utils';
 import type { PageProps } from '@/types';
-import { Head, useForm, usePage } from '@inertiajs/react';
-import { Settings } from 'lucide-react';
-import { route } from 'ziggy-js';
+import { useForm, usePage } from '@inertiajs/react';
 
-const FIELD_ORDER = [
-    'notification_email',
-    'company_contact_email',
-    'company_contact_phone',
-    'company_contact_address',
-    'company_website_url',
-    'company_website_label',
-] as const;
-
-const FIELD_LABELS: Record<string, string> = {
-    notification_email: 'Correo de notificaciones (admin)',
-    company_contact_email: 'Correo de contacto (pie de correos)',
-    company_contact_phone: 'Teléfono de contacto',
-    company_contact_address: 'Dirección',
-    company_website_url: 'URL del sitio web',
-    company_website_label: 'Texto visible del enlace web',
+type Configuration = {
+    notification_email: string | null;
+    company_contact_email: string | null;
+    company_contact_phone: string | null;
+    company_contact_address: string | null;
+    company_website_url: string | null;
+    company_website_label: string | null;
 };
 
-function fieldLabel(key: string): string {
-    return FIELD_LABELS[key] ?? key.replace(/_/g, ' ');
-}
+type FieldKey = keyof Configuration;
 
-function inputType(key: string): string {
-    if (key === 'notification_email' || key === 'company_contact_email') {
-        return 'email';
-    }
-    if (key.endsWith('_url') || key.includes('url')) {
-        return 'url';
-    }
-    return 'text';
-}
-
-type EditPageProps = PageProps<{
-    viewData: {
-        configuration: Record<string, string | null>;
-    };
-}>;
+const blankToEmpty = (config: Configuration) =>
+    Object.fromEntries(Object.entries(config).map(([key, value]) => [key, value ?? ''])) as Record<FieldKey, string>;
 
 export default function Edit() {
-    const { viewData, flash } = usePage<EditPageProps & { flash: Record<string, unknown> }>().props;
-    const configuration = viewData.configuration ?? {};
+    const { configuration } = usePage<PageProps<{ viewData: { configuration: Configuration } }>>().props.viewData;
+    const { data, setData, put, processing, errors } = useForm(blankToEmpty(configuration));
 
-    const initialData = Object.fromEntries(
-        Object.entries(configuration).map(([key, value]) => [key, value ?? '']),
-    ) as Record<string, string>;
-
-    const { data, setData, put, processing, errors } = useForm(initialData);
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        put(route('dashboard.configurations.update'));
-    };
-
-    const orderSet = new Set<string>([...FIELD_ORDER]);
-    const orderedKeys = FIELD_ORDER.filter((k) => k in configuration);
-    const extraKeys = Object.keys(configuration).filter((k) => !orderSet.has(k));
-    const entries = [...orderedKeys.map((k) => [k, configuration[k]] as const), ...extraKeys.map((k) => [k, configuration[k]] as const)];
-
-    const textareaClass =
-        'block min-h-[120px] w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20';
+    const field = (key: FieldKey, type = 'text') => (
+        <input type={type} value={data[key]} onChange={(e) => setData(key, e.target.value)} className={adminFieldInputClass} />
+    );
 
     return (
-        <AdminLayout>
-            <Head title="Configuración" />
-
+        <AdminLayout title="Configuración">
             <div className={adminFormShellClass}>
                 <AdminPageHeader
-                    icon={Settings}
                     title="Configuración"
-                    description="Correo de notificaciones y datos de contacto que aparecen en los correos al cliente."
+                    description="Destinatario de las notificaciones y datos de contacto que aparecen en los correos al cliente."
                 />
 
-                <FlashAlert flash={flash} />
+                <FormCard onSubmit={() => put(route('dashboard.configurations.update'))}>
+                    <section>
+                        <h2 className={adminSectionTitleClass}>Notificaciones</h2>
+                        <FormField
+                            id="notification_email"
+                            label="Correo de notificaciones"
+                            error={errors.notification_email}
+                            hint="Recibe un aviso con cada nueva solicitud y cada propuesta enviada. Déjelo vacío para desactivarlo."
+                        >
+                            {field('notification_email', 'email')}
+                        </FormField>
+                    </section>
 
-                <div className={adminFormCardClass}>
-                    <form onSubmit={handleSubmit} className="space-y-6 p-4 sm:space-y-8 sm:p-8">
-                        <div>
-                            <div className="grid grid-cols-1 gap-6">
-                                {entries.map(([key]) => (
-                                    <div key={key}>
-                                        <label htmlFor={key} className={adminFieldLabelClass}>
-                                            {fieldLabel(key)}
-                                        </label>
-                                        {key === 'company_contact_address' ? (
-                                            <textarea
-                                                id={key}
-                                                rows={4}
-                                                value={data[key] ?? ''}
-                                                onChange={(e) => setData(key, e.target.value)}
-                                                className={textareaClass}
-                                                autoComplete="off"
-                                            />
-                                        ) : (
-                                            <input
-                                                id={key}
-                                                type={inputType(key)}
-                                                value={data[key] ?? ''}
-                                                onChange={(e) => setData(key, e.target.value)}
-                                                className={adminFieldInputClass}
-                                                autoComplete="off"
-                                            />
-                                        )}
-                                        {errors[key] && <p className="mt-2 text-sm text-red-600">{errors[key]}</p>}
-                                    </div>
-                                ))}
-                            </div>
+                    <section>
+                        <h2 className={adminSectionTitleClass}>Datos de contacto (pie de los correos)</h2>
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <FormField id="company_contact_email" label="Correo de contacto" error={errors.company_contact_email}>
+                                {field('company_contact_email', 'email')}
+                            </FormField>
+                            <FormField id="company_contact_phone" label="Teléfono" error={errors.company_contact_phone}>
+                                {field('company_contact_phone', 'tel')}
+                            </FormField>
+                            <FormField id="company_website_url" label="URL del sitio web" error={errors.company_website_url}>
+                                {field('company_website_url', 'url')}
+                            </FormField>
+                            <FormField id="company_website_label" label="Texto del enlace" error={errors.company_website_label}>
+                                {field('company_website_label')}
+                            </FormField>
+                            <FormField
+                                id="company_contact_address"
+                                label="Dirección"
+                                error={errors.company_contact_address}
+                                className="md:col-span-2"
+                            >
+                                <textarea
+                                    rows={3}
+                                    value={data.company_contact_address}
+                                    onChange={(e) => setData('company_contact_address', e.target.value)}
+                                    className={adminFieldInputClass}
+                                />
+                            </FormField>
                         </div>
+                    </section>
 
-                        <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end sm:pt-6">
-                            <Button
-                                type="button"
-                                onClick={() => window.history.back()}
-                                variant="outline"
-                                className={cn(adminOutlineButtonClass, 'w-full sm:w-auto')}
-                            >
-                                Cancelar
-                            </Button>
-                            <Button
-                                type="submit"
-                                disabled={processing}
-                                size="sm"
-                                className={cn(adminPrimaryButtonClass, 'w-full sm:w-auto')}
-                            >
-                                {processing ? 'Guardando...' : 'Guardar configuración'}
-                            </Button>
-                        </div>
-                    </form>
-                </div>
+                    <FormActions processing={processing} submitLabel="Guardar configuración" />
+                </FormCard>
             </div>
         </AdminLayout>
     );

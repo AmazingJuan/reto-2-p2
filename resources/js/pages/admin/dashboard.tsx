@@ -1,139 +1,49 @@
-import AdminLayout from '@/layouts/admin-layout';
-import { Link } from '@inertiajs/react';
-import { ChevronRight, Contact, GitBranch, Mail, ScrollText, Settings, UserCircle, Users, Wrench, BriefcaseBusiness, Trees } from 'lucide-react';
-import React from 'react';
-import { route } from 'ziggy-js';
+import AdminLayout, { adminNavigation } from '@/layouts/admin-layout';
+import type { PageProps } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
 
-const Dashboard: React.FC = () => {
-    const items = [
-        {
-            label: 'Usuarios',
-            name: 'dashboard.users.index',
-            desc: 'Gestiona cuentas del sistema',
-            icon: Users,
-            accent: 'indigo',
-        },
-        {
-            label: 'Profesionales',
-            name: 'dashboard.professionals.index',
-            desc: 'Equipo visible en cotizaciones (anonimizado para el cliente)',
-            icon: UserCircle,
-            accent: 'amber',
-        },
-        {
-            label: 'Servicios',
-            name: 'dashboard.services.index',
-            desc: 'Crea y administra tus servicios',
-            icon: Wrench,
-            accent: 'emerald',
-        },
-        {
-            label: 'Líneas de gestión',
-            name: 'dashboard.lines.index',
-            desc: 'Organiza procesos y flujos',
-            icon: GitBranch,
-            accent: 'amber',
-        },
-        {
-            label: 'Lista Cotizaciones',
-            name: 'dashboard.quotation-orders.index',
-            desc: 'Visualiza y gestiona cotizaciones',
-            icon: ScrollText,
-            accent: 'indigo',
-        },
-        {
-            label: 'Clientes',
-            name: 'dashboard.clients.index',
-            desc: 'Clientes que han cotizado y su historial',
-            icon: Contact,
-            accent: 'emerald',
-        },
-        {
-            label: 'Unidad de negocio',
-            name: 'dashboard.business-unit.index',
-            desc: 'Visualiza y gestiona las unidades de negocio',
-            icon: BriefcaseBusiness,
-            accent: 'emerald',
-        },
-        {
-            label: 'Árbol de cotización',
-            name: 'dashboard.business-unit.decision-tree',
-            desc: 'Configura el árbol de decisión para cotizaciones',
-            icon: Trees,
-            accent: 'amber',
-        },
-        {
-            label: 'Configuración',
-            name: 'dashboard.configurations.edit',
-            desc: 'Correo de notificaciones y URL de la aplicación',
-            icon: Settings,
-            accent: 'indigo',
-        },
-        {
-            label: 'Correos de bienvenida',
-            name: 'dashboard.welcome-broadcast.create',
-            desc: 'Enviar el correo de bienvenida a una lista de direcciones',
-            icon: Mail,
-            accent: 'emerald',
-        },
-    ] as const;
-
-    const badgeClasses: Record<string, string> = {
-        indigo: 'text-indigo-600 bg-indigo-50 group-hover:bg-indigo-100',
-        emerald: 'text-blue-600 bg-blue-50 group-hover:bg-blue-100',
-        amber: 'text-amber-600 bg-amber-50 group-hover:bg-amber-100',
-    };
+export default function Dashboard() {
+    const { auth } = usePage<PageProps>().props;
+    const firstName = auth.user?.name.split(' ')[0];
 
     return (
-        <AdminLayout>
-            <div className="mx-auto w-full min-w-0 max-w-7xl space-y-6 pb-8 pt-2 sm:space-y-8 sm:pb-10 sm:pt-0">
-                <div className="flex justify-stretch sm:justify-end">
-                    <Link
-                        href={route('home')}
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#0693e3]/80 bg-white px-4 py-2.5 text-sm font-semibold text-[#047ac0] shadow-sm ring-1 ring-slate-900/[0.04] transition hover:border-[#0693e3] hover:bg-[#0693e3] hover:text-white sm:w-auto"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5">
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-3A2.25 2.25 0 008.25 5.25V9m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3A2.25 2.25 0 008.25 5.25V9m7.5 0h-11.25M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.125c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"
-                            />
-                        </svg>
-                        Salir
-                    </Link>
-                </div>
-                <section className="mx-auto max-w-3xl text-center">
-                    <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-4xl">Dashboard</h2>
-                    <p className="mt-2 text-sm leading-relaxed text-slate-600 sm:text-base">Acceso rápido a los recursos de administración</p>
-                </section>
+        <AdminLayout title="Panel">
+            <div className="mx-auto w-full max-w-7xl space-y-10">
+                <header>
+                    <h1 className="font-display text-[clamp(1.75rem,1.35rem+1.2vw,2.5rem)] font-extrabold tracking-tight text-azul">
+                        {firstName ? `Hola, ${firstName}` : 'Bienvenido'}
+                    </h1>
+                    <p className="mt-2 max-w-2xl text-pizarra">
+                        Gestiona las solicitudes de cotización, el catálogo que ve el cliente y la configuración del sistema.
+                    </p>
+                </header>
 
-                <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
-                    {items.map(({ label, name, desc, icon: Icon, accent }) => (
-                        <Link
-                            key={name}
-                            href={route(name)}
-                            className="group relative block min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm ring-1 ring-slate-900/[0.04] transition-all hover:border-slate-300 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0693e3] focus-visible:ring-offset-2 sm:p-5"
-                        >
-                            <div className="flex items-start gap-4">
-                                <span
-                                    className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${badgeClasses[accent]}`}
-                                >
-                                    <Icon className="h-5 w-5" />
-                                </span>
-
-                                <div className="min-w-0">
-                                    <h3 className="text-base font-semibold tracking-tight text-slate-900">{label}</h3>
-                                    <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-slate-600">{desc}</p>
-                                </div>
-
-                                <ChevronRight className="ml-auto h-5 w-5 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-slate-600" />
-                            </div>
-                        </Link>
-                    ))}
-                </section>
+                {adminNavigation.map((group) => (
+                    <section key={group.label} aria-labelledby={`group-${group.label}`}>
+                        <h2 id={`group-${group.label}`} className="mb-3 text-sm font-semibold text-pizarra">
+                            {group.label}
+                        </h2>
+                        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                            {group.items.map(({ routeName, label, description, icon: Icon }) => (
+                                <li key={routeName}>
+                                    <Link
+                                        href={route(routeName)}
+                                        className="hover: group flex h-full items-start gap-4 rounded-[10px] border-2 border-linea bg-white p-5 transition hover:border-linea"
+                                    >
+                                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-nube text-pizarra transition-colors group-hover:bg-nube group-hover:text-azul-hondo">
+                                            <Icon className="h-5 w-5" aria-hidden />
+                                        </span>
+                                        <span className="min-w-0 flex-1">
+                                            <span className="block font-semibold text-tinta">{label}</span>
+                                            <span className="mt-0.5 block text-sm leading-relaxed text-pizarra">{description}</span>
+                                        </span>
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                ))}
             </div>
         </AdminLayout>
     );
-};
-
-export default Dashboard;
+}
