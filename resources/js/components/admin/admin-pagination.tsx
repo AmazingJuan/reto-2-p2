@@ -1,91 +1,49 @@
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { router } from '@inertiajs/react';
+import type { Paginated } from '@/types';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { route as ziggyRoute } from 'ziggy-js';
 
-type RouteName = Parameters<typeof ziggyRoute>[0];
-
-export interface PaginatorMeta {
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    from: number | null;
-    to: number | null;
-}
-
-interface AdminPaginationProps {
-    routeName: RouteName;
-    meta: PaginatorMeta;
-    filters: Record<string, string | undefined | null>;
-    /** Query keys to include when changing page */
-    extraKeys?: string[];
+type AdminPaginationProps = {
+    meta: Pick<Paginated<unknown>, 'current_page' | 'last_page' | 'total' | 'from' | 'to'>;
+    onPageChange: (page: number) => void;
     className?: string;
-}
+};
 
-export function AdminPagination({ routeName, meta, filters, extraKeys = [], className }: AdminPaginationProps) {
+const pagerButtonClass =
+    'inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-control border-2 border-linea bg-white px-3 text-sm font-medium text-tinta transition-colors hover:bg-nube disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none';
+
+export function AdminPagination({ meta, onPageChange, className }: AdminPaginationProps) {
     const { current_page, last_page, total, from, to } = meta;
 
-    if (last_page <= 1 && total === 0) {
+    if (total === 0) {
         return null;
     }
 
-    const go = (page: number) => {
-        const params: Record<string, string | number> = { page };
-        if (filters.search) {
-            params.search = filters.search;
-        }
-        for (const key of extraKeys) {
-            const v = filters[key];
-            if (v !== undefined && v !== null && v !== '' && v !== 'all') {
-                params[key] = v;
-            }
-        }
-        router.get(ziggyRoute(routeName), params, { preserveState: true, replace: true });
-    };
-
-    const summary =
-        total === 0
-            ? 'Sin resultados'
-            : from != null && to != null
-              ? `Mostrando ${from}–${to} de ${total}`
-              : `${total} resultado${total === 1 ? '' : 's'}`;
-
     return (
-        <div
-            className={cn(
-                'mt-4 flex w-full min-w-0 flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between',
-                className,
-            )}
-        >
-            <p className="text-center text-sm text-slate-600 sm:text-left">{summary}</p>
-            <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-3">
-                <p className="text-center text-sm text-slate-700 sm:hidden">Página {current_page} de {last_page}</p>
-                <div className="flex gap-2">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        disabled={current_page <= 1}
-                        onClick={() => go(current_page - 1)}
-                        className="min-h-10 flex-1 rounded-xl border-slate-200 font-medium text-slate-800 shadow-sm hover:bg-slate-50 disabled:opacity-40 sm:flex-none"
-                    >
-                        <ChevronLeft className="h-4 w-4" />
+        <nav aria-label="Paginación" className={cn('flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between', className)}>
+            <p className="text-center text-sm text-pizarra sm:text-left">
+                Mostrando <span className="font-semibold text-tinta">{from}</span>–<span className="font-semibold text-tinta">{to}</span> de{' '}
+                <span className="font-semibold text-tinta">{total}</span>
+            </p>
+            {last_page > 1 && (
+                <div className="flex items-center gap-2">
+                    <button type="button" className={pagerButtonClass} disabled={current_page <= 1} onClick={() => onPageChange(current_page - 1)}>
+                        <ChevronLeft className="h-4 w-4" aria-hidden />
                         Anterior
-                    </Button>
-                    <span className="hidden items-center px-1 text-sm text-slate-700 sm:inline">Página {current_page} de {last_page}</span>
-                    <Button
+                    </button>
+                    <span className="px-2 text-sm tabular-nums text-pizarra" aria-current="page">
+                        {current_page} / {last_page}
+                    </span>
+                    <button
                         type="button"
-                        variant="outline"
+                        className={pagerButtonClass}
                         disabled={current_page >= last_page}
-                        onClick={() => go(current_page + 1)}
-                        className="min-h-10 flex-1 rounded-xl border-slate-200 font-medium text-slate-800 shadow-sm hover:bg-slate-50 disabled:opacity-40 sm:flex-none"
+                        onClick={() => onPageChange(current_page + 1)}
                     >
                         Siguiente
-                        <ChevronRight className="h-4 w-4" />
-                    </Button>
+                        <ChevronRight className="h-4 w-4" aria-hidden />
+                    </button>
                 </div>
-            </div>
-        </div>
+            )}
+        </nav>
     );
 }
