@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
@@ -136,12 +135,11 @@ class Condition extends Model
 
     public function getMultiple(): bool
     {
-    return (bool) ($this->attributes['multiple'] ?? false);
+        return (bool) ($this->attributes['multiple'] ?? false);
     }
 
     public function setMultiple(bool $value): void
     {
         $this->attributes['multiple'] = $value;
     }
-
 }
