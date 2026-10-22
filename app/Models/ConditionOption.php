@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Collection;
 
 class ConditionOption extends Model
 {
@@ -33,6 +32,10 @@ class ConditionOption extends Model
 
     public $timestamps = false;
 
+    protected $casts = [
+        'is_other' => 'boolean',
+    ];
+
     /*
     |--------------------------------------------------------------------------
     | Relationships
@@ -55,7 +58,6 @@ class ConditionOption extends Model
     /**
      * A ConditionOption may point to a next Condition.
      */
-
     public function nextCondition(): BelongsTo
     {
         return $this->belongsTo(Condition::class, 'next_condition_id');
@@ -115,7 +117,7 @@ class ConditionOption extends Model
     // is_other
     public function isOther(): bool
     {
-        return $this->attributes['is_other'];
+        return (bool) $this->getAttribute('is_other');
     }
 
     public function setIsOther(bool $value): void
@@ -124,8 +126,7 @@ class ConditionOption extends Model
     }
 
     // Value
-
-        public function getValue(): ?string
+    public function getValue(): ?string
     {
         return $this->attributes['value'] ?? null;
     }
