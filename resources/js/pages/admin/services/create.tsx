@@ -1,149 +1,20 @@
-import {
-    AdminPageHeader,
-    adminFieldInputClass,
-    adminFieldLabelClass,
-    adminFormCardClass,
-    adminFormSectionTitleClass,
-    adminFormShellClass,
-    adminOutlineButtonClass,
-    adminPrimaryButtonClass,
-    adminSelectFieldClass,
-} from '@/components/admin/admin-page-header';
-import { Button } from '@/components/ui/button';
+import { AdminPageHeader } from '@/components/admin/admin-page-header';
+import { BackLink } from '@/components/admin/back-link';
+import { adminFormShellClass } from '@/components/admin/styles';
+import { ServiceForm, type ServiceFormProps } from '@/features/catalog/service-form';
 import AdminLayout from '@/layouts/admin-layout';
-import { cn } from '@/lib/utils';
 import type { PageProps } from '@/types';
-import { Head, useForm, usePage } from '@inertiajs/react';
-import { ArrowLeft, Wrench } from 'lucide-react';
-import { route } from 'ziggy-js';
-
-interface BusinessUnitOption {
-    id: number | string;
-    display_name: string;
-}
-
-interface GestionLineOption {
-    id: number | string;
-    name: string;
-}
-
-type CreatePageProps = PageProps<{
-    businessUnits: BusinessUnitOption[];
-    gestionLines: GestionLineOption[];
-}>;
+import { usePage } from '@inertiajs/react';
 
 export default function Create() {
-    const { businessUnits, gestionLines } = usePage<CreatePageProps>().props;
-    const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
-
-    const { data, setData, post, processing, errors } = useForm({
-        name: '',
-        business_unit_id: '',
-        gestion_line_id: '',
-    });
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        post(route('dashboard.services.store'));
-    };
+    const { businessUnits, gestionLines } = usePage<PageProps<Omit<ServiceFormProps, 'service'>>>().props;
 
     return (
-        <AdminLayout>
-            <Head title="Crear servicio" />
-
+        <AdminLayout title="Crear servicio">
             <div className={adminFormShellClass}>
-                <AdminPageHeader
-                    icon={Wrench}
-                    title="Crear servicio"
-                    description="Nombre, unidad de negocio y línea de gestión."
-                />
-
-                <div className={adminFormCardClass}>
-                    <form onSubmit={handleSubmit} className="space-y-6 p-4 sm:space-y-8 sm:p-8">
-                        <div>
-                            <label htmlFor="name" className={adminFieldLabelClass}>
-                                Nombre <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                id="name"
-                                type="text"
-                                value={data.name}
-                                onChange={(e) => setData('name', e.target.value)}
-                                className={adminFieldInputClass}
-                                placeholder="Nombre del servicio"
-                            />
-                            {errors.name && <p className="mt-2 text-sm text-red-600">{errors.name}</p>}
-                        </div>
-
-                        <div>
-                            <h2 className={adminFormSectionTitleClass}>Clasificación</h2>
-                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                <div>
-                                    <label htmlFor="business_unit_id" className={adminFieldLabelClass}>
-                                        Unidad de negocio <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        id="business_unit_id"
-                                        value={data.business_unit_id}
-                                        onChange={(e) => setData('business_unit_id', e.target.value)}
-                                        className={adminSelectFieldClass}
-                                    >
-                                        <option value="">Seleccione</option>
-                                        {businessUnits.map((u) => (
-                                            <option key={String(u.id)} value={String(u.id)}>
-                                                {capitalize(u.display_name)}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {errors.business_unit_id && (
-                                        <p className="mt-2 text-sm text-red-600">{errors.business_unit_id}</p>
-                                    )}
-                                </div>
-                                <div>
-                                    <label htmlFor="gestion_line_id" className={adminFieldLabelClass}>
-                                        Línea de gestión <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        id="gestion_line_id"
-                                        value={data.gestion_line_id}
-                                        onChange={(e) => setData('gestion_line_id', e.target.value)}
-                                        className={adminSelectFieldClass}
-                                    >
-                                        <option value="">Seleccione</option>
-                                        {gestionLines.map((line) => (
-                                            <option key={String(line.id)} value={String(line.id)}>
-                                                {capitalize(line.name)}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {errors.gestion_line_id && (
-                                        <p className="mt-2 text-sm text-red-600">{errors.gestion_line_id}</p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end sm:pt-6">
-                            <Button
-                                type="button"
-                                onClick={() => window.history.back()}
-                                variant="outline"
-                                className={cn(adminOutlineButtonClass, 'w-full sm:w-auto')}
-                            >
-                                <ArrowLeft className="h-4 w-4" />
-                                Cancelar
-                            </Button>
-                            <Button
-                                type="submit"
-                                disabled={processing}
-                                size="sm"
-                                className={cn(adminPrimaryButtonClass, 'w-full sm:w-auto')}
-                            >
-                                {processing ? 'Guardando...' : 'Guardar servicio'}
-                            </Button>
-                        </div>
-                    </form>
-                </div>
+                <BackLink href={route('dashboard.services.index')} label="Servicios" />
+                <AdminPageHeader title="Crear servicio" description="El servicio aparecerá en el cotizador dentro de su unidad y línea de gestión." />
+                <ServiceForm businessUnits={businessUnits} gestionLines={gestionLines} />
             </div>
         </AdminLayout>
     );

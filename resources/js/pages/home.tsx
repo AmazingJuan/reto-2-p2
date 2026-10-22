@@ -1,98 +1,81 @@
-import Header from '@/components/ui/header';
-import type { PageProps } from '@/types';
-import { Link, usePage } from '@inertiajs/react';
-import { ArrowRight } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { BrandRing, Ring } from '@/components/brand/brand-ring';
+import { corporate } from '@/components/public/links';
+import PublicLayout from '@/layouts/public-layout';
+import { Link } from '@inertiajs/react';
 
-type HomePageProps = PageProps & {
-    flash?: { success?: string; error?: string };
-};
+const FACTS = [
+    'Certificados en ISO 9001:2015 e ISO 45001:2018',
+    'Miembro corporativo del Institute of Asset Management',
+    'Servicios en 21 departamentos, Costa Rica y El Salvador',
+];
+
+const STEPS = [
+    {
+        title: 'Elija los servicios',
+        text: 'Seleccione la unidad de negocio, la línea y los servicios que le interesan. Puede combinar varios en una sola solicitud.',
+    },
+    { title: 'Cuéntenos sobre su organización', text: 'Unas preguntas breves sobre su sector, tamaño y fechas nos permiten dimensionar el alcance.' },
+    { title: 'Reciba la propuesta', text: 'Un consultor prepara la cotización y se la enviamos a su correo con un enlace seguro.' },
+];
 
 export default function Home() {
-    const { props } = usePage<HomePageProps>();
-    const successMessage = props.flash?.success;
-    const errorMessage = props.flash?.error;
-    const [showSuccess, setShowSuccess] = useState(false);
-    const [showError, setShowError] = useState(false);
-
-    useEffect(() => {
-        if (successMessage) setShowSuccess(true);
-    }, [successMessage]);
-
-    useEffect(() => {
-        if (errorMessage) setShowError(true);
-    }, [errorMessage]);
-
     return (
-        <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-50 via-white to-slate-100 text-slate-900">
-            <div className="pointer-events-none fixed -right-32 -top-32 h-80 w-80 rounded-full bg-[#0693e3]/12 blur-3xl sm:h-96 sm:w-96" aria-hidden />
-            <div
-                className="pointer-events-none fixed -bottom-32 -left-32 h-80 w-80 rounded-full bg-emerald-500/10 blur-3xl sm:h-96 sm:w-96"
-                style={{ animationDelay: '-4s' }}
-                aria-hidden
-            />
-
-            <Header />
-
-            {showSuccess && successMessage && (
-                <div className="animate-fade-in fixed left-1/2 top-24 z-[60] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-xl border border-emerald-200/80 bg-emerald-50/95 px-4 py-3 text-sm text-emerald-900 shadow-lg backdrop-blur-sm sm:top-28">
-                    <div className="flex items-start justify-between gap-3">
-                        <span>{successMessage}</span>
-                        <button
-                            type="button"
-                            className="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold text-emerald-800 underline-offset-2 hover:bg-emerald-100/80 hover:underline"
-                            onClick={() => setShowSuccess(false)}
-                        >
-                            Cerrar
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {showError && errorMessage && (
-                <div className="animate-fade-in fixed left-1/2 top-24 z-[60] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-xl border border-red-200/80 bg-red-50/95 px-4 py-3 text-sm text-red-900 shadow-lg backdrop-blur-sm sm:top-28">
-                    <div className="flex items-start justify-between gap-3">
-                        <span>{errorMessage}</span>
-                        <button
-                            type="button"
-                            className="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold text-red-800 underline-offset-2 hover:bg-red-100/80 hover:underline"
-                            onClick={() => setShowError(false)}
-                        >
-                            Cerrar
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            <main className="flex min-h-screen flex-col items-center justify-center px-4 pb-24 pt-28 sm:px-6 sm:pt-32">
-                <div className="container mx-auto max-w-4xl text-center">
-                    <h1 className="animate-fade-in text-4xl font-bold leading-tight text-slate-900 md:text-5xl lg:text-6xl">
-                        Bienvenido
-                        <br />
-                        <span className="text-gradient">Módulo de cotizaciones</span>
-                    </h1>
-                    <p className="mx-auto mt-6 max-w-xl text-base text-slate-600 md:text-lg">
-                        Configure su solicitud en pocos pasos
+        <PublicLayout title="Cotizador" showCta={false}>
+            <section className="frame grid items-center gap-12 pb-[clamp(2.75rem,2rem+3vw,5rem)] pt-[clamp(2rem,1rem+3vw,4.5rem)] lg:grid-cols-12 lg:gap-x-8">
+                <div className="lg:col-span-7">
+                    <h1 className="display max-w-[14ch] text-azul">Cotice su proyecto en línea</h1>
+                    <p className="lede mt-7 text-pizarra">
+                        Auditoría, consultoría y formación en sistemas de gestión. Cuéntenos qué necesita y le enviaremos una propuesta a la medida.
                     </p>
-
-                    <div className="animate-slide-up mt-10 flex flex-col items-center gap-4 sm:mt-12">
-                        <Link
-                            href={route('quotation.select.business_unit')}
-                            className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0693e3] px-10 py-6 text-lg font-semibold text-white shadow-lg shadow-[#0693e3]/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#0580c7] hover:shadow-xl hover:shadow-[#0693e3]/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0693e3]"
-                        >
-                            Comenzar cotización
-                            <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
+                    <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                        <Link href={route('quotation.select.business_unit')} className="btn btn-primary">
+                            Solicitar una cotización
                         </Link>
-                        <a
-                            href="https://www.trainingcorporation.com.co/portafolio-de-servicios/"
-                            className="group inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-gray-500 bg-gray-500 px-8 py-4 text-base font-semibold text-white shadow-md shadow-gray-500/30 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-gray-600 hover:bg-gray-600 hover:shadow-lg hover:shadow-gray-500/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
-                        >
-                            Regresar al portafolio
-                            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
+                        <a href={corporate.portfolio} className="btn btn-outline">
+                            Ver los servicios
                         </a>
                     </div>
+                    <ul className="mt-10 grid gap-3 border-t border-linea pt-8 font-display text-[0.9375rem] font-semibold">
+                        {FACTS.map((fact) => (
+                            <li key={fact} className="flex items-baseline gap-3">
+                                <span className="h-2 w-2 shrink-0 translate-y-[-0.1em] rounded-full bg-azul-vivo" aria-hidden />
+                                {fact}
+                            </li>
+                        ))}
+                    </ul>
                 </div>
-            </main>
-        </div>
+                <div className="mx-auto w-full max-w-md lg:col-span-5 lg:max-w-none">
+                    <BrandRing
+                        src="/images/fotos/curso-auditores-iso-55001-2020.jpg"
+                        alt="Grupo de profesionales del curso de auditores ISO 55001"
+                        focus="50% 40%"
+                        caption="Curso de auditores en gestión de activos ISO 55001, 2020."
+                    />
+                </div>
+            </section>
+
+            <section className="field-azul section" aria-labelledby="pasos">
+                <div className="frame">
+                    <h2 id="pasos" className="heading max-w-[18ch]">
+                        Así funciona su solicitud
+                    </h2>
+                    <ol className="mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
+                        {STEPS.map((step, index) => (
+                            <li key={step.title}>
+                                <span className="relative flex h-14 w-14 items-center justify-center font-display text-xl font-extrabold">
+                                    <Ring tone="blanco" gap={18} className="absolute inset-0 h-full w-full" />
+                                    {index + 1}
+                                </span>
+                                <h3 className="mt-6 font-display text-xl font-bold">{step.title}</h3>
+                                <p className="mt-2 max-w-sm leading-relaxed">{step.text}</p>
+                            </li>
+                        ))}
+                    </ol>
+                    <Link href={route('quotation.select.business_unit')} className="btn btn-light mt-12">
+                        Empezar ahora
+                    </Link>
+                </div>
+            </section>
+        </PublicLayout>
     );
 }

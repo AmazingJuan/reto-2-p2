@@ -1,249 +1,153 @@
-import {
-    AdminPageHeader,
-    adminListShellClass,
-    adminTableCardClass,
-    adminTableTdClass,
-    adminTableThCenterClass,
-    adminTableThClass,
-} from '@/components/admin/admin-page-header';
-import FlashAlert from '@/components/ui/flashalert';
+import { AdminPageHeader } from '@/components/admin/admin-page-header';
+import { BackLink } from '@/components/admin/back-link';
+import { DataTable } from '@/components/admin/data-table';
+import { DetailList } from '@/components/admin/detail-list';
+import { RowActions, ViewAction } from '@/components/admin/row-actions';
+import { QuotationStatusBadge } from '@/components/admin/status-badge';
+import { adminCardClass, adminListShellClass, adminTableTdClass } from '@/components/admin/styles';
+import type { ClientWithStats } from '@/features/clients/types';
 import AdminLayout from '@/layouts/admin-layout';
+import { formatDate, orDash } from '@/lib/format';
+import { cn } from '@/lib/utils';
 import type { PageProps } from '@/types';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, ArrowRight, Contact, Download, Mail, Phone } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import { route } from 'ziggy-js';
+
+type Quotation = {
+    id: string;
+    quotation_code: string | null;
+    business_unit: string;
+    gestion_line: string | null;
+    services_count: number;
+    is_generated: boolean;
+    created_at: string | null;
+};
+
+type ShowPageProps = PageProps<{ viewData: { client: ClientWithStats; quotations: Quotation[] } }>;
 
 type StatusFilter = 'all' | 'generated' | 'pending';
 
-interface Client {
-    id: number;
-    name: string;
-    email: string;
-    company?: string | null;
-    phone?: string | null;
-    role?: string | null;
-    quotations_count: number;
-    generated_count: number;
-    pending_count: number;
-    first_quotation_at?: string | null;
-    last_quotation_at?: string | null;
-}
-
-interface Quotation {
-    id: number | string;
-    quotation_code?: string | null;
-    business_unit?: string | null;
-    gestion_line?: string | null;
-    services_count: number;
-    is_generated: boolean;
-    quotation_url?: string | null;
-    created_at?: string | null;
-}
-
-type ShowPageProps = PageProps<{
-    viewData: {
-        client: Client;
-        quotations: Quotation[];
-    };
-}>;
-
-function formatDate(value?: string | null): string {
-    if (!value) return '—';
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString('es-CO');
-}
-
-function StatCard({ label, value, tone }: { label: string; value: number; tone: 'blue' | 'emerald' | 'amber' }) {
-    const tones: Record<string, string> = {
-        blue: 'bg-blue-50 text-blue-700 ring-blue-200/80',
-        emerald: 'bg-emerald-50 text-emerald-800 ring-emerald-200/80',
-        amber: 'bg-amber-50 text-amber-900 ring-amber-200/80',
-    };
-
-    return (
-        <div className={`rounded-2xl px-4 py-3 ring-1 ${tones[tone]}`}>
-            <p className="text-2xl font-bold tracking-tight">{value}</p>
-            <p className="text-xs font-medium uppercase tracking-wide opacity-80">{label}</p>
-        </div>
-    );
-}
-
 export default function Show() {
-    const { viewData, flash } = usePage<ShowPageProps & { flash: Record<string, unknown> }>().props;
-    const { client, quotations } = viewData;
+    const { client, quotations } = usePage<ShowPageProps>().props.viewData;
+    const [status, setStatus] = useState<StatusFilter>('all');
 
-    const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+    const visible = quotations.filter((q) => status === 'all' || q.is_generated === (status === 'generated'));
 
-    const filteredQuotations = quotations.filter((q) => {
-        if (statusFilter === 'generated') return q.is_generated;
-        if (statusFilter === 'pending') return !q.is_generated;
-        return true;
-    });
-
-    const statusTabs: { id: StatusFilter; label: string; count: number }[] = [
+    const tabs: { id: StatusFilter; label: string; count: number }[] = [
         { id: 'all', label: 'Todas', count: client.quotations_count },
         { id: 'generated', label: 'Generadas', count: client.generated_count },
         { id: 'pending', label: 'Pendientes', count: client.pending_count },
     ];
 
     return (
-        <AdminLayout>
-            <Head title={client.name ? `Cliente · ${client.name}` : 'Cliente'} />
-
+        <AdminLayout title={client.name || 'Cliente'}>
             <div className={adminListShellClass}>
-                <FlashAlert flash={flash} />
+                <BackLink href={route('dashboard.clients.index')} label="Clientes" />
+                <AdminPageHeader
+                    title={client.name || 'Cliente'}
+                    description={[client.role, client.company].filter(Boolean).join(' · ') || undefined}
+                />
 
-                <div className="space-y-3">
-                    <Link
-                        href={route('dashboard.clients.index')}
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-[#0693e3]"
-                    >
-                        <ArrowLeft className="h-4 w-4" />
-                        Volver a clientes
-                    </Link>
-                    <AdminPageHeader icon={Contact} title={client.name || 'Cliente'} description={client.role || undefined} />
+                <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+                    <DetailList
+                        className="lg:col-span-2"
+                        title="Contacto"
+                        items={[
+                            {
+                                label: 'Correo',
+                                value: (
+                                    <a href={`mailto:${client.email}`} className="text-azul-hondo hover:underline">
+                                        {client.email}
+                                    </a>
+                                ),
+                            },
+                            {
+                                label: 'Teléfono',
+                                value: client.phone ? (
+                                    <a href={`tel:${client.phone}`} className="hover:underline">
+                                        {client.phone}
+                                    </a>
+                                ) : (
+                                    '—'
+                                ),
+                            },
+                            { label: 'Empresa', value: orDash(client.company) },
+                            { label: 'Cargo', value: orDash(client.role) },
+                            { label: 'Cliente desde', value: formatDate(client.first_quotation_at) },
+                        ]}
+                    />
+                    <dl className={cn(adminCardClass, 'grid grid-cols-3 divide-x divide-nube self-start lg:grid-cols-1 lg:divide-x-0 lg:divide-y')}>
+                        {tabs.map((tab) => (
+                            <div key={tab.id} className="px-5 py-4">
+                                <dt className="text-sm text-pizarra">{tab.id === 'all' ? 'Cotizaciones' : tab.label}</dt>
+                                <dd className="mt-1 text-2xl font-bold tabular-nums text-tinta">{tab.count}</dd>
+                            </div>
+                        ))}
+                    </dl>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
-                        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Datos de contacto</h2>
-                        <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-                            <div className="flex items-start gap-3">
-                                <Mail className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
-                                <div className="min-w-0">
-                                    <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">Correo</dt>
-                                    <dd className="truncate text-sm text-slate-900">{client.email || '—'}</dd>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <Phone className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
-                                <div className="min-w-0">
-                                    <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">Teléfono</dt>
-                                    <dd className="text-sm text-slate-900">{client.phone || '—'}</dd>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <Contact className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
-                                <div className="min-w-0">
-                                    <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">Empresa</dt>
-                                    <dd className="text-sm text-slate-900">{client.company || '—'}</dd>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <ArrowRight className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
-                                <div className="min-w-0">
-                                    <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">Última cotización</dt>
-                                    <dd className="text-sm text-slate-900">{formatDate(client.last_quotation_at)}</dd>
-                                </div>
-                            </div>
-                        </dl>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-3 lg:grid-cols-1">
-                        <StatCard label="Cotizaciones" value={client.quotations_count} tone="blue" />
-                        <StatCard label="Generadas" value={client.generated_count} tone="emerald" />
-                        <StatCard label="Pendientes" value={client.pending_count} tone="amber" />
-                    </div>
-                </div>
-
-                <div>
-                    <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <h2 className="text-lg font-bold tracking-tight text-slate-900">Cotizaciones del cliente</h2>
-                        <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1">
-                            {statusTabs.map((tab) => (
+                <section className="space-y-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <h2 className="text-lg font-semibold text-tinta">Historial de cotizaciones</h2>
+                        <div role="tablist" aria-label="Filtrar por estado" className="inline-flex rounded-control bg-nube p-1">
+                            {tabs.map((tab) => (
                                 <button
                                     key={tab.id}
                                     type="button"
-                                    onClick={() => setStatusFilter(tab.id)}
-                                    className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
-                                        statusFilter === tab.id
-                                            ? 'bg-white text-[#0693e3] shadow-sm ring-1 ring-slate-200'
-                                            : 'text-slate-500 hover:text-slate-700'
-                                    }`}
+                                    role="tab"
+                                    aria-selected={status === tab.id}
+                                    onClick={() => setStatus(tab.id)}
+                                    className={cn(
+                                        'rounded-md px-3 py-1.5 text-sm font-medium transition',
+                                        status === tab.id ? 'bg-white text-tinta' : 'text-pizarra hover:text-tinta',
+                                    )}
                                 >
-                                    {tab.label}
-                                    <span className="ml-1.5 text-xs text-slate-400">{tab.count}</span>
+                                    {tab.label} <span className="ml-1 tabular-nums text-gris-marca">{tab.count}</span>
                                 </button>
                             ))}
                         </div>
                     </div>
-                    <div className={adminTableCardClass}>
-                        <table className="min-w-[52rem] w-full divide-y divide-slate-200 lg:min-w-full">
-                            <thead className="border-b border-slate-100 bg-slate-50/50">
-                                <tr>
-                                    <th className={adminTableThClass}>Código</th>
-                                    <th className={adminTableThClass}>Unidad</th>
-                                    <th className={adminTableThClass}>Línea de gestión</th>
-                                    <th className={adminTableThCenterClass}>Servicios</th>
-                                    <th className={adminTableThClass}>Estado</th>
-                                    <th className={adminTableThClass}>Fecha</th>
-                                    <th className={adminTableThCenterClass}>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 bg-white">
-                                {filteredQuotations.length === 0 && (
-                                    <tr>
-                                        <td colSpan={7} className="px-4 py-8 text-center text-sm text-slate-500 sm:px-6">
-                                            {statusFilter === 'generated'
-                                                ? 'Este cliente no tiene cotizaciones generadas.'
-                                                : statusFilter === 'pending'
-                                                  ? 'Este cliente no tiene cotizaciones pendientes.'
-                                                  : 'Este cliente no tiene cotizaciones.'}
-                                        </td>
-                                    </tr>
-                                )}
-                                {filteredQuotations.map((quotation) => (
-                                    <tr
-                                        key={String(quotation.id)}
-                                        className="cursor-pointer transition hover:bg-slate-50/80"
-                                        onClick={() => router.visit(route('dashboard.quotation-orders.show', quotation.id))}
+
+                    <DataTable
+                        columns={[
+                            { label: 'Código' },
+                            { label: 'Unidad' },
+                            { label: 'Línea de gestión' },
+                            { label: 'Servicios', align: 'center' },
+                            { label: 'Estado' },
+                            { label: 'Fecha' },
+                            { label: '', align: 'center' },
+                        ]}
+                        minWidth="48rem"
+                        isEmpty={visible.length === 0}
+                        emptyMessage="No hay cotizaciones en esta vista."
+                    >
+                        {visible.map((quotation) => (
+                            <tr key={quotation.id} className="hover:bg-nube/70">
+                                <td className={cn(adminTableTdClass, 'font-display font-bold')}>
+                                    <Link
+                                        href={route('dashboard.quotation-orders.show', quotation.id)}
+                                        className="hover:text-azul-hondo hover:underline"
                                     >
-                                        <td className={`${adminTableTdClass} font-mono text-sm`}>{quotation.quotation_code || '—'}</td>
-                                        <td className={adminTableTdClass}>{quotation.business_unit || '—'}</td>
-                                        <td className={adminTableTdClass}>{quotation.gestion_line || '—'}</td>
-                                        <td className={`${adminTableTdClass} text-center`}>{quotation.services_count}</td>
-                                        <td className={adminTableTdClass}>
-                                            {quotation.is_generated ? (
-                                                <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-800 ring-1 ring-emerald-200/80">
-                                                    Generada
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-900 ring-1 ring-amber-200/80">
-                                                    Pendiente
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className={adminTableTdClass}>{formatDate(quotation.created_at)}</td>
-                                        <td className={`${adminTableTdClass} text-center`} onClick={(e) => e.stopPropagation()}>
-                                            <div className="flex items-center justify-center gap-1">
-                                                <Link
-                                                    href={route('dashboard.quotation-orders.show', quotation.id)}
-                                                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-[#0693e3] transition hover:bg-blue-50 hover:text-[#047ac0]"
-                                                    title="Ver cotización"
-                                                >
-                                                    Ver
-                                                    <ArrowRight className="h-4 w-4" />
-                                                </Link>
-                                                {quotation.is_generated && quotation.quotation_url ? (
-                                                    <a
-                                                        href={quotation.quotation_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="rounded-lg p-1.5 text-emerald-700 transition hover:bg-emerald-50"
-                                                        title="Abrir propuesta"
-                                                    >
-                                                        <Download className="h-4 w-4" />
-                                                    </a>
-                                                ) : null}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                                        {quotation.quotation_code ?? '—'}
+                                    </Link>
+                                </td>
+                                <td className={adminTableTdClass}>{quotation.business_unit}</td>
+                                <td className={adminTableTdClass}>{orDash(quotation.gestion_line)}</td>
+                                <td className={cn(adminTableTdClass, 'text-center tabular-nums')}>{quotation.services_count}</td>
+                                <td className={adminTableTdClass}>
+                                    <QuotationStatusBadge generated={quotation.is_generated} />
+                                </td>
+                                <td className={cn(adminTableTdClass, 'whitespace-nowrap tabular-nums')}>{formatDate(quotation.created_at)}</td>
+                                <td className={cn(adminTableTdClass, 'w-20')}>
+                                    <RowActions>
+                                        <ViewAction href={route('dashboard.quotation-orders.show', quotation.id)} />
+                                    </RowActions>
+                                </td>
+                            </tr>
+                        ))}
+                    </DataTable>
+                </section>
             </div>
         </AdminLayout>
     );

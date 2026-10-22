@@ -1,98 +1,66 @@
-import {
-    AdminPageHeader,
-    adminListShellClass,
-    adminOutlineButtonClass,
-    adminTableCardClass,
-    adminTableTdClass,
-    adminTableThClass,
-} from '@/components/admin/admin-page-header';
+import { AdminPageHeader } from '@/components/admin/admin-page-header';
+import { BackLink } from '@/components/admin/back-link';
+import { DataTable } from '@/components/admin/data-table';
+import { adminListShellClass, adminOutlineButtonClass, adminTableTdClass } from '@/components/admin/styles';
+import { SequenceLabel } from '@/features/catalog/business-unit-form';
+import type { BusinessUnit } from '@/features/catalog/types';
 import AdminLayout from '@/layouts/admin-layout';
+import { capitalize } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import type { PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowLeft, BriefcaseBusiness } from 'lucide-react';
-import { route } from 'ziggy-js';
-
-interface BusinessUnit {
-    id: number;
-    display_name: string;
-    abbreviation: string;
-    quotation_seq_year?: number | null;
-    quotation_seq_value?: number | null;
-}
-
-interface Service {
-    id: number;
-    name: string;
-}
+import { Pencil } from 'lucide-react';
 
 type ShowPageProps = PageProps<{
-    viewData: {
-        businessUnit: BusinessUnit;
-        services: Service[];
-    };
+    viewData: { businessUnit: BusinessUnit; services: { id: number; name: string }[] };
 }>;
 
 export default function Show() {
-    const { viewData } = usePage<ShowPageProps>().props;
-    const { businessUnit, services } = viewData;
-    const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+    const { businessUnit, services } = usePage<ShowPageProps>().props.viewData;
 
     return (
-        <AdminLayout>
+        <AdminLayout title={businessUnit.display_name}>
             <div className={adminListShellClass}>
-                <Link
-                    href={route('dashboard.business-unit.index')}
-                    className={cn(
-                        adminOutlineButtonClass,
-                        'mb-2 inline-flex w-full items-center justify-center gap-2 px-4 py-2.5 text-sm sm:mb-0 sm:w-auto',
-                    )}
-                >
-                    <ArrowLeft className="h-4 w-4" />
-                    Volver al listado
-                </Link>
+                <BackLink href={route('dashboard.business-unit.index')} label="Unidades de negocio" />
 
                 <AdminPageHeader
-                    icon={BriefcaseBusiness}
                     title={capitalize(businessUnit.display_name)}
-                    description={`Abreviado ${businessUnit.abbreviation} · ID #${businessUnit.id}`}
-                />
+                    description={
+                        <>
+                            Abreviado <span className="font-display font-bold">{businessUnit.abbreviation}</span> · último código{' '}
+                            <SequenceLabel unit={businessUnit} />
+                        </>
+                    }
+                >
+                    <Link
+                        href={route('dashboard.business-unit.edit', businessUnit.id)}
+                        className={cn(adminOutlineButtonClass, 'inline-flex items-center justify-center gap-2 text-sm')}
+                    >
+                        <Pencil className="h-4 w-4" aria-hidden />
+                        Editar
+                    </Link>
+                </AdminPageHeader>
 
-                <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700 shadow-sm">
-                    <p>
-                        <span className="font-semibold text-slate-900">Contador de cotizaciones (año actual):</span>{' '}
-                        {businessUnit.quotation_seq_year != null
-                            ? `’${String(businessUnit.quotation_seq_year).padStart(2, '0')} · último n.º ${businessUnit.quotation_seq_value ?? 0}`
-                            : 'Aún sin cotizaciones registradas.'}
-                    </p>
-                </div>
-
-                <div className={adminTableCardClass}>
-                    <table className="min-w-[360px] w-full divide-y divide-slate-200 sm:min-w-full">
-                        <thead className="border-b border-slate-100 bg-slate-50/50">
-                            <tr>
-                                <th className={adminTableThClass}>ID</th>
-                                <th className={adminTableThClass}>Nombre</th>
+                <section className="space-y-3">
+                    <h2 className="text-lg font-semibold text-tinta">Servicios ({services.length})</h2>
+                    <DataTable
+                        columns={[{ label: 'ID' }, { label: 'Nombre' }]}
+                        minWidth="20rem"
+                        isEmpty={services.length === 0}
+                        emptyMessage="Esta unidad no tiene servicios asociados."
+                    >
+                        {services.map((service) => (
+                            <tr key={service.id} className="hover:bg-nube/70">
+                                <td className={cn(adminTableTdClass, 'w-20 tabular-nums text-pizarra')}>{service.id}</td>
+                                <td className={adminTableTdClass}>
+                                    <Link href={route('dashboard.services.edit', service.id)} className="hover:text-azul-hondo hover:underline">
+                                        {service.name}
+                                    </Link>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 bg-white">
-                            {services.length > 0 ? (
-                                services.map((service) => (
-                                    <tr key={service.id} className="transition hover:bg-slate-50/80">
-                                        <td className={adminTableTdClass}>{service.id}</td>
-                                        <td className={adminTableTdClass}>{service.name}</td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={2} className="px-4 py-8 text-center text-sm text-slate-500 sm:px-6">
-                                        Esta unidad no tiene servicios asociados.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                        ))}
+                    </DataTable>
+                </section>
             </div>
         </AdminLayout>
     );
