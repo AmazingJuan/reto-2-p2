@@ -13,22 +13,27 @@ class AdminConfigurationController extends Controller
 {
     public function edit(): InertiaResponse
     {
-        $config = Configuration::query()->first();
-        abort_if($config === null, 500, 'No existe el registro de configuración. Ejecute las migraciones (php artisan migrate).');
+        $config = $this->configuration();
 
-        $viewData = [];
-        $viewData['configuration'] = $config->only($config->getFillable());
-
-        return Inertia::render('admin/configurations/edit', compact('viewData'));
+        return Inertia::render('admin/configurations/edit', [
+            'viewData' => [
+                'configuration' => $config->only($config->getFillable()),
+            ],
+        ]);
     }
 
     public function update(AdminConfigurationUpdateRequest $request): RedirectResponse
     {
-        $config = Configuration::query()->first();
+        $this->configuration()->update($request->validated());
+
+        return to_route('dashboard.configurations.edit')->with('success', 'Configuración actualizada exitosamente.');
+    }
+
+    private function configuration(): Configuration
+    {
+        $config = Configuration::current();
         abort_if($config === null, 500, 'No existe el registro de configuración. Ejecute las migraciones (php artisan migrate).');
 
-        $config->update($request->validated());
-
-        return redirect()->route('dashboard.configurations.edit')->with('success', 'Configuración actualizada exitosamente.');
+        return $config;
     }
 }

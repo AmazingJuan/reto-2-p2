@@ -13,6 +13,8 @@ class AdminWelcomeBroadcastController extends Controller
 {
     private const MAX_RECIPIENTS = 500;
 
+    public function __construct(private readonly MailService $mail) {}
+
     public function create(): InertiaResponse
     {
         return Inertia::render('admin/welcome-broadcast/create', [
@@ -27,19 +29,19 @@ class AdminWelcomeBroadcastController extends Controller
         $parsed = $this->parseEmails($request->string('emails_text')->toString());
 
         if ($parsed['valid'] === []) {
-            return redirect()->back()->withInput()->withErrors([
+            return back()->withErrors([
                 'emails_text' => 'No se encontró ningún correo válido. Verifique el formato (ejemplo: nombre@empresa.com).',
             ]);
         }
 
         if (count($parsed['valid']) > self::MAX_RECIPIENTS) {
-            return redirect()->back()->withInput()->withErrors([
+            return back()->withErrors([
                 'emails_text' => 'Máximo '.self::MAX_RECIPIENTS.' correos por envío. Reduzca la lista e intente nuevamente.',
             ]);
         }
 
         foreach ($parsed['valid'] as $email) {
-            MailService::sendWelcomeEmail($email);
+            $this->mail->sendWelcome($email);
         }
 
         $sent = count($parsed['valid']);
@@ -53,7 +55,7 @@ class AdminWelcomeBroadcastController extends Controller
             $message .= ' Se omitieron '.$parsed['invalid_count'].' líneas sin correo válido (ej.: '.$sample.$more.').';
         }
 
-        return redirect()->route('dashboard.welcome-broadcast.create')->with('success', $message);
+        return to_route('dashboard.welcome-broadcast.create')->with('success', $message);
     }
 
     /**

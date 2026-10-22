@@ -1,11 +1,10 @@
 <?php
 
-
 namespace App\Api\Controllers;
 
-use Illuminate\Http\JsonResponse;
-use App\Models\QuotationProposalOrder;
 use App\Http\Controllers\Controller;
+use App\Models\QuotationProposalOrder;
+use Illuminate\Http\JsonResponse;
 
 class QuotationOrderApiController extends Controller
 {

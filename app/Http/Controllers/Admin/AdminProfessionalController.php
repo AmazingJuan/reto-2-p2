@@ -6,10 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AdminProfessionalRequest;
 use App\Models\GestionLine;
 use App\Models\Professional;
-use Exception;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -19,116 +18,76 @@ class AdminProfessionalController extends Controller
     {
         $search = $request->string('search')->trim()->toString();
 
-        $query = Professional::query()
+        $professionals = Professional::query()
             ->with('gestionLines:id,name')
-            ->orderBy('name');
+            ->search($search, ['name', 'summary'])
+            ->orderBy('name')
+            ->paginate(self::PER_PAGE)
+            ->withQueryString();
 
-        if ($search !== '') {
-            $like = '%'.$search.'%';
-            $query->where(function ($q) use ($like, $search) {
-                $q->where('name', 'like', $like)
-                    ->orWhere('summary', 'like', $like);
-                if (ctype_digit($search)) {
-                    $q->orWhere('id', (int) $search);
-                }
-            });
-        }
-
-        $viewData = [
-            'professionals' => $query->paginate(15)->withQueryString(),
-            'filters' => [
-                'search' => $search,
+        return Inertia::render('admin/professionals/index', [
+            'viewData' => [
+                'professionals' => $professionals,
+                'filters' => ['search' => $search],
             ],
-        ];
-
-        return Inertia::render('admin/professionals/index', compact('viewData'));
+        ]);
     }
 
     public function create(): InertiaResponse
     {
         return Inertia::render('admin/professionals/create', [
-            'gestionLines' => GestionLine::query()->orderBy('name')->get(['id', 'name']),
+            'gestionLines' => $this->gestionLineOptions(),
         ]);
     }
 
     public function store(AdminProfessionalRequest $request): RedirectResponse
     {
-        try {
-            $validated = $request->validated();
-            $lineIds = $validated['gestion_line_ids'];
-            unset($validated['gestion_line_ids']);
+        DB::transaction(function () use ($request) {
+            $professional = Professional::create($request->safe()->except('gestion_line_ids'));
+            $professional->gestionLines()->sync($request->validated('gestion_line_ids'));
+        });
 
-            $professional = Professional::create($validated);
-            $professional->gestionLines()->sync($lineIds);
-
-            return redirect()->route('dashboard.professionals.index')->with('success', 'Profesional creado correctamente.');
-        } catch (Exception $e) {
-            return redirect()->route('dashboard.professionals.index')->with('error', 'No se pudo crear el profesional.');
-        }
+        return to_route('dashboard.professionals.index')->with('success', 'Profesional creado correctamente.');
     }
 
-    public function show(int $id): InertiaResponse|RedirectResponse
+    public function show(Professional $professional): InertiaResponse
     {
-        try {
-            $professional = Professional::query()->with('gestionLines:id,name')->findOrFail($id);
-        } catch (ModelNotFoundException $e) {
-            return redirect()->route('dashboard.professionals.index')->with('error', 'Profesional no encontrado.');
-        }
-
         return Inertia::render('admin/professionals/show', [
             'viewData' => [
-                'professional' => $professional,
+                'professional' => $professional->load('gestionLines:id,name'),
             ],
         ]);
     }
 
-    public function edit(int $id): InertiaResponse|RedirectResponse
+    public function edit(Professional $professional): InertiaResponse
     {
-        try {
-            $professional = Professional::query()->with('gestionLines:id')->findOrFail($id);
-        } catch (ModelNotFoundException $e) {
-            return redirect()->route('dashboard.professionals.index')->with('error', 'Profesional no encontrado.');
-        }
-
         return Inertia::render('admin/professionals/edit', [
             'viewData' => [
-                'professional' => $professional,
+                'professional' => $professional->load('gestionLines:id'),
             ],
-            'gestionLines' => GestionLine::query()->orderBy('name')->get(['id', 'name']),
+            'gestionLines' => $this->gestionLineOptions(),
         ]);
     }
 
-    public function update(AdminProfessionalRequest $request, int $id): RedirectResponse
+    public function update(AdminProfessionalRequest $request, Professional $professional): RedirectResponse
     {
-        try {
-            $professional = Professional::findOrFail($id);
-        } catch (ModelNotFoundException $e) {
-            return redirect()->route('dashboard.professionals.index')->with('error', 'Profesional no encontrado.');
-        }
+        DB::transaction(function () use ($request, $professional) {
+            $professional->update($request->safe()->except('gestion_line_ids'));
+            $professional->gestionLines()->sync($request->validated('gestion_line_ids'));
+        });
 
-        try {
-            $validated = $request->validated();
-            $lineIds = $validated['gestion_line_ids'];
-            unset($validated['gestion_line_ids']);
-
-            $professional->update($validated);
-            $professional->gestionLines()->sync($lineIds);
-
-            return redirect()->route('dashboard.professionals.index')->with('success', 'Profesional actualizado correctamente.');
-        } catch (Exception $e) {
-            return redirect()->route('dashboard.professionals.edit', $id)->with('error', 'No se pudo actualizar el profesional.');
-        }
+        return to_route('dashboard.professionals.index')->with('success', 'Profesional actualizado correctamente.');
     }
 
-    public function destroy(int $id): RedirectResponse
+    public function destroy(Professional $professional): RedirectResponse
     {
-        try {
-            $professional = Professional::findOrFail($id);
-            $professional->delete();
+        $professional->delete();
 
-            return redirect()->route('dashboard.professionals.index')->with('success', 'Profesional eliminado.');
-        } catch (ModelNotFoundException $e) {
-            return redirect()->route('dashboard.professionals.index')->with('error', 'Profesional no encontrado.');
-        }
+        return to_route('dashboard.professionals.index')->with('success', 'Profesional eliminado.');
+    }
+
+    private function gestionLineOptions()
+    {
+        return GestionLine::query()->orderBy('name')->get(['id', 'name']);
     }
 }

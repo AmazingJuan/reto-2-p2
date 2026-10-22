@@ -3,11 +3,8 @@
 namespace App\Jobs;
 
 use App\Exports\ClientsExport;
-use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
+use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -16,7 +13,15 @@ use Throwable;
 
 class GenerateClientsExport implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Queueable;
+
+    public const STATUS_PENDING = 'pending';
+
+    public const STATUS_PROCESSING = 'processing';
+
+    public const STATUS_READY = 'ready';
+
+    public const STATUS_FAILED = 'failed';
 
     public const RETENTION_HOURS = 2;
 
@@ -30,17 +35,15 @@ class GenerateClientsExport implements ShouldQueue
 
     public function handle(): void
     {
-        $expiresAt = now()->addHours(self::RETENTION_HOURS);
-
-        Cache::put(self::statusKey($this->token), 'processing', $expiresAt);
+        self::markStatus($this->token, self::STATUS_PROCESSING);
 
         Storage::disk('local')->makeDirectory('exports');
 
         Excel::store(new ClientsExport($this->filters), self::relativePath($this->token), 'local');
 
-        Cache::put(self::statusKey($this->token), 'ready', $expiresAt);
+        self::markStatus($this->token, self::STATUS_READY);
 
-        DeleteClientsExportFile::dispatch($this->token)->delay($expiresAt);
+        DeleteClientsExportFile::dispatch($this->token)->delay(now()->addHours(self::RETENTION_HOURS));
     }
 
     public function failed(Throwable $exception): void
@@ -51,7 +54,7 @@ class GenerateClientsExport implements ShouldQueue
             'exception' => $exception,
         ]);
 
-        Cache::put(self::statusKey($this->token), 'failed', now()->addHours(self::RETENTION_HOURS));
+        self::markStatus($this->token, self::STATUS_FAILED);
     }
 
     public static function purge(string $token): void
@@ -63,6 +66,11 @@ class GenerateClientsExport implements ShouldQueue
         }
 
         Cache::forget(self::statusKey($token));
+    }
+
+    public static function markStatus(string $token, string $status): void
+    {
+        Cache::put(self::statusKey($token), $status, now()->addHours(self::RETENTION_HOURS));
     }
 
     public static function statusKey(string $token): string

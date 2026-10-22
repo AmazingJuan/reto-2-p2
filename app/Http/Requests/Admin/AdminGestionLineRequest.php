@@ -2,33 +2,29 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\GestionLine;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class AdminGestionLineRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return Auth::check();
+        return $this->user() !== null;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, mixed>
      */
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', Rule::unique(GestionLine::class)->ignore($this->route('gestionLine'))],
         ];
     }
 
     /**
-     * Mensajes de validación en español.
+     * @return array<string, string>
      */
     public function messages(): array
     {
@@ -36,6 +32,7 @@ class AdminGestionLineRequest extends FormRequest
             'name.required' => 'El nombre es obligatorio.',
             'name.string' => 'El nombre debe ser un texto.',
             'name.max' => 'El nombre no puede superar los 255 caracteres.',
+            'name.unique' => 'Ya existe una línea de gestión con ese nombre.',
         ];
     }
 }

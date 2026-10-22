@@ -2,10 +2,12 @@
 
 namespace App\Http\Requests;
 
-use App\Models\GestionLine;
 use App\Models\Professional;
+use App\Models\Service;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreQuotationProposal extends FormRequest
 {
@@ -20,7 +22,7 @@ class StoreQuotationProposal extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -31,12 +33,15 @@ class StoreQuotationProposal extends FormRequest
             'contact.email' => ['required', 'email', 'max:255'],
             'contact.phone' => ['required', 'string', 'max:30', 'regex:/^[0-9+\s().-]{7,30}$/'],
             'contact.role' => ['nullable', 'string', 'max:255'],
+            'privacy_accepted' => ['accepted'],
 
             'businessUnit' => ['required', 'string', 'max:255', Rule::exists('business_units', 'display_name')],
-            'gestionLine' => ['required', 'string', 'max:255'],
+            // A request may combine services from several lines of the unit.
+            'gestionLines' => ['required', 'array', 'min:1'],
+            'gestionLines.*' => ['required', 'string', 'distinct', Rule::exists('gestion_lines', 'name')],
 
             'services' => ['required', 'array', 'min:1'],
-            'services.*' => ['required', 'string', 'max:255'],
+            'services.*' => ['required', 'string', 'distinct', 'max:255'],
 
             'answers' => [
                 'required',
@@ -53,35 +58,45 @@ class StoreQuotationProposal extends FormRequest
             ],
             'answers.*' => ['required', 'string', 'max:1000'],
 
-            'professional_id' => [
-                'nullable',
-                'integer',
-                'exists:professionals,id',
-                function (string $attribute, mixed $value, \Closure $fail): void {
-                    if ($value === null || $value === '') {
-                        return;
-                    }
-                    $lineName = $this->input('gestionLine');
-                    if (! is_string($lineName) || trim($lineName) === '') {
-                        $fail('La línea de gestión no es válida.');
+            'professional_id' => ['nullable', 'integer', 'exists:professionals,id'],
+        ];
+    }
 
-                        return;
-                    }
-                    $line = GestionLine::query()->where('name', $lineName)->first();
-                    if ($line === null) {
-                        $fail('La línea de gestión no es válida.');
+    /**
+     * Cross-field checks: the services must be offered by the chosen unit in
+     * the chosen lines, and the professional must work in one of those lines.
+     *
+     * @return list<callable>
+     */
+    public function after(): array
+    {
+        return [
+            function (Validator $validator) {
+                if ($validator->errors()->isNotEmpty()) {
+                    return;
+                }
 
-                        return;
-                    }
-                    $allowed = Professional::query()
-                        ->whereKey((int) $value)
-                        ->whereHas('gestionLines', fn ($q) => $q->where('gestion_lines.id', $line->getId()))
-                        ->exists();
-                    if (! $allowed) {
-                        $fail('El profesional no está habilitado para esta línea de gestión.');
-                    }
-                },
-            ],
+                $lines = $this->input('gestionLines');
+                $services = $this->input('services');
+
+                $offered = Service::query()
+                    ->whereIn('name', $services)
+                    ->whereHas('businessUnit', fn ($q) => $q->where('display_name', $this->input('businessUnit')))
+                    ->whereHas('gestionLine', fn ($q) => $q->whereIn('name', $lines))
+                    ->count();
+
+                if ($offered !== count($services)) {
+                    $validator->errors()->add('services', 'Alguno de los servicios elegidos no está disponible. Recargue la página e intente de nuevo.');
+                }
+
+                $professionalId = $this->input('professional_id');
+                if ($professionalId !== null && ! Professional::query()
+                    ->whereKey($professionalId)
+                    ->whereHas('gestionLines', fn ($q) => $q->whereIn('name', $lines))
+                    ->exists()) {
+                    $validator->errors()->add('professional_id', 'El profesional no está habilitado para las líneas elegidas.');
+                }
+            },
         ];
     }
 
@@ -145,6 +160,7 @@ class StoreQuotationProposal extends FormRequest
     public function messages(): array
     {
         return [
+            'privacy_accepted.accepted' => 'Debe autorizar el tratamiento de sus datos para enviar la solicitud.',
             'contact.required' => 'El contacto es requerido.',
             'contact.array' => 'El contacto debe ser un objeto con nombre, email y teléfono.',
 
@@ -159,7 +175,8 @@ class StoreQuotationProposal extends FormRequest
             'contact.phone.regex' => 'Por favor ingresa un teléfono válido.',
 
             'businessUnit.required' => 'La unidad de negocio es requerida.',
-            'gestionLine.required' => 'La línea de gestión es requerida.',
+            'gestionLines.required' => 'Elija al menos una línea de gestión.',
+            'gestionLines.*.exists' => 'Alguna de las líneas de gestión no es válida.',
 
             'services.required' => 'Debe seleccionar al menos un servicio.',
             'services.array' => 'Los servicios deben enviarse como una lista.',
