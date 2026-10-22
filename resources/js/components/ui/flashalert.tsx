@@ -1,60 +1,47 @@
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, CheckCircle, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import type { PageProps } from '@/types';
+import { usePage } from '@inertiajs/react';
+import { AlertCircle, CheckCircle2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-interface FlashAlertProps {
-    flash: Record<string, unknown>;
-    duration?: number;
-}
+const AUTO_DISMISS_MS = 8000;
 
-export default function FlashAlert({ flash, duration = 5000 }: FlashAlertProps) {
-    const success = typeof flash.success === 'string' ? flash.success : null;
-    const error = typeof flash.error === 'string' ? flash.error : null;
-
-    const [visible, setVisible] = useState(false);
+/** Shows the session flash (success/error) of the current visit. */
+export default function FlashAlert() {
+    const { flash } = usePage<PageProps>().props;
+    const message = flash.error ?? flash.success ?? null;
+    const isError = Boolean(flash.error);
+    const [dismissed, setDismissed] = useState<string | null>(null);
 
     useEffect(() => {
-        if (flash.success || flash.error) {
-            setVisible(true);
-        }
-    }, [flash]);
-
-    // auto dismiss
-    useEffect(() => {
-        if (!visible) return;
-
-        const timer = setTimeout(() => {
-            setVisible(false);
-        }, duration);
-
+        setDismissed(null);
+        if (!message) return;
+        const timer = setTimeout(() => setDismissed(message), AUTO_DISMISS_MS);
         return () => clearTimeout(timer);
-    }, [visible, duration]);
+    }, [message, flash]);
 
-    if (!visible || (!success && !error)) return null;
+    if (!message || dismissed === message) return null;
 
-    if (success) {
-        return (
-            <Alert className="relative mb-6 border-emerald-200 bg-emerald-50 text-emerald-900">
-                <CheckCircle className="h-4 w-4" />
-                <AlertTitle>Éxito</AlertTitle>
-                <AlertDescription>{success}</AlertDescription>
-
-                <button onClick={() => setVisible(false)} className="absolute right-3 top-3 text-emerald-700 hover:opacity-70">
-                    <X className="h-4 w-4" />
-                </button>
-            </Alert>
-        );
-    }
+    const Icon = isError ? AlertCircle : CheckCircle2;
 
     return (
-        <Alert variant="destructive" className="relative mb-6 border-red-200 bg-red-50 text-red-900">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-
-            <button onClick={() => setVisible(false)} className="absolute right-3 top-3 hover:opacity-70">
-                <X className="h-4 w-4" />
+        <div
+            role={isError ? 'alert' : 'status'}
+            className={cn(
+                'animate-fade-in flex items-start gap-3 rounded-control border-2 px-4 py-3 text-base',
+                isError ? 'border-error/40 bg-red-50 text-error' : 'border-azul bg-nube text-tinta',
+            )}
+        >
+            <Icon className={cn('mt-0.5 h-5 w-5 shrink-0', isError ? 'text-error' : 'text-azul')} aria-hidden />
+            <p className="min-w-0 flex-1 font-semibold">{message}</p>
+            <button
+                type="button"
+                onClick={() => setDismissed(message)}
+                className="-m-1 rounded-control p-1 opacity-70 transition hover:opacity-100"
+                aria-label="Cerrar aviso"
+            >
+                <X className="h-4 w-4" aria-hidden />
             </button>
-        </Alert>
+        </div>
     );
 }

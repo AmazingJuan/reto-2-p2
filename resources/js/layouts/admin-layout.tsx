@@ -1,203 +1,230 @@
-import Footer from '@/components/admin/footer';
-import { Link, usePage } from '@inertiajs/react';
-import { Box, Contact, FileText, Home, Layers, Mail, Menu, Settings, Trees, UserCircle, Users, X } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
-import { route } from 'ziggy-js';
+import { BrandLogo } from '@/components/brand/brand-logo';
+import FlashAlert from '@/components/ui/flashalert';
+import { cn } from '@/lib/utils';
+import type { PageProps } from '@/types';
+import { Head, Link, usePage } from '@inertiajs/react';
+import {
+    BriefcaseBusiness,
+    Contact,
+    ExternalLink,
+    GitBranch,
+    LogOut,
+    Mail,
+    Menu,
+    ScrollText,
+    Settings,
+    UserCircle,
+    Users,
+    Workflow,
+    Wrench,
+    X,
+    type LucideIcon,
+} from 'lucide-react';
+import { useEffect, useState, type ReactNode } from 'react';
 
-interface AdminLayoutProps {
-    children: React.ReactNode;
-}
+type NavItem = { routeName: string; label: string; icon: LucideIcon; description: string };
+type NavGroup = { label: string; items: NavItem[] };
 
-const navItems = [
-    { to: route('dashboard.users.index'), label: 'Usuarios', icon: Users },
-    { to: route('dashboard.professionals.index'), label: 'Profesionales', icon: UserCircle },
-    { to: route('dashboard.business-unit.index'), label: 'Unidades de negocio', icon: Trees },
-    { to: route('dashboard.lines.index'), label: 'Líneas de gestión', icon: Layers },
-    { to: route('dashboard.services.index'), label: 'Servicios', icon: Box },
-    { to: route('dashboard.business-unit.decision-tree'), label: 'Árbol de decisión', icon: Trees },
-    { to: route('dashboard.quotation-orders.index'), label: 'Cotizaciones', icon: FileText },
-    { to: route('dashboard.clients.index'), label: 'Clientes', icon: Contact },
-    { to: route('dashboard.welcome-broadcast.create'), label: 'Correos de bienvenida', icon: Mail },
-    { to: route('dashboard.configurations.edit'), label: 'Configuración', icon: Settings },
+/** Single source for the sidebar and the dashboard shortcuts. */
+export const adminNavigation: NavGroup[] = [
+    {
+        label: 'Operación',
+        items: [
+            {
+                routeName: 'dashboard.quotation-orders.index',
+                label: 'Cotizaciones',
+                icon: ScrollText,
+                description: 'Solicitudes recibidas y su estado',
+            },
+            { routeName: 'dashboard.clients.index', label: 'Clientes', icon: Contact, description: 'Quién ha cotizado y su historial' },
+        ],
+    },
+    {
+        label: 'Catálogo',
+        items: [
+            {
+                routeName: 'dashboard.business-unit.index',
+                label: 'Unidades de negocio',
+                icon: BriefcaseBusiness,
+                description: 'Unidades y su código de cotización',
+            },
+            { routeName: 'dashboard.lines.index', label: 'Líneas de gestión', icon: GitBranch, description: 'Agrupan los servicios ofrecidos' },
+            { routeName: 'dashboard.services.index', label: 'Servicios', icon: Wrench, description: 'Servicios por unidad y línea' },
+            {
+                routeName: 'dashboard.business-unit.decision-tree',
+                label: 'Árbol de decisión',
+                icon: Workflow,
+                description: 'Preguntas del cotizador',
+            },
+            { routeName: 'dashboard.professionals.index', label: 'Profesionales', icon: UserCircle, description: 'Equipo asignable a cotizaciones' },
+        ],
+    },
+    {
+        label: 'Sistema',
+        items: [
+            { routeName: 'dashboard.users.index', label: 'Usuarios', icon: Users, description: 'Cuentas con acceso al panel' },
+            {
+                routeName: 'dashboard.welcome-broadcast.create',
+                label: 'Correos de bienvenida',
+                icon: Mail,
+                description: 'Invitar clientes a la plataforma',
+            },
+            { routeName: 'dashboard.configurations.edit', label: 'Configuración', icon: Settings, description: 'Notificaciones y datos de contacto' },
+        ],
+    },
 ];
 
-const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [isDesktop, setIsDesktop] = useState(() =>
-        typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)').matches : false,
-    );
-    const { url } = usePage();
-    const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+/** Active when the current URL is the item's path or nested below it. */
+function isActive(currentPath: string, routeName: string): boolean {
+    const path = new URL(route(routeName)).pathname;
+    return currentPath === path || currentPath.startsWith(`${path}/`);
+}
 
-    useEffect(() => {
-        const mq = window.matchMedia('(min-width: 768px)');
-        const onChange = () => {
-            setIsDesktop(mq.matches);
-            if (mq.matches) setSidebarOpen(false);
-        };
-        onChange();
-        mq.addEventListener('change', onChange);
-        return () => mq.removeEventListener('change', onChange);
-    }, []);
-
-    const openSidebar = () => {
-        setSidebarOpen(true);
-        // move focus into the sidebar for screen readers
-        setTimeout(() => {
-            const firstLink = document.querySelector('aside a');
-            (firstLink as HTMLElement | null)?.focus();
-        }, 50);
-    };
-
-    const closeSidebar = () => {
-        setSidebarOpen(false);
-        // return focus to the menu button to avoid leaving focus inside an aria-hidden element
-        setTimeout(() => {
-            menuButtonRef.current?.focus();
-        }, 0);
-    };
+function Sidebar({ currentPath, onNavigate }: { currentPath: string; onNavigate: () => void }) {
+    const { auth } = usePage<PageProps>().props;
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900">
-            <div className="flex min-w-0">
-                {/* Sidebar */}
-                <aside
-                    className={`fixed inset-y-0 left-0 z-40 flex w-64 max-w-[calc(100vw-1rem)] shrink-0 flex-col overflow-y-auto border-r border-slate-200 bg-white transition-transform duration-200 ease-in-out sm:max-w-none ${
-                        sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-                    }`}
-                    aria-hidden={isDesktop ? false : !sidebarOpen}
-                >
-                    <div className="flex min-h-0 flex-1 flex-col">
-                        <div>
-                            <div className="border-b p-4 sm:p-6">
-                                <div className="flex items-center justify-between">
-                                    <Link href={route('dashboard')} className="flex items-center gap-3">
-                                        <div className="rounded-md bg-blue-600 p-2 text-white">
-                                            <Home className="h-5 w-5" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-lg font-bold">Panel Admin</h3>
-                                            <p className="text-xs text-slate-500">Administración del sistema</p>
-                                        </div>
-                                    </Link>
-                                    <button
-                                        type="button"
-                                        aria-label="Cerrar menú"
-                                        onClick={closeSidebar}
-                                        className="rounded-md p-2 text-slate-500 hover:bg-slate-50 md:hidden"
-                                    >
-                                        <X className="h-5 w-5" />
-                                    </button>
-                                </div>
-                            </div>
+        <div className="flex h-full flex-col">
+            <Link href={route('dashboard')} onClick={onNavigate} className="block px-6 pb-6 pt-7">
+                <BrandLogo inverse />
+                <span className="mt-3 block font-display text-sm font-semibold text-niebla">Panel de cotizaciones</span>
+            </Link>
 
-                            <nav className="p-4">
-                                <ul className="space-y-1">
-                                    {navItems.map((item) => {
-                                        const Icon = item.icon;
-
-                                        const currentPath = (() => {
-                                            try {
-                                                return new URL(url ?? window.location.href).pathname;
-                                            } catch {
-                                                return url ?? window.location.pathname;
-                                            }
-                                        })();
-
-                                        const normalize = (to: string) => {
-                                            try {
-                                                return new URL(to, window.location.origin).pathname;
-                                            } catch {
-                                                return to as string;
-                                            }
-                                        };
-
-                                        const toPath = normalize(item.to as string);
-                                        const isActive = currentPath === toPath || currentPath.startsWith(toPath + '/');
-
-                                        return (
-                                            <li key={item.label}>
-                                                <Link
-                                                    href={item.to}
-                                                    onClick={() => setSidebarOpen(false)}
-                                                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
-                                                        isActive
-                                                            ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
-                                                            : 'hover:bg-slate-50 hover:text-blue-600'
-                                                    }`}
-                                                >
-                                                    <Icon className={`h-4 w-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
-                                                    <span>{item.label}</span>
-                                                </Link>
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                            </nav>
-                        </div>
+            <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-2" aria-label="Administración">
+                {adminNavigation.map((group) => (
+                    <div key={group.label}>
+                        <p className="px-3 pb-1.5 text-xs font-semibold text-bruma">{group.label}</p>
+                        <ul className="space-y-0.5">
+                            {group.items.map(({ routeName, label, icon: Icon }) => {
+                                const active = isActive(currentPath, routeName);
+                                return (
+                                    <li key={routeName}>
+                                        <Link
+                                            href={route(routeName)}
+                                            onClick={onNavigate}
+                                            aria-current={active ? 'page' : undefined}
+                                            className={cn(
+                                                'flex items-center gap-3 rounded-control px-3 py-2 font-display text-sm font-semibold transition-colors',
+                                                active ? 'bg-white/10 text-white' : 'text-linea hover:bg-white/5 hover:text-white',
+                                            )}
+                                        >
+                                            <Icon className={cn('h-4 w-4 shrink-0', active ? 'text-cielo' : 'text-bruma')} aria-hidden />
+                                            {label}
+                                        </Link>
+                                    </li>
+                                );
+                            })}
+                        </ul>
                     </div>
-                </aside>
+                ))}
+            </nav>
 
-                {/* Content area — ml matches fixed sidebar width on desktop */}
-                <div className="flex min-h-screen min-w-0 flex-1 flex-col md:ml-64">
-                    {/* Mobile topbar */}
-                    <header className="grid shrink-0 grid-cols-[2.75rem_1fr_2.75rem] items-center gap-1 border-b border-slate-200 bg-white px-2 py-2.5 supports-[padding:max(0px)]:pt-[max(0.625rem,env(safe-area-inset-top))] sm:grid-cols-[3rem_1fr_auto] sm:px-3 md:hidden">
-                        <button
-                            ref={menuButtonRef}
-                            type="button"
-                            onClick={openSidebar}
-                            className="justify-self-start rounded-lg p-2 text-slate-700 hover:bg-slate-100"
-                            aria-label="Abrir menú"
-                        >
-                            <Menu className="h-5 w-5" />
-                        </button>
-                        <Link
-                            href={route('dashboard')}
-                            className="min-w-0 justify-self-center truncate text-center text-sm font-semibold text-slate-900"
-                        >
-                            Panel Admin
-                        </Link>
-                        <div className="justify-self-end">
-                            {!route().current('dashboard') ? (
-                                <Link
-                                    href={route('dashboard')}
-                                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 sm:px-2.5"
-                                >
-                                    <Home className="h-4 w-4 shrink-0" />
-                                    Inicio
-                                </Link>
-                            ) : (
-                                <span className="inline-block w-10" aria-hidden />
-                            )}
-                        </div>
-                    </header>
-
-                    <main className="mx-auto w-full min-w-0 max-w-[100vw] flex-1 px-3 py-4 pb-28 sm:px-4 sm:py-5 sm:pb-32 md:px-6 md:py-6 md:pb-32">
-                        <div className="mb-4 hidden items-center justify-between md:flex md:mb-6">
-                            <div className="flex items-center gap-3">
-                                {!route().current('dashboard') && (
-                                    <Link
-                                        href={route('dashboard')}
-                                        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
-                                    >
-                                        <Home className="h-4 w-4" />
-                                        Volver al dashboard
-                                    </Link>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="min-w-0 space-y-4 sm:space-y-6">{children}</div>
-                    </main>
-                </div>
+            <div className="space-y-1 border-t border-white/10 p-3">
+                <a
+                    href={route('home')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 rounded-control px-3 py-2 font-display text-sm font-semibold text-niebla transition-colors hover:bg-white/5 hover:text-white"
+                >
+                    <ExternalLink className="h-4 w-4 text-bruma" aria-hidden />
+                    Ver sitio público
+                </a>
+                <Link
+                    href={route('logout')}
+                    method="post"
+                    as="button"
+                    className="flex w-full items-center gap-3 rounded-control px-3 py-2 text-left font-display text-sm font-semibold text-niebla transition-colors hover:bg-white/5 hover:text-white"
+                >
+                    <LogOut className="h-4 w-4 text-bruma" aria-hidden />
+                    <span className="min-w-0 flex-1">
+                        Cerrar sesión
+                        {auth.user && <span className="block truncate font-sans text-xs font-normal text-bruma">{auth.user.email}</span>}
+                    </span>
+                </Link>
             </div>
-
-            {/** Overlay for mobile when sidebar is open */}
-            {sidebarOpen && <div className="fixed inset-0 z-30 bg-black/40 md:hidden" onClick={closeSidebar} />}
-
-            <Footer />
         </div>
     );
+}
+
+type AdminLayoutProps = {
+    children: ReactNode;
+    /** Browser tab title. */
+    title?: string;
 };
 
-export default AdminLayout;
+export default function AdminLayout({ children, title }: AdminLayoutProps) {
+    const { url } = usePage();
+    const currentPath = url.split('?')[0];
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    useEffect(() => {
+        if (!sidebarOpen) return;
+        const onKeyDown = (event: KeyboardEvent) => event.key === 'Escape' && setSidebarOpen(false);
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [sidebarOpen]);
+
+    return (
+        <div className="min-h-screen bg-nube text-tinta">
+            {title && <Head title={title} />}
+
+            <a
+                href="#contenido"
+                className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-control focus:bg-white focus:px-4 focus:py-2 focus:shadow"
+            >
+                Saltar al contenido
+            </a>
+
+            {/* Desktop sidebar */}
+            <aside className="field-noche fixed inset-y-0 left-0 z-30 hidden w-64 lg:block">
+                <Sidebar currentPath={currentPath} onNavigate={() => undefined} />
+            </aside>
+
+            {/* Mobile drawer */}
+            {sidebarOpen && (
+                <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label="Menú">
+                    <button type="button" className="absolute inset-0 bg-noche/50" aria-label="Cerrar menú" onClick={() => setSidebarOpen(false)} />
+                    <aside className="animate-slide-in-left relative h-full w-72 max-w-[85vw] bg-noche shadow-xl">
+                        <button
+                            type="button"
+                            onClick={() => setSidebarOpen(false)}
+                            className="absolute right-3 top-5 rounded-control p-1.5 text-gris-marca hover:bg-white/10 hover:text-white"
+                            aria-label="Cerrar menú"
+                        >
+                            <X className="h-5 w-5" aria-hidden />
+                        </button>
+                        <Sidebar currentPath={currentPath} onNavigate={() => setSidebarOpen(false)} />
+                    </aside>
+                </div>
+            )}
+
+            <div className="flex min-h-screen min-w-0 flex-col lg:pl-64">
+                <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-linea bg-white/90 px-4 py-3 backdrop-blur lg:hidden">
+                    <button
+                        type="button"
+                        onClick={() => setSidebarOpen(true)}
+                        className="rounded-control p-2 text-tinta hover:bg-nube"
+                        aria-label="Abrir menú"
+                        aria-expanded={sidebarOpen}
+                    >
+                        <Menu className="h-5 w-5" aria-hidden />
+                    </button>
+                    <Link href={route('dashboard')} className="text-sm font-semibold text-tinta">
+                        Panel de cotizaciones
+                    </Link>
+                </header>
+
+                <main id="contenido" className="w-full min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
+                    <div className="mx-auto mb-5 w-full max-w-7xl empty:hidden">
+                        <FlashAlert />
+                    </div>
+                    {children}
+                </main>
+
+                <footer className="border-t border-linea px-4 py-5 text-center text-xs text-pizarra sm:px-6 lg:px-10">
+                    © {new Date().getFullYear()} Training Corporation. Todos los derechos reservados.
+                </footer>
+            </div>
+        </div>
+    );
+}
