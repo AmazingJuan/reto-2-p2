@@ -25,7 +25,7 @@ class ClientsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
 
     private const FIRST_DATA_ROW = 6;
 
-    private const LAST_COLUMN = 'H';
+    private const LAST_COLUMN = 'J';
 
     // Brand palette
     private const COLOR_PRIMARY = '0473C2';   // logo blue (title + header band)
@@ -69,7 +69,9 @@ class ClientsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
         return [
             'ID',
             'Nombre',
-            'Empresa',
+            'Razón social',
+            'NIT',
+            'Actividad económica',
             'Cargo',
             'Correo electrónico',
             'Teléfono',
@@ -90,6 +92,8 @@ class ClientsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             $client->getId(),
             $client->getName(),
             $client->getCompany() ?: '—',
+            $client->getNit() ?: '—',
+            $client->getEconomicActivity() ?: '—',
             $client->getRole() ?: '—',
             $client->getEmail(),
             $client->getPhone() ?: '—',
@@ -107,11 +111,13 @@ class ClientsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
             'A' => 8,
             'B' => 26,
             'C' => 24,
-            'D' => 26,
-            'E' => 34,
-            'F' => 20,
-            'G' => 14,
-            'H' => 18,
+            'D' => 16,
+            'E' => 24,
+            'F' => 26,
+            'G' => 34,
+            'H' => 20,
+            'I' => 14,
+            'J' => 18,
         ];
     }
 
@@ -199,7 +205,7 @@ class ClientsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
                     // Center the ID, count and date columns
                     $sheet->getStyle('A'.self::FIRST_DATA_ROW.':A'.$lastDataRow)
                         ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                    $sheet->getStyle('G'.self::FIRST_DATA_ROW.':H'.$lastDataRow)
+                    $sheet->getStyle('I'.self::FIRST_DATA_ROW.':J'.$lastDataRow)
                         ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
                     // Zebra striping on even rows

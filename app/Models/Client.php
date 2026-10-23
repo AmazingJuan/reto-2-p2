@@ -13,7 +13,7 @@ class Client extends Model
     use Searchable;
 
     /** Columns matched by the free-text search (also used by quotation orders). */
-    public const SEARCHABLE_COLUMNS = ['name', 'email', 'company', 'phone', 'role'];
+    public const SEARCHABLE_COLUMNS = ['name', 'email', 'company', 'nit', 'phone', 'role'];
 
     /**
      * Attributes:
@@ -24,6 +24,9 @@ class Client extends Model
      * $this->attributes['company'] - string|null - Company the client represents
      * $this->attributes['phone'] - string - Contact phone number
      * $this->attributes['role'] - string|null - Role/position of the client
+     * $this->attributes['nit'] - string|null - Tax id (NIT) of the company
+     * $this->attributes['economic_activity'] - string|null - Economic activity of the company
+     * $this->attributes['address'] - string|null - Address of the company
      * $this->attributes['created_at'] - Carbon - Record creation timestamp
      * $this->attributes['updated_at'] - Carbon - Record last update timestamp
      */
@@ -39,6 +42,9 @@ class Client extends Model
         'company',
         'phone',
         'role',
+        'nit',
+        'economic_activity',
+        'address',
     ];
 
     /*
@@ -105,7 +111,7 @@ class Client extends Model
      * Find the client by e-mail (case-insensitive) or create it, refreshing the
      * contact data with the latest values provided.
      *
-     * @param  array{name:string, email:string, company?:string|null, phone?:string|null, role?:string|null}  $contact
+     * @param  array{name:string, email:string, company?:string|null, phone?:string|null, role?:string|null, nit?:string|null, economic_activity?:string|null, address?:string|null}  $contact
      */
     public static function upsertFromContact(array $contact): self
     {
@@ -118,6 +124,9 @@ class Client extends Model
                 'company' => $blankToNull($contact['company'] ?? null),
                 'phone' => $blankToNull($contact['phone'] ?? null),
                 'role' => $blankToNull($contact['role'] ?? null),
+                'nit' => $blankToNull($contact['nit'] ?? null),
+                'economic_activity' => $blankToNull($contact['economic_activity'] ?? null),
+                'address' => $blankToNull($contact['address'] ?? null),
             ],
         );
     }
@@ -176,6 +185,21 @@ class Client extends Model
     public function getRole(): ?string
     {
         return $this->attributes['role'] ?? null;
+    }
+
+    public function getNit(): ?string
+    {
+        return $this->attributes['nit'] ?? null;
+    }
+
+    public function getEconomicActivity(): ?string
+    {
+        return $this->attributes['economic_activity'] ?? null;
+    }
+
+    public function getAddress(): ?string
+    {
+        return $this->attributes['address'] ?? null;
     }
 
     public function setRole(?string $value): void

@@ -21,7 +21,10 @@
       <td>
         <h3 style="margin:0 0 8px 0; font-size:15px; font-weight:bold; color:#1f2937;">Contacto</h3>
         <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Nombre:</strong> {{ $contact?->name ?? '—' }}</p>
-        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Empresa:</strong> {{ $contact?->company ?? '—' }}</p>
+        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Razón social:</strong> {{ $contact?->company ?? '—' }}</p>
+        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>NIT:</strong> {{ $contact?->nit ?? '—' }}</p>
+        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Actividad económica:</strong> {{ $contact?->economic_activity ?? '—' }}</p>
+        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Dirección:</strong> {{ $contact?->address ?? '—' }}</p>
         <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Cargo:</strong> {{ $contact?->role ?? '—' }}</p>
         <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Email:</strong> {{ $contact?->email ?? '—' }}</p>
         <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Teléfono:</strong> {{ $contact?->phone ?? '—' }}</p>
@@ -29,4 +32,5 @@
       </td>
     </tr>
   </table>
+
 @endsection
