@@ -6,7 +6,6 @@ use App\Http\Controllers\Admin\AdminConfigurationController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDecisionTreeController;
 use App\Http\Controllers\Admin\AdminGestionLineController;
-use App\Http\Controllers\Admin\AdminProfessionalController;
 use App\Http\Controllers\Admin\AdminQuotationOrderController;
 use App\Http\Controllers\Admin\AdminServiceController;
 use App\Http\Controllers\Admin\AdminUserController;
@@ -15,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('dashboard')
     ->middleware(['auth', 'verified'])
-    ->whereNumber(['user', 'service', 'professional', 'gestionLine', 'client', 'businessUnit', 'condition'])
+    ->whereNumber(['user', 'service', 'gestionLine', 'client', 'businessUnit', 'condition'])
     ->group(function () {
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
 
@@ -34,15 +33,6 @@ Route::prefix('dashboard')
         Route::get('/servicios/{service}/editar', [AdminServiceController::class, 'edit'])->name('dashboard.services.edit');
         Route::put('/servicios/{service}', [AdminServiceController::class, 'update'])->name('dashboard.services.update');
         Route::delete('/servicios/{service}', [AdminServiceController::class, 'destroy'])->name('dashboard.services.delete');
-
-        // Profesionales
-        Route::get('/profesionales', [AdminProfessionalController::class, 'index'])->name('dashboard.professionals.index');
-        Route::get('/profesionales/crear', [AdminProfessionalController::class, 'create'])->name('dashboard.professionals.create');
-        Route::post('/profesionales', [AdminProfessionalController::class, 'store'])->name('dashboard.professionals.store');
-        Route::get('/profesionales/{professional}', [AdminProfessionalController::class, 'show'])->name('dashboard.professionals.show');
-        Route::get('/profesionales/{professional}/editar', [AdminProfessionalController::class, 'edit'])->name('dashboard.professionals.edit');
-        Route::put('/profesionales/{professional}', [AdminProfessionalController::class, 'update'])->name('dashboard.professionals.update');
-        Route::delete('/profesionales/{professional}', [AdminProfessionalController::class, 'destroy'])->name('dashboard.professionals.delete');
 
         // Líneas de gestión
         Route::get('/lineas-gestion', [AdminGestionLineController::class, 'index'])->name('dashboard.lines.index');
