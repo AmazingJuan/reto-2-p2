@@ -5,6 +5,9 @@ export interface ClientSummary {
     company?: string | null;
     phone?: string | null;
     role?: string | null;
+    nit?: string | null;
+    economic_activity?: string | null;
+    address?: string | null;
 }
 
 export interface QuotationOrder {
@@ -13,7 +16,6 @@ export interface QuotationOrder {
     client: ClientSummary | null;
     business_unit: string;
     gestion_line?: string | null;
-    professional?: { id: number; name: string; summary: string; years_experience: number } | null;
     services?: string[];
     answers?: Record<string, string>;
     is_generated: boolean;

@@ -17,8 +17,6 @@ type Quotation = {
     id: string;
     quotation_code: string | null;
     business_unit: string;
-    gestion_line: string | null;
-    services_count: number;
     is_generated: boolean;
     created_at: string | null;
 };
@@ -71,7 +69,10 @@ export default function Show() {
                                     '—'
                                 ),
                             },
-                            { label: 'Empresa', value: orDash(client.company) },
+                            { label: 'Razón social', value: orDash(client.company) },
+                            { label: 'NIT', value: orDash(client.nit) },
+                            { label: 'Actividad económica', value: orDash(client.economic_activity) },
+                            { label: 'Dirección', value: orDash(client.address) },
                             { label: 'Cargo', value: orDash(client.role) },
                             { label: 'Cliente desde', value: formatDate(client.first_quotation_at) },
                         ]}
@@ -109,15 +110,7 @@ export default function Show() {
                     </div>
 
                     <DataTable
-                        columns={[
-                            { label: 'Código' },
-                            { label: 'Unidad' },
-                            { label: 'Línea de gestión' },
-                            { label: 'Servicios', align: 'center' },
-                            { label: 'Estado' },
-                            { label: 'Fecha' },
-                            { label: '', align: 'center' },
-                        ]}
+                        columns={[{ label: 'Código' }, { label: 'Unidad' }, { label: 'Estado' }, { label: 'Fecha' }, { label: '', align: 'center' }]}
                         minWidth="48rem"
                         isEmpty={visible.length === 0}
                         emptyMessage="No hay cotizaciones en esta vista."
@@ -133,8 +126,6 @@ export default function Show() {
                                     </Link>
                                 </td>
                                 <td className={adminTableTdClass}>{quotation.business_unit}</td>
-                                <td className={adminTableTdClass}>{orDash(quotation.gestion_line)}</td>
-                                <td className={cn(adminTableTdClass, 'text-center tabular-nums')}>{quotation.services_count}</td>
                                 <td className={adminTableTdClass}>
                                     <QuotationStatusBadge generated={quotation.is_generated} />
                                 </td>
