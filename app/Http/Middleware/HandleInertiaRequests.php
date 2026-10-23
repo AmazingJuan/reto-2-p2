@@ -32,6 +32,8 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
+                // Confirmation shown by the quote page itself: {code, email}.
+                'quotation_sent' => $request->session()->get('quotation_sent'),
             ],
         ];
     }

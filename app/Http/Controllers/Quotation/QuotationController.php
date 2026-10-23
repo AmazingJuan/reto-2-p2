@@ -6,10 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreQuotationProposal;
 use App\Models\BusinessUnit;
 use App\Models\Client;
-use App\Models\GestionLine;
-use App\Models\Professional;
 use App\Models\QuotationProposalOrder;
-use App\Models\Service;
 use App\Services\DecisionTreeService;
 use App\Services\MailService;
 use Illuminate\Http\RedirectResponse;
@@ -28,19 +25,7 @@ class QuotationController extends Controller
     public function selectBusinessUnit(): InertiaResponse
     {
         return Inertia::render('business-units/select', [
-            'viewData' => [
-                // Units without services can't be quoted, so they aren't offered.
-                'businessUnits' => BusinessUnit::query()
-                    ->whereHas('services')
-                    ->withCount('services')
-                    ->orderBy('display_name')
-                    ->get(['id', 'name', 'display_name'])
-                    ->map(fn (BusinessUnit $unit) => [
-                        'name' => $unit->getName(),
-                        'display_name' => $unit->getDisplayName(),
-                        'services_count' => $unit->services_count,
-                    ]),
-            ],
+            'viewData' => ['businessUnits' => $this->quotableUnits()],
         ]);
     }
 
@@ -52,19 +37,6 @@ class QuotationController extends Controller
             return $this->backToSelection('No hay ninguna unidad de negocio con ese nombre.');
         }
 
-        $servicesByLine = Service::query()
-            ->where('business_unit_id', $businessUnit->getId())
-            ->with('gestionLine:id,name')
-            ->orderBy('name')
-            ->get(['id', 'name', 'gestion_line_id'])
-            ->groupBy(fn (Service $service) => $service->getGestionLine()->getName())
-            ->sortKeys()
-            ->map(fn ($services) => $services->map(fn (Service $service) => $service->getName())->values());
-
-        if ($servicesByLine->isEmpty()) {
-            return $this->backToSelection('No existen servicios configurados para esta unidad de negocio.');
-        }
-
         $conditions = $this->trees->reachableTree($businessUnit);
 
         if ($conditions === []) {
@@ -74,11 +46,11 @@ class QuotationController extends Controller
         return Inertia::render('quotation/index', [
             'viewData' => [
                 'businessUnit' => $businessUnit->getDisplayName(),
-                'gestionLines' => $servicesByLine->keys(),
-                'services' => $servicesByLine,
+                'unit' => $businessUnit->getName(),
+                // The other units, to switch between them as in the corporate site's service explorer.
+                'units' => $this->quotableUnits(),
                 'conditions' => $conditions,
                 'initial_condition_id' => $businessUnit->initial_condition_id,
-                'professionalsByGestionLine' => $this->professionalsByLine($servicesByLine->keys()->all()),
             ],
         ]);
     }
@@ -86,6 +58,12 @@ class QuotationController extends Controller
     public function storeQuotationProposal(StoreQuotationProposal $request): RedirectResponse
     {
         $data = $request->validated();
+        $sent = fn (?string $code) => back()->with('quotation_sent', ['code' => $code, 'email' => $data['contact']['email']]);
+
+        // Honeypot: only bots fill the hidden field. They get the usual answer, but nothing is stored.
+        if (filled($data['web'] ?? null)) {
+            return $sent(null);
+        }
 
         $order = DB::transaction(function () use ($data) {
             $businessUnit = BusinessUnit::query()->where('display_name', $data['businessUnit'])->firstOrFail();
@@ -93,17 +71,17 @@ class QuotationController extends Controller
             return QuotationProposalOrder::create([
                 'quotation_code' => $businessUnit->lockAndAllocateNextQuotationCode(),
                 'client_id' => Client::upsertFromContact($data['contact'])->getId(),
-                'services' => $data['services'],
+                // The client no longer picks services: the request is the encuadre (answers).
+                'services' => [],
                 'business_unit' => $data['businessUnit'],
-                'gestion_line' => implode(', ', $data['gestionLines']),
                 'answers' => $data['answers'],
-                'professional_id' => $data['professional_id'] ?? null,
             ]);
         });
 
         $this->mail->sendQuotationPending($order);
 
-        return to_route('home')->with('success', 'Su cotización ha sido procesada exitosamente.');
+        // The page itself confirms it (with the request's code), as the corporate contact form does.
+        return $sent($order->getQuotationCode());
     }
 
     /**
@@ -131,25 +109,17 @@ class QuotationController extends Controller
     }
 
     /**
-     * Professionals per gestion line, anonymised (id + experience only).
+     * Units with a questionnaire, the only ones that can be quoted.
      *
-     * @param  list<string>  $lineNames
-     * @return array<string, list<array{id:int, years_experience:int}>>
+     * @return list<array{name: string, display_name: string}>
      */
-    private function professionalsByLine(array $lineNames): array
+    private function quotableUnits(): array
     {
-        return GestionLine::query()
-            ->whereIn('name', $lineNames)
-            ->with(['professionals' => fn ($query) => $query
-                ->select('professionals.id', 'professionals.years_experience')
-                ->orderBy('professionals.years_experience')
-                ->orderBy('professionals.id')])
-            ->get()
-            ->mapWithKeys(fn (GestionLine $line) => [
-                $line->getName() => $line->professionals
-                    ->map(fn (Professional $professional) => $professional->only('id', 'years_experience'))
-                    ->all(),
-            ])
+        return BusinessUnit::query()
+            ->whereNotNull('initial_condition_id')
+            ->orderBy('display_name')
+            ->get(['id', 'name', 'display_name'])
+            ->map(fn (BusinessUnit $unit) => ['name' => $unit->getName(), 'display_name' => $unit->getDisplayName()])
             ->all();
     }
 

@@ -18,8 +18,8 @@ class QuotationProposalOrder extends Model
      * $this->attributes['id'] - string - UUID primary key
      * $this->attributes['client_id'] - int|null - FK referencing the client that owns the quotation
      * $this->attributes['business_unit'] - string - Business unit associated with the quotation
-     * $this->attributes['gestion_line'] - string - String referencing to a gestion line name
-     * $this->attributes['services'] - array - JSON-encoded list of services included in the quotation
+     * $this->attributes['gestion_line'] - string|null - Gestion line(s) of the services picked (legacy requests)
+     * $this->attributes['services'] - array - Services picked from the catalog (legacy requests; empty since the encuadre)
      * $this->attributes['answers'] - array - JSON-encoded list of answers provided in the quotation form
      * $this->attributes['quotation_url'] - string|null - URL of the generated quotation document
      */
@@ -36,7 +36,6 @@ class QuotationProposalOrder extends Model
         'gestion_line',
         'services',
         'answers',
-        'professional_id',
         'is_generated',
         'viewed_by_client',
         'quotation_url',
@@ -53,11 +52,6 @@ class QuotationProposalOrder extends Model
         'is_generated' => 'boolean',
         'viewed_by_client' => 'boolean',
     ];
-
-    public function professional(): BelongsTo
-    {
-        return $this->belongsTo(Professional::class);
-    }
 
     public function client(): BelongsTo
     {
@@ -114,10 +108,10 @@ class QuotationProposalOrder extends Model
         $this->attributes['business_unit'] = $value;
     }
 
-    // Gestion Line
-    public function getGestionLine(): string
+    // Gestion Line (only on requests made when the client picked services)
+    public function getGestionLine(): ?string
     {
-        return $this->attributes['gestion_line'];
+        return $this->attributes['gestion_line'] ?? null;
     }
 
     public function setGestionLine(string $value): void

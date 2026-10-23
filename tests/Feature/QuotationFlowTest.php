@@ -9,9 +9,9 @@ use App\Models\Client;
 use App\Models\Condition;
 use App\Models\Configuration;
 use App\Models\GestionLine;
-use App\Models\Professional;
 use App\Models\QuotationProposalOrder;
 use App\Models\Service;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
@@ -47,9 +47,37 @@ class QuotationFlowTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('quotation/index')
                 ->where('viewData.businessUnit', 'Consultoría')
-                ->where('viewData.services.Calidad', ['ISO 9001'])
-                ->where('viewData.gestionLines', ['Activos', 'Calidad'])
+                ->missing('viewData.services')
                 ->has('viewData.conditions', 2));
+    }
+
+    public function test_units_are_offered_when_they_have_a_questionnaire_even_without_services(): void
+    {
+        $noServices = BusinessUnit::create(['name' => 'formacion', 'display_name' => 'Formación', 'abbreviation' => 'FOR']);
+        $noServices->update(['initial_condition_id' => Condition::create(['label' => 'Tema', 'interaction_type' => 'input', 'type' => 'text', 'business_unit_id' => $noServices->id])->id]);
+        BusinessUnit::create(['name' => 'vacia', 'display_name' => 'Vacía', 'abbreviation' => 'VAC']);
+
+        $this->get(route('quotation.select.business_unit'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('viewData.businessUnits', [
+                    ['name' => 'consultoria', 'display_name' => 'Consultoría'],
+                    ['name' => 'formacion', 'display_name' => 'Formación'],
+                ]));
+
+        $this->get('/cotizar/formacion')->assertOk();
+        $this->get('/cotizar/vacia')->assertRedirect(route('quotation.select.business_unit'));
+    }
+
+    public function test_the_professional_choice_no_longer_exists(): void
+    {
+        $this->get('/cotizar/consultoria')->assertInertia(fn (Assert $page) => $page->missing('viewData.professionals'));
+
+        $this->actingAs(User::factory()->create());
+        $this->get('/dashboard/profesionales')->assertNotFound();
+
+        Mail::fake();
+        $this->post('/cotizar', $this->payload(['professional_id' => 1]))->assertSessionHasNoErrors();
+        $this->assertArrayNotHasKey('professional_id', QuotationProposalOrder::sole()->getAttributes());
     }
 
     public function test_unknown_business_unit_redirects_with_error(): void
@@ -64,57 +92,20 @@ class QuotationFlowTest extends TestCase
         Mail::fake();
         Configuration::query()->update(['notification_email' => 'admin@example.com']);
 
-        $this->post('/cotizar', $this->payload())->assertRedirect(route('home'));
+        $this->from('/cotizar/consultoria')->post('/cotizar', $this->payload())
+            ->assertRedirect('/cotizar/consultoria')
+            ->assertSessionHas('quotation_sent', ['code' => 'CON-'.now()->format('y').'01', 'email' => 'ana@empresa.com']);
 
         $order = QuotationProposalOrder::sole();
         $this->assertSame('CON-'.now()->format('y').'01', $order->getQuotationCode());
         $this->assertSame(['Sector' => 'Salud', 'Empleados' => '40'], $order->getAnswers());
+        $this->assertSame([], $order->getServices());
+        $this->assertNull($order->getGestionLine());
         $this->assertSame('ana@empresa.com', $order->getClient()->getEmail());
         $this->assertSame('3001234567', $order->getClient()->getPhone());
 
         Mail::assertQueued(QuotationPending::class, fn ($mail) => $mail->hasTo('ana@empresa.com'));
         Mail::assertQueued(QuotationPendingAdmin::class, fn ($mail) => $mail->hasTo('admin@example.com'));
-    }
-
-    public function test_a_request_can_combine_services_from_several_lines(): void
-    {
-        Mail::fake();
-
-        $this->post('/cotizar', $this->payload([
-            'gestionLines' => ['Calidad', 'Activos'],
-            'services' => ['ISO 9001', 'ISO 55001'],
-        ]))->assertSessionHasNoErrors();
-
-        $order = QuotationProposalOrder::sole();
-        $this->assertSame('Calidad, Activos', $order->getGestionLine());
-        $this->assertSame(['ISO 9001', 'ISO 55001'], $order->getServices());
-    }
-
-    public function test_services_must_belong_to_the_unit_and_lines(): void
-    {
-        $other = BusinessUnit::create(['name' => 'otra', 'display_name' => 'Otra', 'abbreviation' => 'OT']);
-        Service::create(['name' => 'Ajeno', 'business_unit_id' => $other->id, 'gestion_line_id' => GestionLine::where('name', 'Calidad')->value('id')]);
-
-        $this->post('/cotizar', $this->payload(['services' => ['ISO 9001', 'Ajeno']]))->assertSessionHasErrors('services');
-        $this->post('/cotizar', $this->payload(['services' => ['ISO 55001']]))->assertSessionHasErrors('services');
-        $this->post('/cotizar', $this->payload(['services' => ['Inventado']]))->assertSessionHasErrors('services');
-
-        $this->assertSame(0, QuotationProposalOrder::count());
-    }
-
-    public function test_professional_must_work_in_one_of_the_lines(): void
-    {
-        $professional = Professional::create(['name' => 'Ana', 'summary' => 'x', 'years_experience' => 5]);
-        $professional->gestionLines()->sync([GestionLine::where('name', 'Activos')->value('id')]);
-
-        $this->post('/cotizar', $this->payload(['professional_id' => $professional->id]))->assertSessionHasErrors('professional_id');
-
-        Mail::fake();
-        $this->post('/cotizar', $this->payload([
-            'gestionLines' => ['Calidad', 'Activos'],
-            'services' => ['ISO 9001', 'ISO 55001'],
-            'professional_id' => $professional->id,
-        ]))->assertSessionHasNoErrors();
     }
 
     public function test_privacy_authorization_is_required(): void
@@ -129,11 +120,58 @@ class QuotationFlowTest extends TestCase
         Mail::fake();
 
         $this->post('/cotizar', $this->payload());
-        $this->post('/cotizar', $this->payload(['contact' => ['name' => 'Ana María', 'email' => 'ANA@empresa.com', 'phone' => '300 123 4567']]));
+        $this->post('/cotizar', $this->payload(['contact' => ['name' => 'Ana María', 'email' => 'ANA@empresa.com', 'phone' => '300 123 4567', 'company' => 'Clínica Sana']]));
 
         $this->assertSame(1, Client::count());
         $this->assertSame('Ana María', Client::sole()->getName());
         $this->assertSame(2, QuotationProposalOrder::count());
+    }
+
+    public function test_company_name_is_required(): void
+    {
+        $this->post('/cotizar', $this->payload(['contact' => ['name' => 'Ana', 'email' => 'ana@empresa.com', 'phone' => '3001234567', 'company' => '']]))
+            ->assertSessionHasErrors('contact.company');
+
+        $this->assertSame(0, QuotationProposalOrder::count());
+    }
+
+    public function test_client_data_of_the_encuadre_is_stored(): void
+    {
+        Mail::fake();
+
+        $this->post('/cotizar', $this->payload([
+            'contact' => [
+                'name' => 'Ana', 'email' => 'ana@empresa.com', 'phone' => '3001234567', 'company' => 'Clínica Sana', 'role' => 'Coordinadora HSEQ',
+                'nit' => '900123456-7', 'economic_activity' => 'Salud', 'address' => 'Calle 10 # 20-30, Medellín',
+            ],
+        ]))->assertSessionHasNoErrors();
+
+        $client = QuotationProposalOrder::sole()->getClient();
+        $this->assertSame('Clínica Sana', $client->getCompany());
+        $this->assertSame('900123456-7', $client->getNit());
+        $this->assertSame('Salud', $client->getEconomicActivity());
+        $this->assertSame('Calle 10 # 20-30, Medellín', $client->getAddress());
+        $this->assertSame('Coordinadora HSEQ', $client->getRole());
+    }
+
+    public function test_the_honeypot_answers_like_a_real_request_but_stores_nothing(): void
+    {
+        Mail::fake();
+
+        $this->from('/cotizar/consultoria')->post('/cotizar', $this->payload(['web' => 'https://spam.example']))
+            ->assertRedirect('/cotizar/consultoria')
+            ->assertSessionHas('quotation_sent', ['code' => null, 'email' => 'ana@empresa.com']);
+
+        $this->assertSame(0, QuotationProposalOrder::count());
+        $this->assertSame(0, Client::count());
+        Mail::assertNothingQueued();
+    }
+
+    public function test_quote_page_lists_the_units_for_the_tabs(): void
+    {
+        $this->get('/cotizar/consultoria')->assertInertia(fn (Assert $page) => $page
+            ->where('viewData.unit', 'consultoria')
+            ->where('viewData.units', [['name' => 'consultoria', 'display_name' => 'Consultoría']]));
     }
 
     public function test_receive_link_requires_a_valid_signature(): void
@@ -164,10 +202,8 @@ class QuotationFlowTest extends TestCase
     private function payload(array $overrides = []): array
     {
         return array_replace([
-            'contact' => ['name' => 'Ana', 'email' => 'ana@empresa.com', 'phone' => '300 123 4567', 'company' => '', 'role' => ''],
+            'contact' => ['name' => 'Ana', 'email' => 'ana@empresa.com', 'phone' => '300 123 4567', 'company' => 'Clínica Sana', 'role' => ''],
             'businessUnit' => 'Consultoría',
-            'gestionLines' => ['Calidad'],
-            'services' => ['ISO 9001'],
             'answers' => ['Sector' => 'Salud', 'Empleados' => '40'],
             'privacy_accepted' => true,
         ], $overrides);
