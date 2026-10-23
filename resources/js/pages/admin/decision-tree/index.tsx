@@ -6,6 +6,7 @@ import { arrivalsTo, labelOf, mainSequence, validateTree } from '@/features/deci
 import { QuestionCard } from '@/features/decision-tree/question-card';
 import { TestRun } from '@/features/decision-tree/test-run';
 import type { ConditionData, TreeData } from '@/features/decision-tree/types';
+import { sectionOf } from '@/features/quotation-wizard/sections';
 import AdminLayout from '@/layouts/admin-layout';
 import { scrollIntoViewSoftly } from '@/lib/scroll';
 import { cn } from '@/lib/utils';
@@ -124,7 +125,11 @@ export default function DecisionTreePage() {
         );
     };
 
-    const createAt = (placement: Placement) => open(newDraft(placement));
+    // A new question starts in the block of the one it follows or branches from.
+    const createAt = (placement: Placement) => {
+        const near = placement.insert_after ?? (placement.at_start ? sequence[0] : sequence[sequence.length - 1]);
+        open(newDraft(placement, tree?.conditions.find((c) => c.id === near)?.section ?? null));
+    };
 
     const duplicate = (question: ConditionData) => {
         const fresh = newDraft({ insert_after: question.id });
@@ -180,7 +185,7 @@ export default function DecisionTreePage() {
                 branchBlocker={branchBlocker}
                 onCreateBranch={(optionIndex) => {
                     const optionId = draft?.question.options[optionIndex]?.id;
-                    if (optionId) open(newDraft({ branch_option_id: optionId }));
+                    if (optionId) open(newDraft({ branch_option_id: optionId }, question.section));
                 }}
             />
         );
@@ -298,6 +303,13 @@ export default function DecisionTreePage() {
                                         <InsertHere onClick={() => createAt({ at_start: true })} disabled={locked} label="Insertar al inicio" />
                                         {displayed.map((question, index) => (
                                             <Fragment key={question.id}>
+                                                {question.section && question.section !== displayed[index - 1]?.section && (
+                                                    <li className="pb-2 pt-4 first:pt-0">
+                                                        <p className="font-display text-xs font-bold uppercase tracking-wide text-azul">
+                                                            {sectionOf(question.section)?.title}
+                                                        </p>
+                                                    </li>
+                                                )}
                                                 {card(tree, question, String(index + 1))}
                                                 {index < displayed.length - 1 && question.id > 0 && displayed[index + 1].id > 0 && (
                                                     <InsertHere onClick={() => createAt({ insert_after: question.id })} disabled={locked} />

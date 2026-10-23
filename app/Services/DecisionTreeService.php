@@ -20,8 +20,12 @@ use Illuminate\Validation\ValidationException;
  * broken (a cycle, a link to a missing question…) nothing is written.
  *
  * Wire format of a question:
- *   { id, label, interaction_type, type, observation, multiple, next_condition,
+ *   { id, label, interaction_type, type, observation, placeholder, multiline,
+ *     multiple, section, required, next_condition,
  *     options: [ { id, label, value, is_other, next_condition } ] }
+ *
+ * `section` is the block of the "formato de encuadre" the question belongs
+ * to; a question that is not `required` can be left blank.
  */
 class DecisionTreeService
 {
@@ -185,7 +189,9 @@ class DecisionTreeService
             $questions = $this->loadConditions($source);
             $ids = [];
             foreach ($questions as $question) {
-                $ids[$question->id] = $unit->conditions()->create($question->only('label', 'interaction_type', 'type', 'observation', 'multiple'))->id;
+                $ids[$question->id] = $unit->conditions()->create(
+                    $question->only('label', 'interaction_type', 'type', 'observation', 'placeholder', 'multiline', 'multiple', 'section', 'required'),
+                )->id;
             }
 
             $map = fn (?int $id) => $id === null ? null : $ids[$id] ?? null;
@@ -384,7 +390,11 @@ class DecisionTreeService
             'interaction_type' => $data['interaction_type'],
             'type' => $isChoice ? 'text' : $data['type'],
             'observation' => trim((string) ($data['observation'] ?? '')) ?: null,
+            'placeholder' => $isChoice ? null : (trim((string) ($data['placeholder'] ?? '')) ?: null),
+            'multiline' => ! $isChoice && $data['interaction_type'] === 'input' && $data['type'] === 'text' && (bool) ($data['multiline'] ?? false),
             'multiple' => $isChoice && (bool) ($data['multiple'] ?? false),
+            'section' => $data['section'] ?? null,
+            'required' => (bool) ($data['required'] ?? true),
         ];
     }
 
@@ -439,7 +449,11 @@ class DecisionTreeService
             'interaction_type' => $condition->getInteractionType(),
             'type' => $condition->getType(),
             'observation' => $condition->getObservation(),
+            'placeholder' => $condition->getPlaceholder(),
+            'multiline' => $condition->isMultiline(),
             'multiple' => $condition->getMultiple(),
+            'section' => $condition->getSection(),
+            'required' => $condition->isRequired(),
             'next_condition' => $condition->next_condition_id,
             'options' => $condition->options
                 ->sortBy('id')

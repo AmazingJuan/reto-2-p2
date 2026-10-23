@@ -13,14 +13,19 @@ export type Draft = {
 
 let nextNewId = -1;
 
-export function newDraft(placement: Placement): Draft {
+/** `section` is usually the one of the question it is placed after or branches from. */
+export function newDraft(placement: Placement, section: ConditionData['section'] = null): Draft {
     const question: ConditionData = {
         id: nextNewId--,
         label: '',
         interaction_type: 'options',
         type: 'text',
         observation: '',
+        placeholder: '',
+        multiline: false,
         multiple: false,
+        section,
+        required: true,
         next_condition: null,
         options: [blankOption(), blankOption()],
     };

@@ -22,9 +22,13 @@ function payload(question: ConditionData) {
     return {
         label: question.label,
         observation: question.observation,
+        placeholder: isChoice ? null : question.placeholder,
+        multiline: question.multiline,
         interaction_type: question.interaction_type,
         type: question.type,
         multiple: isChoice && question.multiple,
+        section: question.section,
+        required: question.required,
         next_condition: question.next_condition,
         options: isChoice ? question.options : [],
     };

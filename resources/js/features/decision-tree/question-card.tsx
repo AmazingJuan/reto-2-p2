@@ -1,3 +1,4 @@
+import { SECTIONS, sectionOf, type SectionKey } from '@/features/quotation-wizard/sections';
 import { cn } from '@/lib/utils';
 import { AlertCircle, ArrowDown, ArrowUp, Copy, CornerDownRight, Loader2, Pencil, Trash2 } from 'lucide-react';
 import { useId } from 'react';
@@ -40,6 +41,8 @@ export type QuestionCardProps = {
     onCreateBranch: (optionIndex: number) => void;
 };
 
+const tag = 'rounded-full border border-linea bg-nube px-2 py-0.5 text-xs font-semibold text-pizarra';
+
 const iconButton =
     'inline-flex h-10 w-10 items-center justify-center rounded-control text-pizarra transition-colors hover:bg-nube hover:text-tinta disabled:pointer-events-none disabled:opacity-30';
 
@@ -57,6 +60,12 @@ function Summary({ question, number, refer, arrivals }: Pick<QuestionCardProps, 
                 {kindLabel(question)}
                 {isChoice(question) && question.options.length > 0 && <>: {question.options.map((o) => o.label || '…').join(', ')}</>}
             </span>
+            {(!question.required || (isBranch && question.section)) && (
+                <span className="mt-2 flex flex-wrap gap-1.5">
+                    {isBranch && question.section && <span className={tag}>{sectionOf(question.section)?.title}</span>}
+                    {!question.required && <span className={tag}>Opcional</span>}
+                </span>
+            )}
             <span className="mt-2 block space-y-0.5 text-sm text-pizarra">
                 {isBranch && arrivals.length > 0 && (
                     <span className="block">
@@ -213,7 +222,55 @@ export function QuestionCard(props: QuestionCardProps) {
                         />
                     </div>
 
+                    <div>
+                        <label htmlFor={`${uid}-section`} className="label">
+                            Bloque del encuadre
+                        </label>
+                        <select
+                            id={`${uid}-section`}
+                            value={q.section ?? ''}
+                            onChange={(e) => props.onChange((d) => ({ ...d, section: (e.target.value || null) as SectionKey | null }))}
+                            className="control"
+                        >
+                            <option value="">Sin bloque</option>
+                            {SECTIONS.map((s, i) => (
+                                <option key={s.key} value={s.key}>
+                                    {i + 1}. {s.title}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <label className="flex cursor-pointer items-start gap-3 text-base">
+                        <input
+                            type="checkbox"
+                            checked={!q.required}
+                            onChange={(e) => props.onChange((d) => ({ ...d, required: !e.target.checked }))}
+                            className="mt-1 h-5 w-5 shrink-0 rounded border-2 border-gris-marca text-azul focus:ring-0 focus:ring-offset-0"
+                        />
+                        <span>
+                            Opcional
+                            <span className="block text-sm text-pizarra">El cliente puede dejarla en blanco y seguir.</span>
+                        </span>
+                    </label>
+
                     <AnswerKindPicker name={`${uid}-kind`} value={kindOf(q)} onChange={(kind) => props.onChange((d) => withKind(d, kind))} />
+
+                    {q.interaction_type === 'input' && (
+                        <div>
+                            <label htmlFor={`${uid}-placeholder`} className="label">
+                                Ejemplo dentro del campo <span className="label-optional">(opcional)</span>
+                            </label>
+                            <input
+                                id={`${uid}-placeholder`}
+                                value={q.placeholder ?? ''}
+                                onChange={(e) => props.onChange((d) => ({ ...d, placeholder: e.target.value }))}
+                                placeholder="Ej.: ICONTEC, Bureau Veritas, SGS"
+                                className="control"
+                            />
+                            <p className="hint mt-2">Texto gris que muestra al cliente qué se espera que escriba; desaparece al escribir.</p>
+                        </div>
+                    )}
 
                     {isChoice(q) && (
                         <OptionsEditor

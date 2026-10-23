@@ -1,18 +1,19 @@
 import { cn } from '@/lib/utils';
-import { Calendar, CalendarRange, CheckSquare, CircleDot, Hash, MoveHorizontal, Type, type LucideIcon } from 'lucide-react';
+import { AlignLeft, Calendar, CalendarRange, CheckSquare, CircleDot, Hash, MoveHorizontal, Type, type LucideIcon } from 'lucide-react';
 import { answerKinds, type AnswerKind } from './types';
 
 const icons: Record<AnswerKind, LucideIcon> = {
     single: CircleDot,
     multiple: CheckSquare,
     text: Type,
+    'long-text': AlignLeft,
     number: Hash,
     date: Calendar,
     'number-range': MoveHorizontal,
     'date-range': CalendarRange,
 };
 
-/** The seven answer types as visible choices, instead of three technical selects. */
+/** The answer types as visible choices, instead of three technical selects. */
 export function AnswerKindPicker({ value, onChange, name }: { value: AnswerKind; onChange: (kind: AnswerKind) => void; name: string }) {
     return (
         <fieldset>
