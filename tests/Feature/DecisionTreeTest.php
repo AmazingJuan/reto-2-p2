@@ -191,6 +191,66 @@ class DecisionTreeTest extends TestCase
         $this->post(route('dashboard.decision-tree.copy', $empty), ['source_id' => $this->unit->id])->assertSessionHasErrors('tree');
     }
 
+    public function test_block_and_optional_flag_are_saved_and_listed(): void
+    {
+        $this->post(route('dashboard.decision-tree.questions.store', $this->unit), $this->input('ARL', [
+            'section' => 'necesidad',
+            'required' => false,
+        ]))->assertSessionHasNoErrors();
+
+        $question = Condition::where('label', 'ARL')->sole();
+        $this->assertSame('necesidad', $question->getSection());
+        $this->assertFalse($question->isRequired());
+
+        $this->get(route('dashboard.business-unit.decision-tree'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('viewData.businessUnits.0.conditions.0.section', 'necesidad')
+                ->where('viewData.businessUnits.0.conditions.0.required', false));
+    }
+
+    public function test_open_questions_keep_their_example_and_long_field(): void
+    {
+        $this->post(route('dashboard.decision-tree.questions.store', $this->unit), $this->input('Descripción', [
+            'placeholder' => 'Ej.: auditoría interna ISO 9001',
+            'multiline' => true,
+        ]))->assertSessionHasNoErrors();
+        $this->post(route('dashboard.decision-tree.questions.store', $this->unit), $this->input('Modalidad', [
+            'interaction_type' => 'options',
+            'placeholder' => 'No aplica',
+            'multiline' => true,
+            'options' => [['label' => 'Presencial', 'is_other' => false]],
+        ]))->assertSessionHasNoErrors();
+
+        $open = Condition::where('label', 'Descripción')->sole();
+        $this->assertSame('Ej.: auditoría interna ISO 9001', $open->getPlaceholder());
+        $this->assertTrue($open->isMultiline());
+
+        $choice = Condition::where('label', 'Modalidad')->sole();
+        $this->assertNull($choice->getPlaceholder(), 'choices have no example inside a field');
+        $this->assertFalse($choice->isMultiline());
+    }
+
+    public function test_unknown_blocks_are_rejected(): void
+    {
+        $this->post(route('dashboard.decision-tree.questions.store', $this->unit), $this->input('A', ['section' => 'otro']))
+            ->assertSessionHasErrors('section');
+
+        $this->assertSame(0, Condition::count());
+    }
+
+    public function test_copying_keeps_block_and_optional_flag(): void
+    {
+        [$a] = $this->sequenceOf('A');
+        $a->update(['section' => 'cierre', 'required' => false]);
+        $empty = BusinessUnit::create(['name' => 'nueva', 'display_name' => 'Nueva', 'abbreviation' => 'NU']);
+
+        $this->post(route('dashboard.decision-tree.copy', $empty), ['source_id' => $this->unit->id])->assertSessionHasNoErrors();
+
+        $copy = $empty->conditions()->sole();
+        $this->assertSame('cierre', $copy->getSection());
+        $this->assertFalse($copy->isRequired());
+    }
+
     public function test_choice_questions_need_options_with_text(): void
     {
         $this->post(route('dashboard.decision-tree.questions.store', $this->unit), $this->input('A', ['interaction_type' => 'options', 'options' => []]))

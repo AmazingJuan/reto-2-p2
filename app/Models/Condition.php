@@ -10,6 +10,11 @@ use Illuminate\Support\Collection;
 class Condition extends Model
 {
     /**
+     * Blocks of the "formato de encuadre", in the order the client goes through them.
+     */
+    public const SECTIONS = ['necesidad', 'condiciones', 'cotizacion', 'validacion', 'cierre'];
+
+    /**
      * Attributes:
      *
      * $this->attributes['id'] - int - Primary key identifier
@@ -19,6 +24,10 @@ class Condition extends Model
      * $this->attributes['observation'] - string|null - Description of the condition
      * $this->attributes['next_condition_id'] - int|null - ID of the next condition in sequence
      * $this->attributes['business_unit_id'] - int - ID of the associated business unit
+     * $this->attributes['section'] - string|null - Block of the encuadre it belongs to (see SECTIONS)
+     * $this->attributes['required'] - bool - Whether the client must answer it
+     * $this->attributes['placeholder'] - string|null - Example of the expected answer, shown inside the field
+     * $this->attributes['multiline'] - bool - Free text answered in a long field
      */
 
     /**
@@ -34,9 +43,19 @@ class Condition extends Model
         'next_condition_id',
         'business_unit_id',
         'multiple',
+        'section',
+        'required',
+        'placeholder',
+        'multiline',
     ];
 
     public $timestamps = false;
+
+    protected $casts = [
+        'multiple' => 'boolean',
+        'required' => 'boolean',
+        'multiline' => 'boolean',
+    ];
 
     /*
     |--------------------------------------------------------------------------
@@ -141,5 +160,33 @@ class Condition extends Model
     public function setMultiple(bool $value): void
     {
         $this->attributes['multiple'] = $value;
+    }
+
+    // Section
+
+    public function getSection(): ?string
+    {
+        return $this->attributes['section'] ?? null;
+    }
+
+    // Required
+
+    public function isRequired(): bool
+    {
+        return (bool) ($this->attributes['required'] ?? true);
+    }
+
+    // Placeholder
+
+    public function getPlaceholder(): ?string
+    {
+        return $this->attributes['placeholder'] ?? null;
+    }
+
+    // Multiline
+
+    public function isMultiline(): bool
+    {
+        return (bool) ($this->attributes['multiline'] ?? false);
     }
 }

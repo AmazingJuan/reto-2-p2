@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Condition;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -27,9 +28,13 @@ class DecisionTreeQuestionRequest extends FormRequest
         return [
             'label' => ['required', 'string', 'max:255'],
             'observation' => ['nullable', 'string', 'max:2000'],
+            'placeholder' => ['nullable', 'string', 'max:500'],
+            'multiline' => ['boolean'],
             'interaction_type' => ['required', Rule::in(['input', 'options', 'range'])],
             'type' => ['required', Rule::in(['text', 'number', 'date'])],
             'multiple' => ['boolean'],
+            'section' => ['nullable', Rule::in(Condition::SECTIONS)],
+            'required' => ['boolean'],
             'next_condition' => ['nullable', 'integer'],
 
             'options' => [Rule::requiredIf($isChoice), 'array', $isChoice ? 'min:1' : 'max:0'],
