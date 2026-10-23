@@ -16,6 +16,8 @@ export interface Company {
 export interface Flash {
     success?: string | null;
     error?: string | null;
+    /** A quotation request was just sent (shown by the quote page itself). */
+    quotation_sent?: { code: string | null; email: string } | null;
 }
 
 /** Props shared with every page by HandleInertiaRequests. */

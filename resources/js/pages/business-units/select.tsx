@@ -1,56 +1,87 @@
-import { RingArrow } from '@/components/brand/brand-ring';
 import { corporate } from '@/components/public/links';
-import { PageHeader } from '@/components/public/page-header';
+import { draft } from '@/features/quotation-wizard/draft';
+import { QuoteShell, unitSummaries, type QuotableUnit } from '@/features/quotation-wizard/quote-shell';
+import { SECTIONS } from '@/features/quotation-wizard/sections';
+import { ChannelsPanel, StepList, type Screen } from '@/features/quotation-wizard/step-nav';
 import PublicLayout from '@/layouts/public-layout';
-import { pluralize } from '@/lib/format';
+import { capitalize } from '@/lib/format';
 import type { PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 
-type BusinessUnit = { name: string; display_name: string; services_count: number };
+// The steps every request goes through, shown ahead (locked) so the client knows what comes.
+const PREVIEW: Screen[] = [
+    { id: 'datos', group: 'datos', title: 'Datos del cliente', short: 'Datos', hint: '', part: 1, parts: 1 },
+    ...SECTIONS.map((s) => ({ id: s.key, group: s.key, title: s.title, short: s.short, hint: s.hint, part: 1, parts: 1 })),
+    { id: 'envio', group: 'envio', title: 'Envío de la solicitud', short: 'Envío', hint: '', part: 1, parts: 1 },
+];
 
+/**
+ * Where a quotation starts: the same page as a unit's request (header, unit
+ * tabs, steps and channels), with the choice of unit in place of the form, as
+ * the corporate site's explorer shows an overview until a line is chosen.
+ */
 export default function SelectBusinessUnit() {
-    const { businessUnits } = usePage<PageProps<{ viewData: { businessUnits: BusinessUnit[] } }>>().props.viewData;
+    const { businessUnits } = usePage<PageProps<{ viewData: { businessUnits: QuotableUnit[] } }>>().props.viewData;
+    // Requests left half done in this browser.
+    const [started] = useState(() => new Set(businessUnits.filter((u) => draft.hasAnswers(u.name)).map((u) => u.name)));
 
     return (
         <PublicLayout title="Solicitar cotización" showCta={false}>
-            <PageHeader
-                title="¿Qué necesita cotizar?"
+            <QuoteShell
+                title="Solicitar cotización"
                 crumb="Solicitar cotización"
-                lede="Elija el tipo de servicio. Después podrá escoger los servicios concretos y responder unas preguntas sobre su organización."
-            />
+                lede="Elija el tipo de servicio y complete el formato de encuadre: sus datos, qué necesita y en qué condiciones."
+                units={businessUnits}
+                active={null}
+            >
+                <div className="frame grid items-start gap-x-8 gap-y-8 pb-[clamp(4rem,2.4rem+6.5vw,9rem)] pt-5 lg:grid-cols-12 lg:pt-10">
+                    <div className="hidden gap-8 lg:sticky lg:top-[11rem] lg:col-span-4 lg:grid">
+                        <StepList steps={PREVIEW} current={-1} reached={-1} complete={new Set()} onGo={() => {}} />
+                        <ChannelsPanel />
+                    </div>
 
-            <section className="frame pb-[clamp(4rem,2.4rem+6.5vw,9rem)]">
-                {businessUnits.length === 0 ? (
-                    <p className="max-w-measure rounded-[10px] border-2 border-linea p-6">
-                        En este momento no hay servicios disponibles para cotizar en línea. Escríbanos desde la{' '}
-                        <a href={corporate.contact} className="link">
-                            página de contacto
-                        </a>{' '}
-                        y le atenderemos directamente.
-                    </p>
-                ) : (
-                    <ul className="grid border-t-2 border-linea">
-                        {businessUnits.map((unit) => (
-                            <li key={unit.name} className="border-b-2 border-linea">
-                                <Link
-                                    href={route('quotation.quote.business_unit', unit.name)}
-                                    className="group flex items-center gap-6 py-7 no-underline focus-visible:outline-offset-4 sm:py-9"
-                                >
-                                    <span className="min-w-0 flex-1">
-                                        <span className="block font-display text-[clamp(1.75rem,1.35rem+1.6vw,2.75rem)] font-extrabold leading-tight tracking-tight text-azul transition-colors group-hover:text-azul-hondo">
-                                            {unit.display_name}
-                                        </span>
-                                        <span className="mt-1 block text-base text-pizarra">
-                                            {pluralize(unit.services_count, 'servicio disponible', 'servicios disponibles')}
-                                        </span>
-                                    </span>
-                                    <RingArrow className="h-12 w-12" />
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </section>
+                    <section aria-labelledby="elegir" className="min-w-0 lg:col-span-8">
+                        <h2 id="elegir" className="subheading text-azul">
+                            Elija el tipo de servicio
+                        </h2>
+                        <p className="mt-2 font-semibold text-pizarra">
+                            Cada uno tiene su propio formato de encuadre, con las preguntas que aplican a ese servicio.
+                        </p>
+
+                        {businessUnits.length === 0 ? (
+                            <p className="mt-8 max-w-measure rounded-[10px] border-2 border-linea p-6">
+                                En este momento no hay servicios disponibles para cotizar en línea. Escríbanos desde la{' '}
+                                <a href={corporate.contact} className="link">
+                                    página de contacto
+                                </a>{' '}
+                                y le atenderemos directamente.
+                            </p>
+                        ) : (
+                            <ul className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                                {businessUnits.map((unit) => (
+                                    <li key={unit.name}>
+                                        <Link
+                                            href={route('quotation.quote.business_unit', unit.name)}
+                                            className="group grid h-full grid-rows-[auto_1fr_auto] gap-3 rounded-[10px] border-2 border-linea p-6 text-inherit no-underline transition-colors duration-150 hover:border-azul"
+                                        >
+                                            <span className="font-display text-[clamp(1.375rem,1.2rem+0.7vw,1.75rem)] font-bold leading-tight text-azul">
+                                                {capitalize(unit.display_name)}
+                                            </span>
+                                            <span className="text-base text-pizarra">{unitSummaries[unit.name] ?? ''}</span>
+                                            <span className="font-display font-bold text-azul underline decoration-1 underline-offset-[0.2em] group-hover:decoration-2">
+                                                {started.has(unit.name) ? 'Continuar su solicitud' : 'Empezar la solicitud'}
+                                            </span>
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </section>
+
+                    <ChannelsPanel className="lg:hidden" />
+                </div>
+            </QuoteShell>
         </PublicLayout>
     );
 }

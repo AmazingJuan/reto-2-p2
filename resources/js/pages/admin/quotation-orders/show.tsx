@@ -7,7 +7,7 @@ import { adminFieldInputClass, adminListShellClass, adminOutlineButtonClass, adm
 import { Modal } from '@/components/ui/modal';
 import { quotationTitle, type QuotationOrder } from '@/features/quotations/types';
 import AdminLayout from '@/layouts/admin-layout';
-import { formatDate, orDash, pluralize } from '@/lib/format';
+import { formatDate, orDash } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import type { PageProps } from '@/types';
 import { Link, useForm, usePage } from '@inertiajs/react';
@@ -111,17 +111,22 @@ export default function Show() {
                             title="Solicitud"
                             items={[
                                 { label: 'Unidad de negocio', value: order.business_unit },
-                                { label: 'Línea de gestión', value: orDash(order.gestion_line) },
-                                {
-                                    label: 'Servicios',
-                                    value: (
-                                        <ul className="space-y-1">
-                                            {(order.services ?? []).map((service) => (
-                                                <li key={service}>{service}</li>
-                                            ))}
-                                        </ul>
-                                    ),
-                                },
+                                // Requests made before the encuadre picked services from the catalog.
+                                ...(order.services?.length
+                                    ? [
+                                          { label: 'Línea de gestión', value: orDash(order.gestion_line) },
+                                          {
+                                              label: 'Servicios',
+                                              value: (
+                                                  <ul className="space-y-1">
+                                                      {order.services.map((service) => (
+                                                          <li key={service}>{service}</li>
+                                                      ))}
+                                                  </ul>
+                                              ),
+                                          },
+                                      ]
+                                    : []),
                             ]}
                         />
 
@@ -161,32 +166,13 @@ export default function Show() {
                                               ),
                                           },
                                           { label: 'Teléfono', value: orDash(client.phone) },
-                                          { label: 'Empresa', value: orDash(client.company) },
                                           { label: 'Cargo', value: orDash(client.role) },
+                                          { label: 'Razón social', value: orDash(client.company) },
+                                          { label: 'NIT', value: orDash(client.nit) },
+                                          { label: 'Actividad económica', value: orDash(client.economic_activity) },
+                                          { label: 'Dirección', value: orDash(client.address) },
                                       ]
                                     : [{ label: 'Cliente', value: <span className="text-pizarra">Sin datos de contacto.</span> }]
-                            }
-                        />
-
-                        <DetailList
-                            title="Profesional solicitado"
-                            items={
-                                order.professional
-                                    ? [
-                                          {
-                                              label: 'Profesional',
-                                              value: (
-                                                  <Link
-                                                      href={route('dashboard.professionals.show', order.professional.id)}
-                                                      className="font-medium text-azul-hondo hover:underline"
-                                                  >
-                                                      {order.professional.name}
-                                                  </Link>
-                                              ),
-                                          },
-                                          { label: 'Experiencia', value: pluralize(order.professional.years_experience, 'año', 'años') },
-                                      ]
-                                    : [{ label: 'Profesional', value: <span className="text-pizarra">Sin preferencia.</span> }]
                             }
                         />
 

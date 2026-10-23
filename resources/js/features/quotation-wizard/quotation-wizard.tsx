@@ -1,230 +1,439 @@
+import { corporate } from '@/components/public/links';
 import { scrollIntoViewSoftly } from '@/lib/scroll';
-import { router } from '@inertiajs/react';
-import { CheckCircle2 } from 'lucide-react';
+import type { PageProps } from '@/types';
+import { Link, router, usePage } from '@inertiajs/react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { pathAnswers } from './answers';
-import { ConditionStepper } from './condition-stepper';
-import { ContactFields, validateContact, type ContactErrors } from './contact-fields';
-import { LineList } from './line-list';
-import { ProfessionalChoice } from './professional-choice';
-import { RequestSheet } from './request-sheet';
-import { ServiceRows } from './service-rows';
-import type { Answer, ContactData, PickedService, ProfessionalOption, QuoteViewData } from './types';
-import { WizardSteps } from './wizard-steps';
+import { answerError, pathAnswers, visibleFields, type VisibleField } from './answers';
+import { fieldAnchor } from './condition-field';
+import { ContactFields, PrivacyConsent, validateContact, type ContactErrors } from './contact-fields';
+import { draft, treeSignature } from './draft';
+import { BlockFields, encuadreBlocks, paginate } from './encuadre-form';
+import { ErrorSummary, Notice, type SummaryItem } from './notice';
+import { ChannelsPanel, StepList, type Screen } from './step-nav';
+import type { Answer, ContactData, PublicCondition, QuoteViewData } from './types';
 
-const EMPTY_CONTACT: ContactData = { name: '', company: '', role: '', email: '', phone: '' };
+const EMPTY_CONTACT: ContactData = { name: '', company: '', nit: '', economic_activity: '', address: '', role: '', email: '', phone: '' };
 
-const isNarrow = () => window.matchMedia('(max-width: 1023px)').matches;
+const PRIVACY_ERROR = 'Autorice el tratamiento de sus datos para enviar la solicitud.';
 
+/** Problems of some encuadre fields, by question id. */
+function encuadreProblems(conditions: Record<string, PublicCondition>, fields: VisibleField[], answers: Record<number, Answer>) {
+    const errors: Record<number, string> = {};
+    for (const { id } of fields) {
+        const error = answerError(conditions[id], answers[id]);
+        if (error) errors[id] = error;
+    }
+    return errors;
+}
+
+const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1);
+
+/** How a screen is named: "Identificación de la necesidad, parte 2 de 3". */
+const screenName = (screen: Screen) => (screen.parts > 1 ? `${screen.title}, parte ${screen.part} de ${screen.parts}` : screen.title);
+
+/** Where a pager button goes; within the same block the part is enough ("Parte 2 de 3"). */
+const pagerName = (to: Screen, from: Screen) => (to.group === from.group ? `Parte ${to.part} de ${to.parts}` : to.title);
+
+/**
+ * The quotation request: the "formato de encuadre" one screen at a time,
+ * built with the corporate site's own tools. The step list works like the
+ * service explorer's line list, the pager names where each button goes, an
+ * error summary takes the focus and links to every field, the request is kept
+ * in this browser while it is filled in, and the page itself confirms it.
+ */
 export function QuotationWizard({ viewData }: { viewData: QuoteViewData }) {
-    const [line, setLine] = useState<string | null>(viewData.gestionLines.length === 1 ? viewData.gestionLines[0] : null);
-    const [picked, setPicked] = useState<PickedService[]>([]);
-    const [path, setPath] = useState<number[]>(viewData.initial_condition_id ? [viewData.initial_condition_id] : []);
-    const [answers, setAnswers] = useState<Record<number, Answer>>({});
-    const [finished, setFinished] = useState(false);
-    const [professionalId, setProfessionalId] = useState<number | null>(null);
-    const [contact, setContact] = useState(EMPTY_CONTACT);
+    const { conditions, initial_condition_id: initialId, unit } = viewData;
+    const { company, flash } = usePage<PageProps>().props;
+    const signature = useMemo(() => treeSignature(conditions), [conditions]);
+    const [saved] = useState(() => draft.answers(unit, signature));
+
+    const [contact, setContact] = useState<ContactData>(() => ({ ...EMPTY_CONTACT, ...draft.contact() }));
+    const [answers, setAnswers] = useState<Record<number, Answer>>(saved?.answers ?? {});
+    const [current, setCurrent] = useState(saved?.step ?? 0);
+    const [reached, setReached] = useState(saved?.reached ?? 0);
     const [privacyAccepted, setPrivacyAccepted] = useState(false);
-    const [contactErrors, setContactErrors] = useState<ContactErrors>({});
-    const [formErrors, setFormErrors] = useState<string[]>([]);
+    const [web, setWeb] = useState(''); // honeypot
+    const [showErrors, setShowErrors] = useState(false);
+    const [serverErrors, setServerErrors] = useState<ContactErrors>({});
+    const [failure, setFailure] = useState<string[]>([]);
     const [processing, setProcessing] = useState(false);
+    const [announcement, setAnnouncement] = useState('');
 
-    const servicesRef = useRef<HTMLDivElement>(null);
-    const contactRef = useRef<HTMLDivElement>(null);
+    const panelRef = useRef<HTMLElement>(null);
+    const titleRef = useRef<HTMLHeadingElement>(null);
+    const summaryRef = useRef<HTMLDivElement>(null);
+    const doneRef = useRef<HTMLDivElement>(null);
+    const moved = useRef(false);
 
-    const counts = useMemo(() => Object.fromEntries(viewData.gestionLines.map((name) => [name, viewData.services[name]?.length ?? 0])), [viewData]);
-    const readableAnswers = useMemo(
-        () => pathAnswers(viewData.conditions, finished ? path : path.slice(0, -1), answers),
-        [viewData.conditions, path, answers, finished],
+    const sent = flash.quotation_sent ?? null;
+
+    const fields = useMemo(() => visibleFields(conditions, initialId, answers), [conditions, initialId, answers]);
+    // Long blocks are split in parts that fit on screen.
+    const pages = useMemo(() => encuadreBlocks(conditions, fields).flatMap((b) => paginate(conditions, b)), [conditions, fields]);
+    const answered = useMemo(
+        () =>
+            pathAnswers(
+                conditions,
+                fields.map((f) => f.id),
+                answers,
+            ),
+        [conditions, fields, answers],
     );
 
-    // Lines in the order the client first picked from them.
-    const pickedLines = useMemo(() => [...new Set(picked.map((p) => p.line))], [picked]);
-    const pickedCount = useMemo(
-        () => Object.fromEntries(pickedLines.map((l) => [l, picked.filter((p) => p.line === l).length])),
-        [picked, pickedLines],
+    const steps: Screen[] = [
+        {
+            id: 'datos',
+            group: 'datos',
+            title: 'Datos del cliente',
+            short: 'Datos',
+            hint: 'Datos de la empresa y de la persona de contacto.',
+            part: 1,
+            parts: 1,
+        },
+        ...pages.map((p) => ({
+            id: `bloque-${p.key}-${p.part}`,
+            group: p.key,
+            title: p.title,
+            short: p.short,
+            hint: p.hint,
+            part: p.part,
+            parts: p.parts,
+        })),
+        {
+            id: 'envio',
+            group: 'envio',
+            title: 'Envío de la solicitud',
+            short: 'Envío',
+            hint: 'Revise sus respuestas y envíe la solicitud.',
+            part: 1,
+            parts: 1,
+        },
+    ];
+    const last = steps.length - 1;
+    const step = Math.min(current, last);
+    const screen = steps[step];
+    const page = step > 0 && step < last ? pages[step - 1] : null;
+
+    /** What keeps a screen from going on. The authorization is asked in the last one. */
+    const contactProblemsOf = (index: number): ContactErrors => {
+        if (index === 0) return validateContact(contact, true);
+        if (index === last && !privacyAccepted) return { privacy_accepted: PRIVACY_ERROR };
+        return {};
+    };
+    const fieldProblemsOf = (index: number) => (index > 0 && index < last ? encuadreProblems(conditions, pages[index - 1].fields, answers) : {});
+    const isComplete = (index: number) => Object.keys(contactProblemsOf(index)).length + Object.keys(fieldProblemsOf(index)).length === 0;
+
+    const contactErrors: ContactErrors = { ...serverErrors, ...(showErrors ? contactProblemsOf(step) : {}) };
+    const fieldErrors = showErrors ? fieldProblemsOf(step) : {};
+    const summary: SummaryItem[] = [
+        ...Object.entries(contactErrors).map(([key, text]) => ({
+            target: key === 'privacy_accepted' ? 'privacy' : `contact-${key}`,
+            text: String(text),
+        })),
+        ...Object.entries(fieldErrors).map(([id, text]) => ({
+            target: fieldAnchor(Number(id)),
+            text: `${conditions[id].label}: ${lowerFirst(text)}`,
+        })),
+    ];
+
+    // Blocks whose screens were all reached and are complete: their marker becomes a check.
+    const complete = new Set(
+        steps.map((s) => s.group).filter((group) => steps.every((s, i) => s.group !== group || (i <= reached && isComplete(i)))),
     );
-    const services = picked.map((p) => p.service);
 
-    // Anyone working in at least one of the picked lines, least experienced first.
-    const professionals = useMemo(() => {
-        const byId = new Map<number, ProfessionalOption>();
-        for (const l of pickedLines) for (const p of viewData.professionalsByGestionLine[l] ?? []) byId.set(p.id, p);
-        return [...byId.values()].sort((a, b) => a.years_experience - b.years_experience || a.id - b.id);
-    }, [pickedLines, viewData.professionalsByGestionLine]);
-
-    // Drop a preferred professional who no longer fits the picked lines.
+    // Keep the request in this browser while it is filled in.
+    useEffect(() => draft.saveContact(contact), [contact]);
     useEffect(() => {
-        if (professionalId !== null && !professionals.some((p) => p.id === professionalId)) setProfessionalId(null);
-    }, [professionals, professionalId]);
+        if (!sent) draft.saveAnswers(unit, { signature, answers, step, reached });
+    }, [unit, signature, answers, step, reached, sent]);
 
-    const step = picked.length === 0 ? 1 : finished ? 3 : 2;
+    // Sent: the draft goes away (the contact data stays for the next request) and the confirmation takes the focus.
+    useEffect(() => {
+        if (!sent) return;
+        draft.clearAnswers(unit);
+        window.scrollTo({ top: 0 });
+        doneRef.current?.focus({ preventScroll: true });
+    }, [sent, unit]);
 
-    const chooseLine = (next: string) => {
-        setLine(next);
-        if (isNarrow()) requestAnimationFrame(() => scrollIntoViewSoftly(servicesRef.current));
+    // After changing screen: back to the top of the panel when it is out of view, focus on its title.
+    useEffect(() => {
+        if (!moved.current) return;
+        moved.current = false;
+        if ((panelRef.current?.getBoundingClientRect().top ?? 0) < 0) scrollIntoViewSoftly(panelRef.current);
+        titleRef.current?.focus({ preventScroll: true });
+        setAnnouncement(`Paso ${step + 1} de ${steps.length}: ${screenName(screen)}.`);
+    }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const go = (index: number, withErrors = false) => {
+        moved.current = true;
+        setCurrent(index);
+        setReached((r) => Math.max(r, index));
+        setShowErrors(withErrors);
     };
 
-    const toggleService = (service: string) => {
-        if (!line) return;
-        setPicked((current) =>
-            current.some((p) => p.service === service) ? current.filter((p) => p.service !== service) : [...current, { line, service }],
-        );
+    const focusSummary = () => requestAnimationFrame(() => summaryRef.current?.querySelector<HTMLElement>('[tabindex="-1"]')?.focus());
+
+    const next = () => {
+        if (!isComplete(step)) {
+            setShowErrors(true);
+            focusSummary();
+            return;
+        }
+        go(step + 1);
     };
 
-    const finishQuestions = () => {
-        setFinished(true);
-        requestAnimationFrame(() => scrollIntoViewSoftly(contactRef.current));
-    };
+    const submit = (isRetry = false) => {
+        // An earlier answer may have opened new fields: send only when every screen is complete.
+        const pending = steps.findIndex((_, index) => !isComplete(index));
+        if (pending !== -1) {
+            if (pending === step) setShowErrors(true);
+            else go(pending, true);
+            focusSummary();
+            return;
+        }
 
-    const submit = (event: React.FormEvent) => {
-        event.preventDefault();
-        if (processing) return;
+        setServerErrors({});
+        setFailure([]);
 
-        const errors = validateContact(contact, privacyAccepted);
-        setContactErrors(errors);
-        setFormErrors([]);
-        if (Object.keys(errors).length > 0) return;
+        // A request left open (or kept as a draft) longer than the session gets "Page expired"
+        // (419). Instead of Laravel's page, renew the session in the background and send again
+        // once; the answers never leave the form.
+        let expired = false;
+        const stopWatching = router.on('invalid', (event) => {
+            if (event.detail.response.status !== 419) return;
+            event.preventDefault();
+            expired = true;
+        });
 
         router.post(
             route('quotation.store.proposal'),
+            { contact, businessUnit: viewData.businessUnit, answers: answered, privacy_accepted: privacyAccepted, web },
             {
-                contact,
-                businessUnit: viewData.businessUnit,
-                gestionLines: pickedLines,
-                services,
-                answers: pathAnswers(viewData.conditions, path, answers),
-                professional_id: professionalId,
-                privacy_accepted: privacyAccepted,
-            },
-            {
+                preserveState: true,
+                preserveScroll: true,
                 onStart: () => setProcessing(true),
-                onFinish: () => setProcessing(false),
-                onError: (serverErrors) => {
-                    const fieldErrors: ContactErrors = {};
+                onFinish: () => {
+                    stopWatching();
+                    if (!expired) return setProcessing(false);
+                    if (!isRetry) return router.reload({ onSuccess: () => submit(true), onError: () => setProcessing(false) });
+                    setProcessing(false);
+                    setFailure(['Su sesión expiró y no se pudo renovar. Recargue la página y vuelva a enviar: sus respuestas se conservan.']);
+                    focusSummary();
+                },
+                onError: (errors) => {
+                    const fromServer: ContactErrors = {};
                     const others: string[] = [];
-                    for (const [key, message] of Object.entries(serverErrors)) {
-                        if (key.startsWith('contact.')) fieldErrors[key.slice('contact.'.length) as keyof ContactData] = message;
-                        else if (key === 'privacy_accepted') fieldErrors.privacy_accepted = message;
+                    for (const [key, message] of Object.entries(errors)) {
+                        if (key.startsWith('contact.')) fromServer[key.slice('contact.'.length) as keyof ContactData] = message;
+                        else if (key === 'privacy_accepted') fromServer.privacy_accepted = message;
                         else others.push(message);
                     }
-                    setContactErrors(fieldErrors);
-                    setFormErrors(others);
+                    setServerErrors(fromServer);
+                    setFailure(others);
+                    if (Object.keys(fromServer).some((k) => k !== 'privacy_accepted')) go(0, true);
+                    focusSummary();
                 },
             },
         );
     };
 
-    return (
-        <>
-            <WizardSteps current={step} />
+    const startOver = () => {
+        if (!window.confirm('¿Borrar las respuestas de esta solicitud y empezar de nuevo? Sus datos de contacto se conservan.')) return;
+        draft.clearAnswers(unit);
+        setAnswers({});
+        setPrivacyAccepted(false);
+        setReached(0);
+        go(0);
+    };
 
-            <section className="frame grid gap-10 py-10 lg:grid-cols-12 lg:gap-x-8 lg:py-14" aria-label="Servicios">
-                <div className="lg:col-span-4">
-                    <LineList lines={viewData.gestionLines} counts={counts} picked={pickedCount} selected={line} onSelect={chooseLine} />
-                </div>
-                <div ref={servicesRef} className="scroll-mt-24 lg:col-span-8">
-                    <ServiceRows
-                        line={line}
-                        services={line ? (viewData.services[line] ?? []) : []}
-                        selected={picked.filter((p) => p.line === line).map((p) => p.service)}
-                        onToggle={toggleService}
-                    />
+    if (sent) {
+        return (
+            <section className="frame pb-[clamp(4rem,2.4rem+6.5vw,9rem)] pt-8 lg:pt-12" aria-label="Solicitud enviada">
+                <div className="grid max-w-[46rem] gap-8">
+                    <Notice ref={doneRef} tone="ok" role="status" title="Solicitud enviada">
+                        <p>
+                            Le enviaremos la propuesta a {sent.email}
+                            {sent.code && (
+                                <>
+                                    . El número de su solicitud es <strong className="whitespace-nowrap">{sent.code}</strong>
+                                </>
+                            )}
+                            .{company.phone && <> Si es urgente, llámenos al {company.phone}.</>}
+                        </p>
+                    </Notice>
+                    <div className="flex flex-wrap items-center gap-x-7 gap-y-4">
+                        <Link href={route('quotation.select.business_unit')} className="btn btn-outline">
+                            Solicitar otra cotización
+                        </Link>
+                        <a href={corporate.home} className="link">
+                            Volver al sitio de Training Corporation
+                        </a>
+                    </div>
                 </div>
             </section>
+        );
+    }
 
-            {picked.length > 0 && (
-                <section className="bg-nube py-12 lg:py-16" aria-label="Preguntas y datos de contacto">
-                    <div className="frame grid items-start gap-10 lg:grid-cols-12 lg:gap-x-8">
-                        <div className="min-w-0 space-y-12 lg:col-span-7">
-                            <div>
-                                <h2 className="subheading text-azul">Preguntas sobre su organización</h2>
-                                <p className="mt-2 max-w-measure text-pizarra">
-                                    Nos ayudan a dimensionar la propuesta. Son pocas y puede volver atrás.
-                                </p>
-                                <div className="mt-6">
-                                    {finished ? (
-                                        <div className="panel flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-                                            <p className="flex items-center gap-3 font-display font-bold">
-                                                <CheckCircle2 className="h-6 w-6 text-azul" aria-hidden />
-                                                Respondió {Object.keys(readableAnswers).length} preguntas
-                                            </p>
-                                            <button
-                                                type="button"
-                                                onClick={() => setFinished(false)}
-                                                className="link self-start text-base sm:self-auto"
-                                            >
-                                                Revisar respuestas
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <ConditionStepper
-                                            conditions={viewData.conditions}
-                                            path={path}
-                                            answers={answers}
-                                            onAnswer={(id, answer) => setAnswers((current) => ({ ...current, [id]: answer }))}
-                                            onNext={(id) => setPath((current) => [...current, id])}
-                                            onBack={() => setPath((current) => current.slice(0, -1))}
-                                            onFinish={finishQuestions}
-                                        />
-                                    )}
-                                </div>
-                            </div>
+    return (
+        <div className="frame grid items-start gap-x-8 gap-y-6 pb-[clamp(4rem,2.4rem+6.5vw,9rem)] pt-5 lg:grid-cols-12 lg:pt-10">
+            <p aria-live="polite" className="sr-only">
+                {announcement}
+            </p>
 
-                            {finished && (
-                                <div ref={contactRef} className="scroll-mt-24">
-                                    <h2 className="subheading text-azul">Sus datos</h2>
-                                    <p className="mt-2 max-w-measure text-pizarra">Para enviarle la propuesta y resolver dudas sobre su solicitud.</p>
-                                    <form onSubmit={submit} noValidate className="panel mt-6 space-y-8 p-5 sm:p-8">
-                                        {professionals.length > 0 && (
-                                            <ProfessionalChoice
-                                                professionals={professionals}
-                                                selectedId={professionalId}
-                                                onChange={setProfessionalId}
-                                            />
+            <div className="grid gap-8 lg:sticky lg:top-[11rem] lg:col-span-4">
+                <StepList steps={steps} current={step} reached={reached} complete={complete} onGo={(index: number) => go(index)} />
+                <ChannelsPanel className="hidden lg:block" />
+            </div>
+
+            <section ref={panelRef} aria-labelledby="paso-titulo" className="min-w-0 scroll-mt-[9.5rem] lg:col-span-8 lg:scroll-mt-[11rem]">
+                <form
+                    onSubmit={(event) => {
+                        event.preventDefault();
+                        if (step === last) submit();
+                        else next();
+                    }}
+                    noValidate
+                >
+                    <header className="mb-8">
+                        <h2 id="paso-titulo" ref={titleRef} tabIndex={-1} className="subheading text-azul outline-none">
+                            {screen.title}
+                        </h2>
+                        <p className="mt-2 font-semibold text-pizarra">
+                            {screen.hint}
+                            {screen.parts > 1 && ` Parte ${screen.part} de ${screen.parts}.`}
+                        </p>
+                    </header>
+
+                    <div className="grid gap-7">
+                        <div ref={summaryRef} className="empty:hidden">
+                            {summary.length > 0 && <ErrorSummary items={summary} action={step === last ? 'enviar' : 'continuar'} />}
+                            {summary.length === 0 && failure.length > 0 && (
+                                <Notice tone="error" role="alert" title="La solicitud no se pudo enviar">
+                                    <ul className="list-disc pl-5">
+                                        {failure.map((message) => (
+                                            <li key={message}>{message}</li>
+                                        ))}
+                                    </ul>
+                                    <p className="mt-2">
+                                        {company.email && (
+                                            <>
+                                                Escríbanos a{' '}
+                                                <a href={`mailto:${company.email}`} className="font-semibold text-error underline">
+                                                    {company.email}
+                                                </a>
+                                            </>
                                         )}
-
-                                        <ContactFields
-                                            data={contact}
-                                            privacyAccepted={privacyAccepted}
-                                            errors={contactErrors}
-                                            onChange={(field, value) => setContact((current) => ({ ...current, [field]: value }))}
-                                            onPrivacyChange={setPrivacyAccepted}
-                                        />
-
-                                        {formErrors.length > 0 && (
-                                            <ul
-                                                role="alert"
-                                                className="list-inside list-disc rounded-control border-2 border-error/40 bg-red-50 px-4 py-3 text-base text-error"
-                                            >
-                                                {formErrors.map((message) => (
-                                                    <li key={message}>{message}</li>
-                                                ))}
-                                            </ul>
-                                        )}
-
-                                        <div className="flex flex-col gap-4 border-t border-linea pt-6 sm:flex-row sm:items-center sm:justify-between">
-                                            <p className="hint">Recibirá una confirmación en su correo.</p>
-                                            <button type="submit" disabled={processing} className="btn btn-primary">
-                                                {processing ? 'Enviando solicitud…' : 'Enviar solicitud'}
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
+                                        {company.email && company.phone && ' o '}
+                                        {company.phone && <>llame al {company.phone}</>}. Sus respuestas siguen en el formulario.
+                                    </p>
+                                </Notice>
                             )}
                         </div>
 
-                        <div className="lg:sticky lg:top-28 lg:col-span-5">
-                            <RequestSheet
-                                businessUnit={viewData.businessUnit}
-                                picked={picked}
-                                answers={readableAnswers}
-                                professionalId={professionalId}
+                        {step === 0 && (
+                            <ContactFields
+                                data={contact}
+                                errors={contactErrors}
+                                onChange={(field, value) => setContact((c) => ({ ...c, [field]: value }))}
                             />
-                        </div>
+                        )}
+
+                        {page && (
+                            <BlockFields
+                                fields={page.fields}
+                                conditions={conditions}
+                                answers={answers}
+                                onAnswer={(id, answer) => setAnswers((a) => ({ ...a, [id]: answer }))}
+                                errors={fieldErrors}
+                            />
+                        )}
+
+                        {step === last && (
+                            <>
+                                <details className="group rounded-[10px] border-2 border-linea">
+                                    <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 px-5 py-3 font-display font-bold text-azul [&::-webkit-details-marker]:hidden">
+                                        Revisar sus respuestas ({Object.keys(answered).length})
+                                        <ChevronRight className="h-5 w-5 shrink-0 transition-transform group-open:rotate-90" aria-hidden />
+                                    </summary>
+                                    <dl className="max-h-96 overflow-y-auto border-t border-linea px-5">
+                                        {Object.entries(answered).map(([question, answer]) => (
+                                            <div key={question} className="border-b border-linea py-3 last:border-0">
+                                                <dt className="text-sm font-bold text-pizarra">{question}</dt>
+                                                <dd className="whitespace-pre-line">{answer}</dd>
+                                            </div>
+                                        ))}
+                                    </dl>
+                                </details>
+
+                                <div className="absolute -left-[9999px]" aria-hidden>
+                                    <label>
+                                        No llenar{' '}
+                                        <input
+                                            type="text"
+                                            name="web"
+                                            tabIndex={-1}
+                                            autoComplete="off"
+                                            value={web}
+                                            onChange={(e) => setWeb(e.target.value)}
+                                        />
+                                    </label>
+                                </div>
+
+                                <PrivacyConsent accepted={privacyAccepted} error={contactErrors.privacy_accepted} onChange={setPrivacyAccepted} />
+                            </>
+                        )}
                     </div>
-                </section>
-            )}
-        </>
+
+                    {/* Like the explorer's pager: each button says where it goes. */}
+                    <nav aria-label="Pasos" className="mt-10 grid gap-3 sm:grid-cols-2">
+                        {step > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => go(step - 1)}
+                                className="flex items-center gap-3 rounded-[10px] border-2 border-linea px-5 py-4 text-left font-display font-bold text-azul transition-colors hover:border-azul"
+                            >
+                                <ChevronLeft className="h-5 w-5 shrink-0" aria-hidden />
+                                <span>
+                                    <span className="block font-sans text-sm font-semibold text-pizarra">Anterior</span>
+                                    {pagerName(steps[step - 1], screen)}
+                                </span>
+                            </button>
+                        )}
+                        {step < last ? (
+                            <button
+                                type="submit"
+                                className="flex items-center justify-between gap-3 rounded-[10px] border-2 border-azul bg-azul px-5 py-4 text-right font-display font-bold text-white transition-colors hover:border-azul-hondo hover:bg-azul-hondo max-sm:order-first sm:col-start-2"
+                            >
+                                <span className="ml-auto">
+                                    <span className="block font-sans text-sm font-semibold text-white/85">Siguiente</span>
+                                    {pagerName(steps[step + 1], screen)}
+                                </span>
+                                <ChevronRight className="h-5 w-5 shrink-0" aria-hidden />
+                            </button>
+                        ) : (
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="btn btn-primary min-h-[4.5rem] text-base max-sm:order-first sm:col-start-2"
+                            >
+                                {processing ? 'Enviando solicitud…' : 'Enviar solicitud'}
+                            </button>
+                        )}
+                    </nav>
+
+                    <p className="mt-6 text-sm text-pizarra">
+                        Sus respuestas se guardan en este navegador mientras completa la solicitud.{' '}
+                        {Object.keys(answers).length > 0 && (
+                            <button type="button" onClick={startOver} className="link">
+                                Empezar de nuevo
+                            </button>
+                        )}
+                    </p>
+                </form>
+            </section>
+
+            <ChannelsPanel className="lg:hidden" />
+        </div>
     );
 }

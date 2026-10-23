@@ -8,9 +8,25 @@ export const emptyAnswer = (condition: PublicCondition): Answer => {
 
 const otherIndex = (condition: PublicCondition, answer: OptionsAnswer) => answer.selected.find((i) => condition.options[i]?.is_other);
 
+/** Nothing entered yet (an optional question left like this is skipped). */
+export function isBlank(condition: PublicCondition, answer: Answer | undefined): boolean {
+    const value = answer ?? emptyAnswer(condition);
+    switch (condition.interaction_type) {
+        case 'input':
+            return String(value).trim() === '';
+        case 'range': {
+            const { min, max } = value as RangeAnswer;
+            return min.trim() === '' && max.trim() === '';
+        }
+        case 'options':
+            return (value as OptionsAnswer).selected.length === 0;
+    }
+}
+
 /** Why the answer can't be accepted yet, or null when it is complete. */
 export function answerError(condition: PublicCondition, answer: Answer | undefined): string | null {
     const value = answer ?? emptyAnswer(condition);
+    if (!condition.required && isBlank(condition, value)) return null;
 
     switch (condition.interaction_type) {
         case 'input':
@@ -48,6 +64,40 @@ export function nextConditionId(condition: PublicCondition, answer: Answer | und
     return condition.next_condition;
 }
 
+/** A question shown in the form; `depth` > 0 when it opened from an option of another one. */
+export type VisibleField = { id: number; depth: number };
+
+/**
+ * The questions the client sees with the current answers, in order: the main
+ * order plus the branches opened by the chosen options (a branch rejoins the
+ * flow where its question would have gone). This is also the path whose
+ * answers are sent.
+ */
+export function visibleFields(
+    conditions: Record<string, PublicCondition>,
+    initialId: number | null,
+    answers: Record<number, Answer>,
+): VisibleField[] {
+    const fields: VisibleField[] = [];
+    const joins: number[] = []; // where each open branch rejoins, innermost last
+    const seen = new Set<number>();
+    let id = initialId;
+
+    while (id !== null && conditions[id] && !seen.has(id)) {
+        while (joins.length > 0 && joins[joins.length - 1] === id) joins.pop();
+        seen.add(id);
+        fields.push({ id, depth: joins.length });
+
+        const condition = conditions[id];
+        const next = nextConditionId(condition, answers[id]);
+        if (next !== condition.next_condition && condition.next_condition !== null) joins.push(condition.next_condition);
+        else if (next !== condition.next_condition) joins.push(-1); // branch that ends the questionnaire
+        id = next;
+    }
+
+    return fields;
+}
+
 const formatDate = (value: string) => {
     const date = new Date(`${value}T00:00:00`);
     return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('es-CO');
@@ -78,7 +128,8 @@ export function formatAnswer(condition: PublicCondition, answer: Answer): string
 
 /**
  * Readable answers for the conditions actually walked (in order). Answers of
- * branches the client backed out of are ignored. Repeated labels get a suffix
+ * branches the client backed out of, and optional questions left blank, are
+ * ignored. Repeated labels get a suffix
  * so they don't overwrite each other.
  */
 export function pathAnswers(conditions: Record<string, PublicCondition>, path: number[], answers: Record<number, Answer>): Record<string, string> {
@@ -87,7 +138,7 @@ export function pathAnswers(conditions: Record<string, PublicCondition>, path: n
     for (const id of path) {
         const condition = conditions[id];
         const answer = answers[id];
-        if (!condition || answer === undefined) continue;
+        if (!condition || answer === undefined || isBlank(condition, answer)) continue;
 
         let key = condition.label;
         for (let n = 2; key in result; n++) key = `${condition.label} (${n})`;

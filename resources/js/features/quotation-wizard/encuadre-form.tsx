@@ -1,0 +1,147 @@
+import { cn } from '@/lib/utils';
+import type { ReactNode, Ref } from 'react';
+import type { VisibleField } from './answers';
+import { ConditionField } from './condition-field';
+import { sectionOf } from './sections';
+import type { Answer, PublicCondition } from './types';
+
+export type EncuadreBlock = { key: string; title: string; short: string; hint: string; fields: VisibleField[] };
+
+/** Visible fields grouped in consecutive blocks of the encuadre. */
+export function encuadreBlocks(conditions: Record<string, PublicCondition>, fields: VisibleField[]): EncuadreBlock[] {
+    const blocks: EncuadreBlock[] = [];
+    for (const field of fields) {
+        const key = conditions[field.id].section ?? 'otras';
+        const last = blocks[blocks.length - 1];
+        if (last?.key === key) {
+            last.fields.push(field);
+        } else {
+            const section = sectionOf(key);
+            blocks.push({
+                key,
+                title: section?.title ?? 'Otras preguntas',
+                short: section?.short ?? 'Otras',
+                hint: section?.hint ?? '',
+                fields: [field],
+            });
+        }
+    }
+    return blocks;
+}
+
+/** One screen of the form: a block, or a part of a long one. */
+export type FormPage = EncuadreBlock & { part: number; parts: number };
+
+/** How much room a question takes on screen (long text counts double). */
+const weightOf = (condition: PublicCondition) => (condition.interaction_type === 'input' && condition.multiline ? 2 : 1);
+
+/**
+ * Split a long block into parts that fit on screen. A question and the fields
+ * it opens always stay together, and only the questions themselves are
+ * weighed, so answering never moves a field to another part.
+ */
+export function paginate(conditions: Record<string, PublicCondition>, block: EncuadreBlock, maxWeight = 4): FormPage[] {
+    const groups: VisibleField[][] = [];
+    for (const field of block.fields) {
+        if (field.depth === 0 || groups.length === 0) groups.push([field]);
+        else groups[groups.length - 1].push(field);
+    }
+
+    const parts: VisibleField[][] = [];
+    let weight = 0;
+    for (const group of groups) {
+        const w = weightOf(conditions[group[0].id]);
+        if (parts.length === 0 || weight + w > maxWeight) {
+            parts.push([]);
+            weight = 0;
+        }
+        parts[parts.length - 1].push(...group);
+        weight += w;
+    }
+
+    return parts.map((fields, index) => ({ ...block, fields, part: index + 1, parts: parts.length }));
+}
+
+type FieldsProps = {
+    conditions: Record<string, PublicCondition>;
+    answers: Record<number, Answer>;
+    onAnswer: (id: number, answer: Answer) => void;
+    /** Errors by question id (only shown after trying to go on). */
+    errors: Record<number, string>;
+};
+
+/** The fields of one block; the ones opened by an answer go indented right under it. */
+export function BlockFields({ fields, conditions, answers, onAnswer, errors }: FieldsProps & { fields: VisibleField[] }) {
+    return (
+        <>
+            {fields.map(({ id, depth }) => (
+                <div
+                    key={id}
+                    className={cn(depth > 0 && 'border-l-4 border-linea pl-4 sm:pl-6')}
+                    style={{ marginLeft: depth > 1 ? `${(depth - 1) * 1.5}rem` : undefined }}
+                >
+                    <ConditionField
+                        id={id}
+                        condition={conditions[id]}
+                        answer={answers[id]}
+                        onChange={(answer) => onAnswer(id, answer)}
+                        error={errors[id] ?? null}
+                    />
+                </div>
+            ))}
+        </>
+    );
+}
+
+/** The whole encuadre at once, block after block (used by the admin's test run). */
+export function EncuadreForm({ fields, ...props }: FieldsProps & { fields: VisibleField[] }) {
+    return (
+        <>
+            {encuadreBlocks(props.conditions, fields).map((block, index) => (
+                <FormBlock key={block.key} id={`bloque-${block.key}`} number={index + 1} title={block.title} hint={block.hint}>
+                    <BlockFields fields={block.fields} {...props} />
+                </FormBlock>
+            ))}
+        </>
+    );
+}
+
+type FormBlockProps = {
+    id: string;
+    number: number;
+    title: string;
+    hint?: string;
+    children: ReactNode;
+    /** Navigation under the fields. */
+    footer?: ReactNode;
+    titleRef?: Ref<HTMLHeadingElement>;
+};
+
+/** A numbered block of the request form. */
+export function FormBlock({ id, number, title, hint, children, footer, titleRef }: FormBlockProps) {
+    return (
+        <section id={id} aria-labelledby={`${id}-title`} className="panel scroll-mt-28 p-5 sm:p-8">
+            <header className="mb-6 flex items-start gap-4 border-b border-linea pb-5">
+                <span
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-azul font-display text-base font-extrabold tabular-nums text-white"
+                    aria-hidden
+                >
+                    {number}
+                </span>
+                <div>
+                    <h2
+                        id={`${id}-title`}
+                        ref={titleRef}
+                        tabIndex={-1}
+                        className="font-display text-xl font-bold leading-tight text-tinta outline-none sm:text-2xl"
+                    >
+                        {title}
+                    </h2>
+                    {hint && <p className="mt-1 text-base text-pizarra">{hint}</p>}
+                </div>
+            </header>
+            <div className="space-y-7">{children}</div>
+            {footer && <div className="mt-8 border-t border-linea pt-6">{footer}</div>}
+        </section>
+    );
+}
