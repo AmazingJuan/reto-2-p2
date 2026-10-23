@@ -13,7 +13,6 @@ import {
     Menu,
     ScrollText,
     Settings,
-    UserCircle,
     Users,
     Workflow,
     Wrench,
@@ -56,7 +55,6 @@ export const adminNavigation: NavGroup[] = [
                 icon: Workflow,
                 description: 'Preguntas del cotizador',
             },
-            { routeName: 'dashboard.professionals.index', label: 'Profesionales', icon: UserCircle, description: 'Equipo asignable a cotizaciones' },
         ],
     },
     {

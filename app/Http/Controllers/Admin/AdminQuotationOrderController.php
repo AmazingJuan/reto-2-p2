@@ -47,7 +47,7 @@ class AdminQuotationOrderController extends Controller
     {
         return Inertia::render('admin/quotation-orders/show', [
             'viewData' => [
-                'quotationOrder' => $quotationOrder->load(['professional', 'client']),
+                'quotationOrder' => $quotationOrder->load('client'),
             ],
         ]);
     }

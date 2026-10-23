@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Models\Concerns\Searchable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class GestionLine extends Model
@@ -38,11 +37,6 @@ class GestionLine extends Model
     public function services(): HasMany
     {
         return $this->hasMany(Service::class);
-    }
-
-    public function professionals(): BelongsToMany
-    {
-        return $this->belongsToMany(Professional::class, 'gestion_line_professional');
     }
 
     public function getServices()
