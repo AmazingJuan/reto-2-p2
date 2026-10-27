@@ -114,28 +114,29 @@ class StoreQuotationProposal extends FormRequest
     {
         return [
             'privacy_accepted.accepted' => 'Debe autorizar el tratamiento de sus datos para enviar la solicitud.',
-            'contact.required' => 'El contacto es requerido.',
-            'contact.array' => 'El contacto debe ser un objeto con nombre, email y teléfono.',
+            'contact.required' => 'Complete los datos del cliente.',
+            'contact.array' => 'Complete los datos del cliente.',
 
-            'contact.name.required' => 'El nombre del contacto es requerido.',
-            'contact.name.string' => 'El nombre del contacto debe ser texto.',
+            'contact.name.required' => 'Indique el nombre del contacto.',
+            'contact.name.string' => 'Indique el nombre del contacto.',
             'contact.name.max' => 'El nombre del contacto no debe exceder :max caracteres.',
 
-            'contact.company.required' => 'Escriba la razón social de su organización.',
-            'contact.role.required' => 'Escriba su cargo.',
+            'contact.company.required' => 'Indique la razón social de la organización.',
+            'contact.role.required' => 'Indique el cargo del contacto.',
 
-            'contact.email.required' => 'El email del contacto es requerido.',
-            'contact.email.email' => 'El email del contacto debe ser una dirección válida.',
+            'contact.email.required' => 'Indique el correo electrónico del contacto.',
+            'contact.email.email' => 'El correo electrónico debe tener la forma nombre@empresa.com.',
 
-            'contact.phone.required' => 'El teléfono del contacto es requerido.',
-            'contact.phone.regex' => 'Por favor ingresa un teléfono válido.',
+            'contact.phone.required' => 'Indique un teléfono de contacto.',
+            'contact.phone.regex' => 'El teléfono solo puede contener números, espacios y los signos + ( ) - .',
 
-            'businessUnit.required' => 'La unidad de negocio es requerida.',
+            'businessUnit.required' => 'Elija el tipo de servicio que desea cotizar.',
 
-            'answers.array' => 'Las respuestas deben enviarse como un diccionario pregunta=>respuesta.',
-            'answers.*.required' => 'Cada respuesta es requerida.',
-            'answers.*.string' => 'Cada respuesta debe ser texto.',
-            'answers.*.max' => 'Cada respuesta no debe exceder :max caracteres.',
+            'answers.required' => 'No se recibieron las respuestas de la solicitud. Inténtelo nuevamente.',
+            'answers.array' => 'No se recibieron las respuestas de la solicitud. Inténtelo nuevamente.',
+            'answers.*.required' => 'Este campo es obligatorio.',
+            'answers.*.string' => 'La respuesta debe ser texto.',
+            'answers.*.max' => 'La respuesta no debe exceder :max caracteres.',
 
             'documents.max' => 'Adjunte máximo :max documentos.',
             'documents.*.question.in' => 'Uno de los documentos no corresponde a ninguna pregunta de la solicitud.',
