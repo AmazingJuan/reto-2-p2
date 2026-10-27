@@ -41,11 +41,11 @@ export default function Create() {
                     title="Correos de bienvenida"
                     description={
                         <>
-                            Invita a clientes a la plataforma. El botón del correo enlaza a{' '}
+                            Invite a sus clientes a la plataforma. El botón del correo lleva a la página para solicitar una cotización:{' '}
                             <a href={app_url} className="font-medium text-azul-hondo underline underline-offset-2">
                                 {app_url}
-                            </a>{' '}
-                            (variable APP_URL).
+                            </a>
+                            .
                         </>
                     }
                 />

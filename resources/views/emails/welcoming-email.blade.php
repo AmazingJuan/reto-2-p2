@@ -2,29 +2,19 @@
 
 @section('title', 'Nueva plataforma de cotización')
 
-@section('heading', 'Nueva plataforma de cotización')
+@section('preheader', 'Solicite cotizaciones de auditoría, consultoría y formación en línea.')
+
+@section('heading', 'Cotice en línea con Training Corporation')
 
 @section('content')
-  <p style="font-size:16px; margin:0 0 16px 0; font-weight:bold;">
-    ¡Hola {{ $userName ?? 'estimado cliente' }}!
-  </p>
-  <p style="font-size:16px; margin:0 0 16px 0; line-height:1.5;">
-    Nos complace informarte que hemos lanzado una <strong>nueva plataforma de cotización</strong> completamente renovada.
-    Ahora podrás solicitar tus cotizaciones de forma más rápida y sencilla.
-  </p>
+  @include('emails.partials.greeting', ['name' => $userName])
+  <p style="margin:0 0 24px 0;">Nos complace informarle que ahora puede solicitar sus cotizaciones desde nuestra nueva plataforma: elija el servicio, diligencie el formato de encuadre y reciba la propuesta en su correo.</p>
 
-  <p style="display:inline-block; background:#dcfce7; color:#15803d; font-weight:bold; padding:8px 16px; border-radius:8px; font-size:14px; margin:16px 0;">
-    ACCESO DISPONIBLE AHORA
-  </p>
+  @include('emails.partials.button', ['url' => route('quotation.select.business_unit'), 'label' => 'Solicitar una cotización', 'margin' => '0 0 32px 0'])
 
-  <p style="margin:16px 0 0 0;">
-    <a href="{{ config('app.url') }}" target="_blank" rel="noopener noreferrer" style="display:inline-block; background:#2563eb; color:#ffffff !important; text-decoration:none; padding:12px 24px; border-radius:8px; font-weight:bold; font-size:14px;">
-      Ir a la plataforma
-    </a>
-  </p>
-
-  @push('below_content')
-    @include('emails.partials.company-contact')
-  @endpush
-
+  @include('emails.partials.signature')
 @endsection
+
+@push('below_content')
+  @include('emails.partials.company-contact')
+@endpush

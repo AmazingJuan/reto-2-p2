@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Client;
+use App\Utils\Brand;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Maatwebsite\Excel\Concerns\FromQuery;
@@ -126,7 +127,7 @@ class ClientsExport implements FromQuery, WithColumnWidths, WithCustomStartCell,
      */
     public function drawings(): array
     {
-        $logoPath = public_path('logo_training.png');
+        $logoPath = Brand::logoPath();
 
         if (! is_file($logoPath)) {
             return [];

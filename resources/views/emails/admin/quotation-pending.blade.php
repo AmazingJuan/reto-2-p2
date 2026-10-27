@@ -1,36 +1,39 @@
 @extends('emails.layouts.base')
 
+@php
+  $contact = $quotationOrder->client;
+  $code = $quotationOrder->getQuotationCode() ?: '#'.$quotationOrder->getId();
+@endphp
+
 @section('title', 'Nueva solicitud de cotización')
+
+@section('preheader', ($contact?->company ?: $contact?->name ?: 'Un cliente').' solicitó una cotización de '.($quotationOrder->business_unit ?? 'un servicio').'.')
 
 @section('heading', 'Nueva solicitud de cotización')
 
+@section('lede')
+  {{ $contact?->company ?: $contact?->name ?: 'Un cliente' }} envió una solicitud desde la plataforma.
+@endsection
+
+@section('footer_note', 'Notificación interna de la plataforma de cotización.')
+
 @section('content')
-  @php
-    $contact = $quotationOrder->client;
-  @endphp
-  <p style="font-size:16px; margin:0 0 16px 0; text-align:left;">
-    Un usuario envió una nueva solicitud de cotización desde la plataforma.
-  </p>
+  @include('emails.partials.reference', ['code' => $code])
 
-  <p style="margin:0 0 20px 0; text-align:left;">
-    <span style="display:inline-block; background:#eef3ff; color:#1e3a8a; font-weight:600; padding:8px 16px; border-radius:6px; font-size:15px; font-family:Courier, monospace;">{{ $quotationOrder->getQuotationCode() ? $quotationOrder->getQuotationCode() : '#'.$quotationOrder->getId() }}</span>
-  </p>
+  @include('emails.partials.rows', ['title' => 'Organización', 'rows' => [
+    'Razón social' => $contact?->company,
+    'NIT' => $contact?->nit,
+    'Actividad económica' => $contact?->economic_activity,
+    'Dirección' => $contact?->address,
+    'Unidad de negocio' => $quotationOrder->business_unit,
+  ]])
 
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f3f4f6; border-left:4px solid #2563eb; padding:16px; border-radius:6px; text-align:left; margin:0 0 20px 0;">
-    <tr>
-      <td>
-        <h3 style="margin:0 0 8px 0; font-size:15px; font-weight:bold; color:#1f2937;">Contacto</h3>
-        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Nombre:</strong> {{ $contact?->name ?? '—' }}</p>
-        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Razón social:</strong> {{ $contact?->company ?? '—' }}</p>
-        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>NIT:</strong> {{ $contact?->nit ?? '—' }}</p>
-        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Actividad económica:</strong> {{ $contact?->economic_activity ?? '—' }}</p>
-        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Dirección:</strong> {{ $contact?->address ?? '—' }}</p>
-        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Cargo:</strong> {{ $contact?->role ?? '—' }}</p>
-        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Email:</strong> {{ $contact?->email ?? '—' }}</p>
-        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Teléfono:</strong> {{ $contact?->phone ?? '—' }}</p>
-        <p style="margin:4px 0; font-size:14px; color:#4b5563;"><strong>Unidad de negocio:</strong> {{ $quotationOrder->business_unit ?? '—' }}</p>
-      </td>
-    </tr>
-  </table>
+  @include('emails.partials.rows', ['title' => 'Persona de contacto', 'rows' => [
+    'Nombre' => $contact?->name,
+    'Cargo' => $contact?->role,
+    'Correo electrónico' => $contact?->email,
+    'Teléfono' => $contact?->phone,
+  ]])
 
+  @include('emails.partials.button', ['url' => route('dashboard'), 'label' => 'Abrir el panel', 'margin' => '0'])
 @endsection

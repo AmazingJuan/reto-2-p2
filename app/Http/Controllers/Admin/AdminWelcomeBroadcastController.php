@@ -19,7 +19,7 @@ class AdminWelcomeBroadcastController extends Controller
     {
         return Inertia::render('admin/welcome-broadcast/create', [
             'viewData' => [
-                'app_url' => (string) config('app.url'),
+                'app_url' => route('quotation.select.business_unit'),
             ],
         ]);
     }
