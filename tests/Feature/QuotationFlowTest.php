@@ -120,7 +120,7 @@ class QuotationFlowTest extends TestCase
         Mail::fake();
 
         $this->post('/cotizar', $this->payload());
-        $this->post('/cotizar', $this->payload(['contact' => ['name' => 'Ana María', 'email' => 'ANA@empresa.com', 'phone' => '300 123 4567', 'company' => 'Clínica Sana']]));
+        $this->post('/cotizar', $this->payload(['contact' => ['name' => 'Ana María', 'email' => 'ANA@empresa.com', 'phone' => '300 123 4567', 'company' => 'Clínica Sana', 'role' => 'Coordinadora HSEQ']]));
 
         $this->assertSame(1, Client::count());
         $this->assertSame('Ana María', Client::sole()->getName());
@@ -131,6 +131,14 @@ class QuotationFlowTest extends TestCase
     {
         $this->post('/cotizar', $this->payload(['contact' => ['name' => 'Ana', 'email' => 'ana@empresa.com', 'phone' => '3001234567', 'company' => '']]))
             ->assertSessionHasErrors('contact.company');
+
+        $this->assertSame(0, QuotationProposalOrder::count());
+    }
+
+    public function test_contact_role_is_required(): void
+    {
+        $this->post('/cotizar', $this->payload(['contact' => ['name' => 'Ana', 'email' => 'ana@empresa.com', 'phone' => '3001234567', 'company' => 'Clínica Sana', 'role' => '']]))
+            ->assertSessionHasErrors('contact.role');
 
         $this->assertSame(0, QuotationProposalOrder::count());
     }
@@ -202,7 +210,7 @@ class QuotationFlowTest extends TestCase
     private function payload(array $overrides = []): array
     {
         return array_replace([
-            'contact' => ['name' => 'Ana', 'email' => 'ana@empresa.com', 'phone' => '300 123 4567', 'company' => 'Clínica Sana', 'role' => ''],
+            'contact' => ['name' => 'Ana', 'email' => 'ana@empresa.com', 'phone' => '300 123 4567', 'company' => 'Clínica Sana', 'role' => 'Coordinadora HSEQ'],
             'businessUnit' => 'Consultoría',
             'answers' => ['Sector' => 'Salud', 'Empleados' => '40'],
             'privacy_accepted' => true,

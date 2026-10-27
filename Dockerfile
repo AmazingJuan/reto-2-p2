@@ -7,6 +7,9 @@ RUN apt-get update && apt-get install -y \
 
 RUN docker-php-ext-install pdo pdo_mysql zip gd
 
+# Documents attached to a quotation request: up to 5 files of 10 MB (QuotationDocument).
+RUN printf 'upload_max_filesize=10M\npost_max_size=60M\nmax_file_uploads=20\n' > /usr/local/etc/php/conf.d/uploads.ini
+
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 RUN a2enmod rewrite \

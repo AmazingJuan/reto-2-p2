@@ -1,7 +1,7 @@
 import type { SectionKey } from '@/features/quotation-wizard/sections';
 
 export type InteractionType = 'input' | 'range' | 'options';
-export type ValueType = 'text' | 'number' | 'date';
+export type ValueType = 'text' | 'number' | 'date' | 'file';
 
 export type OptionData = {
     /** Database id; absent for options not saved yet. */
@@ -46,7 +46,7 @@ export type TreeData = {
  * What the admin picks: one plain choice instead of the three stored fields
  * (interaction_type, type, multiple).
  */
-export type AnswerKind = 'text' | 'long-text' | 'number' | 'date' | 'number-range' | 'date-range' | 'single' | 'multiple';
+export type AnswerKind = 'text' | 'long-text' | 'number' | 'date' | 'file' | 'number-range' | 'date-range' | 'single' | 'multiple';
 
 export const answerKinds: { kind: AnswerKind; label: string; example: string }[] = [
     { kind: 'single', label: 'Una opción', example: 'Sí / No' },
@@ -55,6 +55,7 @@ export const answerKinds: { kind: AnswerKind; label: string; example: string }[]
     { kind: 'long-text', label: 'Texto largo', example: 'Descripción del servicio' },
     { kind: 'number', label: 'Número', example: 'Cantidad de empleados' },
     { kind: 'date', label: 'Fecha', example: 'Fecha de inicio' },
+    { kind: 'file', label: 'Documentos', example: 'Adjuntar mapa de procesos' },
     { kind: 'number-range', label: 'Rango de números', example: 'De 10 a 50 personas' },
     { kind: 'date-range', label: 'Rango de fechas', example: 'Del 1 al 15 de marzo' },
 ];
@@ -75,6 +76,7 @@ export function withKind(condition: ConditionData, kind: AnswerKind): ConditionD
         'long-text': { interaction_type: 'input', type: 'text', multiple: false, multiline: true },
         number: { interaction_type: 'input', type: 'number', multiple: false, multiline: false },
         date: { interaction_type: 'input', type: 'date', multiple: false, multiline: false },
+        file: { interaction_type: 'input', type: 'file', multiple: false, multiline: false },
         'number-range': { interaction_type: 'range', type: 'number', multiple: false, multiline: false },
         'date-range': { interaction_type: 'range', type: 'date', multiple: false, multiline: false },
         single: { interaction_type: 'options', type: 'text', multiple: false, multiline: false },

@@ -22,7 +22,7 @@ function payload(question: ConditionData) {
     return {
         label: question.label,
         observation: question.observation,
-        placeholder: isChoice ? null : question.placeholder,
+        placeholder: isChoice || question.type === 'file' ? null : question.placeholder,
         multiline: question.multiline,
         interaction_type: question.interaction_type,
         type: question.type,

@@ -87,12 +87,27 @@ class EncuadreSeederTest extends TestCase
         $this->assertNotContains('Número de empleados de la empresa', $formacion);
         $this->assertNotContains('Descripción del número de procesos y/o macroprocesos', $formacion);
         $this->assertNotContains('¿Su organización tiene un sistema de gestión certificado o acreditado?', $formacion);
-        $this->assertNotContains('Documentos o información a tener en cuenta para la cotización', $formacion);
+        $this->assertContains('Documentos o información a tener en cuenta para la cotización', $formacion);
 
         foreach (['auditoria', 'consultoria'] as $name) {
             $labels = $this->labels($name);
             $this->assertContains('Número de empleados de la empresa', $labels);
             $this->assertNotContains('Número de asistentes para formación', $labels);
+        }
+    }
+
+    public function test_every_unit_can_attach_documents_right_after_describing_them(): void
+    {
+        foreach (['auditoria', 'consultoria', 'formacion'] as $name) {
+            $description = $this->question($name, 'Documentos o información a tener en cuenta para la cotización');
+            $files = Condition::find($description->next_condition_id);
+
+            $this->assertSame('Adjuntar documentos', $files->label, $name);
+            $this->assertSame('input', $files->interaction_type);
+            $this->assertSame('file', $files->type);
+            $this->assertSame('cotizacion', $files->getSection());
+            $this->assertFalse($files->isRequired());
+            $this->assertSame('Presupuesto establecido para la prestación del servicio', $files->getNextCondition()->label);
         }
     }
 
@@ -149,16 +164,28 @@ class EncuadreSeederTest extends TestCase
         $this->assertNull($meeting->options()->where('label', 'No')->value('next_condition_id'));
     }
 
-    public function test_key_fields_are_required_and_the_when_applicable_ones_optional(): void
+    public function test_key_fields_are_required_and_the_arl_and_documents_optional(): void
     {
-        foreach (['Descripción del servicio a solicitar', 'Modalidad de prestación del servicio', 'Fecha esperada para la prestación del servicio', 'Fecha esperada de entrega de la oferta comercial'] as $label) {
-            $this->assertTrue($this->question('auditoria', $label)->isRequired(), $label);
-        }
-        foreach (['Perfil del equipo requerido para la prestación del servicio', 'ARL de la empresa', 'Alcance certificado', 'Documentos o información a tener en cuenta para la cotización'] as $label) {
-            $this->assertFalse($this->question('auditoria', $label)->isRequired(), $label);
+        $required = [
+            'Descripción del servicio a solicitar',
+            'Descripción del alcance del sistema de gestión',
+            'Descripción del número de procesos y/o macroprocesos',
+            'Alcance certificado',
+            'Perfil del equipo requerido para la prestación del servicio',
+            'Modalidad de prestación del servicio',
+            'Fecha estimada para la prestación del servicio',
+            'Fecha estimada de entrega de la oferta comercial',
+        ];
+        foreach (['auditoria', 'consultoria'] as $name) {
+            foreach ($required as $label) {
+                $this->assertTrue($this->question($name, $label)->isRequired(), "{$name}: {$label}");
+            }
+            foreach (['ARL de la empresa', 'Documentos o información a tener en cuenta para la cotización'] as $label) {
+                $this->assertFalse($this->question($name, $label)->isRequired(), "{$name}: {$label}");
+            }
         }
 
-        $last = $this->question('formacion', 'Fecha esperada de entrega de la oferta comercial');
+        $last = $this->question('formacion', 'Fecha estimada de entrega de la oferta comercial');
         $this->assertNull($last->next_condition_id, 'the offer deadline closes the request');
         $this->assertSame('cierre', $last->getSection());
     }

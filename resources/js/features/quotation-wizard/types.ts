@@ -10,7 +10,8 @@ export type PublicOption = {
 export type PublicCondition = {
     label: string;
     interaction_type: 'input' | 'range' | 'options';
-    type: 'text' | 'number' | 'date';
+    /** 'file' only with 'input': the client attaches documents. */
+    type: 'text' | 'number' | 'date' | 'file';
     observation: string | null;
     /** Example of the expected answer, shown inside the field. */
     placeholder: string | null;
@@ -38,7 +39,9 @@ export type QuoteViewData = {
 export type RangeAnswer = { min: string; max: string };
 /** Indexes of the chosen options plus the free text of an "Otro" option. */
 export type OptionsAnswer = { selected: number[]; other: string };
-export type Answer = string | RangeAnswer | OptionsAnswer;
+/** Files attached in a 'file' question; they are sent with the request but not kept in the draft. */
+export type FilesAnswer = File[];
+export type Answer = string | RangeAnswer | OptionsAnswer | FilesAnswer;
 
 export type ContactData = {
     name: string;

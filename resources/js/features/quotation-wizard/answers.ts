@@ -1,10 +1,14 @@
-import type { Answer, OptionsAnswer, PublicCondition, RangeAnswer } from './types';
+import { filesError } from './documents';
+import type { Answer, FilesAnswer, OptionsAnswer, PublicCondition, RangeAnswer } from './types';
 
 export const emptyAnswer = (condition: PublicCondition): Answer => {
     if (condition.interaction_type === 'range') return { min: '', max: '' };
     if (condition.interaction_type === 'options') return { selected: [], other: '' };
+    if (condition.type === 'file') return [];
     return '';
 };
+
+const isFiles = (condition: PublicCondition) => condition.interaction_type === 'input' && condition.type === 'file';
 
 const otherIndex = (condition: PublicCondition, answer: OptionsAnswer) => answer.selected.find((i) => condition.options[i]?.is_other);
 
@@ -13,7 +17,7 @@ export function isBlank(condition: PublicCondition, answer: Answer | undefined):
     const value = answer ?? emptyAnswer(condition);
     switch (condition.interaction_type) {
         case 'input':
-            return String(value).trim() === '';
+            return isFiles(condition) ? (value as FilesAnswer).length === 0 : String(value).trim() === '';
         case 'range': {
             const { min, max } = value as RangeAnswer;
             return min.trim() === '' && max.trim() === '';
@@ -30,6 +34,10 @@ export function answerError(condition: PublicCondition, answer: Answer | undefin
 
     switch (condition.interaction_type) {
         case 'input':
+            if (isFiles(condition)) {
+                const files = value as FilesAnswer;
+                return files.length === 0 ? 'Adjunte al menos un documento.' : filesError(files);
+            }
             return String(value).trim() === '' ? 'Este campo es obligatorio.' : null;
 
         case 'range': {
@@ -107,6 +115,7 @@ const formatDate = (value: string) => {
 export function formatAnswer(condition: PublicCondition, answer: Answer): string {
     switch (condition.interaction_type) {
         case 'input':
+            if (isFiles(condition)) return (answer as FilesAnswer).map((file) => file.name).join(', ');
             return condition.type === 'date' ? formatDate(String(answer)) : String(answer).trim();
 
         case 'range': {
@@ -127,13 +136,14 @@ export function formatAnswer(condition: PublicCondition, answer: Answer): string
 }
 
 /**
- * Readable answers for the conditions actually walked (in order). Answers of
- * branches the client backed out of, and optional questions left blank, are
- * ignored. Repeated labels get a suffix
- * so they don't overwrite each other.
+ * The answered conditions actually walked (in order), each with the key its
+ * answer is sent under. Answers of branches the client backed out of, and
+ * optional questions left blank, are ignored. Repeated labels get a suffix so
+ * they don't overwrite each other.
  */
-export function pathAnswers(conditions: Record<string, PublicCondition>, path: number[], answers: Record<number, Answer>): Record<string, string> {
-    const result: Record<string, string> = {};
+function answeredPath(conditions: Record<string, PublicCondition>, path: number[], answers: Record<number, Answer>) {
+    const keys = new Set<string>();
+    const result: { key: string; condition: PublicCondition; answer: Answer }[] = [];
 
     for (const id of path) {
         const condition = conditions[id];
@@ -141,9 +151,26 @@ export function pathAnswers(conditions: Record<string, PublicCondition>, path: n
         if (!condition || answer === undefined || isBlank(condition, answer)) continue;
 
         let key = condition.label;
-        for (let n = 2; key in result; n++) key = `${condition.label} (${n})`;
-        result[key] = formatAnswer(condition, answer);
+        for (let n = 2; keys.has(key); n++) key = `${condition.label} (${n})`;
+        keys.add(key);
+        result.push({ key, condition, answer });
     }
 
     return result;
+}
+
+/** Readable answers keyed by question, as stored in the quotation. */
+export function pathAnswers(conditions: Record<string, PublicCondition>, path: number[], answers: Record<number, Answer>): Record<string, string> {
+    return Object.fromEntries(answeredPath(conditions, path, answers).map(({ key, condition, answer }) => [key, formatAnswer(condition, answer)]));
+}
+
+/** The files attached along the walked path, each with the key of its question's answer (the admin shows them under it). */
+export function pathFiles(
+    conditions: Record<string, PublicCondition>,
+    path: number[],
+    answers: Record<number, Answer>,
+): { question: string; file: File }[] {
+    return answeredPath(conditions, path, answers)
+        .filter(({ condition }) => isFiles(condition))
+        .flatMap(({ key, answer }) => (answer as FilesAnswer).map((file) => ({ question: key, file })));
 }

@@ -1,6 +1,8 @@
 import { cn } from '@/lib/utils';
+import { FileText, X } from 'lucide-react';
 import { emptyAnswer } from './answers';
-import type { Answer, OptionsAnswer, PublicCondition, RangeAnswer } from './types';
+import { ACCEPT, formatSize } from './documents';
+import type { Answer, FilesAnswer, OptionsAnswer, PublicCondition, RangeAnswer } from './types';
 
 type ConditionFieldProps = {
     id: number;
@@ -72,6 +74,9 @@ function Control({ anchor, condition, value, onChange, aria, invalid }: ControlP
     const placeholder = condition.placeholder ?? undefined;
 
     if (condition.interaction_type === 'input') {
+        if (condition.type === 'file') {
+            return <FilesControl anchor={anchor} label={condition.label} files={value as FilesAnswer} onChange={onChange} aria={aria} />;
+        }
         if (condition.type === 'text' && condition.multiline) {
             return (
                 <textarea
@@ -168,6 +173,56 @@ function Control({ anchor, condition, value, onChange, aria, invalid }: ControlP
                     aria-label={`${condition.label}: especifique`}
                 />
             )}
+        </div>
+    );
+}
+
+type FilesControlProps = Pick<ControlProps, 'anchor' | 'onChange' | 'aria'> & { label: string; files: FilesAnswer };
+
+/**
+ * The documents of the request: each pick adds to the list (choosing again
+ * does not drop what was already attached) and every file can be removed.
+ */
+function FilesControl({ anchor, label, files, onChange, aria }: FilesControlProps) {
+    const add = (picked: FileList | null) => {
+        const isNew = (file: File) => !files.some((f) => f.name === file.name && f.size === file.size);
+        onChange([...files, ...Array.from(picked ?? []).filter(isNew)]);
+    };
+
+    return (
+        <div className="grid gap-3">
+            <input
+                id={`${anchor}-input`}
+                type="file"
+                multiple
+                accept={ACCEPT}
+                onChange={(e) => {
+                    add(e.target.files);
+                    e.target.value = ''; // so the same file can be picked again after removing it
+                }}
+                className="block w-full text-base text-pizarra file:mr-4 file:cursor-pointer file:rounded-[10px] file:border-2 file:border-azul file:bg-white file:px-5 file:py-2.5 file:font-display file:font-bold file:text-azul hover:file:bg-nube"
+                {...aria}
+            />
+            {files.length > 0 && (
+                <ul className="grid gap-2" aria-label={`${label}: documentos adjuntos`}>
+                    {files.map((file, index) => (
+                        <li key={`${file.name}-${file.size}`} className="flex items-center gap-3 rounded-[10px] border-2 border-linea px-4 py-2.5">
+                            <FileText className="h-5 w-5 shrink-0 text-azul" aria-hidden />
+                            <span className="min-w-0 flex-1 truncate">{file.name}</span>
+                            <span className="shrink-0 text-sm text-pizarra">{formatSize(file.size)}</span>
+                            <button
+                                type="button"
+                                onClick={() => onChange(files.filter((_, i) => i !== index))}
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-pizarra hover:bg-nube hover:text-error"
+                                aria-label={`Quitar ${file.name}`}
+                            >
+                                <X className="h-4 w-4" aria-hidden />
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            )}
+            <p className="text-sm text-pizarra">Los documentos no se guardan en este navegador: si sale de la página, adjúntelos de nuevo.</p>
         </div>
     );
 }
