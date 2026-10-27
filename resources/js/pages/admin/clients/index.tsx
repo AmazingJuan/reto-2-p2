@@ -58,11 +58,7 @@ export default function Index() {
                     </p>
                 )}
 
-                <AdminTableToolbar
-                    search={filters.search}
-                    onSearch={(search) => visit({ search })}
-                    searchPlaceholder="Nombre, correo, empresa, teléfono…"
-                >
+                <AdminTableToolbar search={filters.search} onSearch={(search) => visit({ search })} searchPlaceholder="Nombre, correo o empresa…">
                     <FilterSelect
                         id="company-filter"
                         label="Empresa"
@@ -85,11 +81,11 @@ export default function Index() {
                     columns={[
                         { label: 'Cliente' },
                         { label: 'Empresa' },
-                        { label: 'Teléfono' },
+                        { label: 'Teléfono', className: 'hidden md:table-cell' },
                         { label: 'Cotizaciones', align: 'center' },
-                        { label: 'Última' },
+                        { label: 'Última', className: 'hidden md:table-cell' },
                     ]}
-                    minWidth="48rem"
+                    minWidth="24rem"
                     isEmpty={clients.data.length === 0}
                     emptyMessage={isFiltered ? 'No hay clientes que coincidan con los filtros.' : 'Aún no hay clientes con cotizaciones registradas.'}
                 >
@@ -108,7 +104,7 @@ export default function Index() {
                                 {orDash(client.company)}
                                 {client.role && <span className="block text-xs text-pizarra">{client.role}</span>}
                             </td>
-                            <td className={cn(adminTableTdClass, 'whitespace-nowrap')}>{orDash(client.phone)}</td>
+                            <td className={cn(adminTableTdClass, 'hidden whitespace-nowrap md:table-cell')}>{orDash(client.phone)}</td>
                             <td className={cn(adminTableTdClass, 'text-center tabular-nums')}>
                                 <span className="font-semibold text-tinta">{client.quotations_count}</span>
                                 {client.pending_count > 0 && (
@@ -117,7 +113,9 @@ export default function Index() {
                                     </span>
                                 )}
                             </td>
-                            <td className={cn(adminTableTdClass, 'whitespace-nowrap tabular-nums')}>{formatDate(client.last_quotation_at)}</td>
+                            <td className={cn(adminTableTdClass, 'hidden whitespace-nowrap tabular-nums md:table-cell')}>
+                                {formatDate(client.last_quotation_at)}
+                            </td>
                         </tr>
                     ))}
                 </DataTable>

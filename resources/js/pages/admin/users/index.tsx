@@ -35,11 +35,7 @@ export default function Index() {
                     </Link>
                 </AdminPageHeader>
 
-                <AdminTableToolbar
-                    search={filters.search}
-                    onSearch={(search) => visit({ search })}
-                    searchPlaceholder="Nombre, correo, teléfono o ID…"
-                />
+                <AdminTableToolbar search={filters.search} onSearch={(search) => visit({ search })} searchPlaceholder="Nombre o correo…" />
 
                 <DataTable
                     columns={[
@@ -50,14 +46,14 @@ export default function Index() {
                         { label: 'Acciones', align: 'center' },
                     ]}
                     isEmpty={users.data.length === 0}
-                    emptyMessage={filters.search ? 'No hay resultados para tu búsqueda.' : 'No hay usuarios registrados.'}
+                    emptyMessage={filters.search ? 'No hay resultados para su búsqueda.' : 'No hay usuarios registrados.'}
                 >
                     {users.data.map((user) => (
                         <tr key={user.id} className="hover:bg-nube/70">
                             <td className={cn(adminTableTdClass, 'tabular-nums text-pizarra')}>{user.id}</td>
                             <td className={cn(adminTableTdClass, 'font-medium text-tinta')}>
                                 {user.name}
-                                {auth.user?.id === user.id && <span className="ml-2 text-xs font-normal text-pizarra">(tú)</span>}
+                                {auth.user?.id === user.id && <span className="ml-2 text-xs font-normal text-pizarra">(usted)</span>}
                             </td>
                             <td className={adminTableTdClass}>{user.email}</td>
                             <td className={adminTableTdClass}>{user.phone ?? '—'}</td>

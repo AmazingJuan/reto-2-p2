@@ -27,25 +27,21 @@ export default function Index() {
             <div className={adminListShellClass}>
                 <AdminPageHeader title="Cotizaciones" description="Solicitudes recibidas desde el cotizador. Abra una para subir la propuesta." />
 
-                <AdminTableToolbar
-                    search={filters.search}
-                    onSearch={(search) => visit({ search })}
-                    searchPlaceholder="Código, cliente, correo, empresa, unidad…"
-                />
+                <AdminTableToolbar search={filters.search} onSearch={(search) => visit({ search })} searchPlaceholder="Código, cliente o empresa…" />
 
                 <DataTable
                     columns={[
                         { label: 'Código' },
                         { label: 'Cliente' },
                         { label: 'Empresa', className: 'hidden lg:table-cell' },
-                        { label: 'Unidad' },
-                        { label: 'Fecha' },
+                        { label: 'Unidad', className: 'hidden md:table-cell' },
+                        { label: 'Fecha', className: 'hidden md:table-cell' },
                         { label: 'Estado' },
                         { label: 'Acciones', align: 'center' },
                     ]}
-                    minWidth="52rem"
+                    minWidth="22rem"
                     isEmpty={quotationOrders.data.length === 0}
-                    emptyMessage={filters.search ? 'No hay resultados para tu búsqueda.' : 'Aún no se han recibido solicitudes de cotización.'}
+                    emptyMessage={filters.search ? 'No hay resultados para su búsqueda.' : 'Aún no se han recibido solicitudes de cotización.'}
                 >
                     {quotationOrders.data.map((order) => (
                         <tr key={order.id} className="hover:bg-nube/70">
@@ -56,14 +52,20 @@ export default function Index() {
                                 >
                                     {order.quotation_code ?? '—'}
                                 </Link>
+                                {/* On a phone the unit and date columns are hidden: they go under the code. */}
+                                <span className="mt-0.5 block font-sans text-xs font-normal text-pizarra md:hidden">
+                                    {order.business_unit}, {formatDate(order.created_at)}
+                                </span>
                             </td>
                             <td className={adminTableTdClass}>
                                 <span className="block font-medium text-tinta">{orDash(order.client?.name)}</span>
                                 <span className="block text-xs text-pizarra">{order.client?.email}</span>
                             </td>
                             <td className={cn(adminTableTdClass, 'hidden lg:table-cell')}>{orDash(order.client?.company)}</td>
-                            <td className={adminTableTdClass}>{order.business_unit}</td>
-                            <td className={cn(adminTableTdClass, 'whitespace-nowrap tabular-nums')}>{formatDate(order.created_at)}</td>
+                            <td className={cn(adminTableTdClass, 'hidden md:table-cell')}>{order.business_unit}</td>
+                            <td className={cn(adminTableTdClass, 'hidden whitespace-nowrap tabular-nums md:table-cell')}>
+                                {formatDate(order.created_at)}
+                            </td>
                             <td className={adminTableTdClass}>
                                 <div className="flex flex-wrap gap-1.5">
                                     <QuotationStatusBadge generated={order.is_generated} />

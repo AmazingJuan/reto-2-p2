@@ -40,7 +40,7 @@ export default function Index() {
                     columns={[{ label: 'ID' }, { label: 'Nombre' }, { label: 'Acciones', align: 'center' }]}
                     minWidth="28rem"
                     isEmpty={gestionLines.data.length === 0}
-                    emptyMessage={filters.search ? 'No hay resultados para tu búsqueda.' : 'No hay líneas de gestión registradas.'}
+                    emptyMessage={filters.search ? 'No hay resultados para su búsqueda.' : 'No hay líneas de gestión registradas.'}
                 >
                     {gestionLines.data.map((line) => (
                         <tr key={line.id} className="hover:bg-nube/70">
