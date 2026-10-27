@@ -230,7 +230,7 @@ export function QuestionCard(props: QuestionCardProps) {
 
                     <div>
                         <label htmlFor={`${uid}-section`} className="label">
-                            Bloque del encuadre
+                            Bloque del formulario
                         </label>
                         <select
                             id={`${uid}-section`}

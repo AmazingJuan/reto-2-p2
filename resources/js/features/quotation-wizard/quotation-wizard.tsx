@@ -398,7 +398,7 @@ export function QuotationWizard({ viewData }: { viewData: QuoteViewData }) {
                                 <ol className="mt-4 grid gap-4">
                                     {[
                                         'Revise su correo: allí está la confirmación con el número de su solicitud.',
-                                        'Nuestro equipo revisa el encuadre y prepara la propuesta.',
+                                        'Nuestro equipo revisa su solicitud y prepara la propuesta.',
                                         'Le enviaremos la propuesta a ese correo lo más pronto posible, con un enlace seguro para descargarla.',
                                     ].map((text, i) => (
                                         <li key={text} className="grid grid-cols-[1.75rem_1fr] gap-3 text-white/90">

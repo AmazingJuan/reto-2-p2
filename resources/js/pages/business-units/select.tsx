@@ -42,7 +42,7 @@ export default function SelectBusinessUnit() {
             <QuoteShell
                 title="Solicitar cotización"
                 crumb="Solicitar cotización"
-                lede="Elija el tipo de servicio y complete el formato de encuadre. Con esta información preparamos una propuesta a la medida."
+                lede="Elija el tipo de servicio y complete el formulario de solicitud. Con esta información preparamos una propuesta a la medida."
                 units={businessUnits}
                 active={null}
             >
@@ -57,7 +57,7 @@ export default function SelectBusinessUnit() {
                             Elija el tipo de servicio
                         </h2>
                         <p className="mt-2 font-semibold text-pizarra">
-                            Cada servicio tiene su propio formato de encuadre, con las preguntas que aplican a ese servicio.
+                            Cada servicio tiene su propio formulario, con las preguntas que aplican a ese servicio.
                         </p>
                         <p className="mt-4 flex max-w-measure gap-3 text-pizarra">
                             <Clock className="mt-0.5 h-5 w-5 shrink-0 text-azul" aria-hidden />
