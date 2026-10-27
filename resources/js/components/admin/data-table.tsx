@@ -20,10 +20,10 @@ type DataTableProps = {
 
 const alignClass = { left: 'text-left', center: 'text-center', right: 'text-right' } as const;
 
-/** Card + scrollable table with a header row and an empty state. */
+/** Card + scrollable table with a header row and an empty state. On narrow screens a shadow at the edge shows there is more to scroll to. */
 export function DataTable({ columns, minWidth = '40rem', isEmpty, emptyMessage, children }: DataTableProps) {
     return (
-        <div className={cn(adminCardClass, 'w-full min-w-0 overflow-x-auto')}>
+        <div className={cn(adminCardClass, 'scroll-x-hint w-full min-w-0 overflow-x-auto')}>
             <table className="w-full divide-y divide-linea" style={{ minWidth }}>
                 <thead className="bg-nube/70">
                     <tr>
@@ -38,7 +38,7 @@ export function DataTable({ columns, minWidth = '40rem', isEmpty, emptyMessage, 
                         ))}
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-nube bg-white">
+                <tbody className="divide-y divide-nube">
                     {isEmpty ? (
                         <tr>
                             <td colSpan={columns.length} className="px-6 py-12 text-center text-sm text-pizarra">
