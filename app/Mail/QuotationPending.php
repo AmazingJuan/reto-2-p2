@@ -35,7 +35,7 @@ class QuotationPending extends Mailable
         $ref = $this->quotationOrder->getQuotationCode() ?? $this->quotationOrder->getId();
 
         return new Envelope(
-            subject: 'Tu cotización '.$ref.' está pendiente',
+            subject: 'Recibimos su solicitud de cotización '.$ref,
         );
     }
 
