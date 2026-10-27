@@ -42,7 +42,7 @@ export function TestRun({ tree, open, onOpenChange }: TestRunProps) {
             open={open}
             onOpenChange={change}
             title={`Prueba: ${tree.name}`}
-            description="Así verá el cliente el formulario de encuadre. Nada de lo que responda aquí se guarda."
+            description="Así verá el cliente el formulario de solicitud. Nada de lo que responda aquí se guarda."
             className="max-w-3xl"
         >
             {tree.initial_condition_id === null ? (

@@ -24,7 +24,7 @@ export default function QuotationPage() {
                 lede={
                     sent
                         ? undefined
-                        : 'Complete el formato de encuadre: la necesidad, las condiciones de prestación del servicio y los datos del cliente. Con esta información preparamos su propuesta.'
+                        : 'Complete el formulario de solicitud: la necesidad, las condiciones de prestación del servicio y los datos del cliente. Con esta información preparamos su propuesta.'
                 }
                 units={viewData.units}
                 active={viewData.unit}

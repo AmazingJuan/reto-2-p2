@@ -67,12 +67,12 @@ class EncuadreSeeder extends Seeder
                     throw new RuntimeException(implode(' ', $errors));
                 }
 
-                $this->command?->info("✅ {$unit->getDisplayName()}: {$unit->conditions()->count()} campos del formato de encuadre.");
+                $this->command?->info("✅ {$unit->getDisplayName()}: {$unit->conditions()->count()} campos del formulario de solicitud.");
             }
         });
 
         foreach (BusinessUnit::query()->whereNull('initial_condition_id')->get() as $unit) {
-            $this->command?->warn("«{$unit->getDisplayName()}» quedó sin formulario de encuadre: no se ofrecerá para cotizar.");
+            $this->command?->warn("«{$unit->getDisplayName()}» quedó sin formulario de solicitud: no se ofrecerá para cotizar.");
         }
     }
 

@@ -37,7 +37,7 @@
   @endif
 
   @if (!empty($quotationOrder->answers))
-    @include('emails.partials.rows', ['title' => 'Encuadre', 'rows' => collect($quotationOrder->answers)->map(fn ($v) => is_array($v) ? implode(', ', $v) : (string) $v)->all()])
+    @include('emails.partials.rows', ['title' => 'Detalles del servicio', 'rows' => collect($quotationOrder->answers)->map(fn ($v) => is_array($v) ? implode(', ', $v) : (string) $v)->all()])
   @endif
 
   <p style="margin:0 0 24px 0; font-size:15px; color:#4a5a67;">Si algún dato no es correcto, le agradecemos comunicarse con nosotros indicando el número de su solicitud.</p>
