@@ -219,7 +219,7 @@ class EncuadreSeeder extends Seeder
     /** @return array<string, mixed> */
     private function arl(): array
     {
-        return $this->field('ARL de la empresa', 'text', 'necesidad', 'Ej.: Positiva, Sura, Colmena', 'Describa el nivel de riesgo para la prestación del servicio, especialmente si el servicio es de seguridad y salud en el trabajo.', required: false);
+        return $this->field('Nivel de riesgo de la empresa ante la ARL', 'text', 'necesidad', 'Ej.: Riesgo III', 'Clase de riesgo (I a V) en la que su ARL clasifica a la empresa. Es importante sobre todo si el servicio es de seguridad y salud en el trabajo.', required: false);
     }
 
     /**
@@ -301,9 +301,9 @@ class EncuadreSeeder extends Seeder
                 'Por definir',
                 'No disponible',
             ]),
-            $this->choice('En caso de precisar las necesidades del servicio, ¿estaría de acuerdo en realizar una reunión de enlace?', 'validacion', [
+            $this->choice('En caso de precisar las necesidades del servicio, ¿estaría de acuerdo en realizar una reunión de enlace?', 'cierre', [
                 $this->option('Sí', [
-                    $this->field('Disponibilidad para la reunión de enlace', 'text', 'validacion', 'Ej.: martes y jueves de 2:00 p. m. a 5:00 p. m.'),
+                    $this->field('Disponibilidad para la reunión de enlace', 'text', 'cierre', 'Ej.: martes y jueves de 2:00 p. m. a 5:00 p. m.'),
                 ]),
                 'No',
             ]),

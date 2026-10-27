@@ -12,7 +12,7 @@ class Condition extends Model
     /**
      * Blocks of the "formato de encuadre", in the order the client goes through them.
      */
-    public const SECTIONS = ['necesidad', 'condiciones', 'cotizacion', 'validacion', 'cierre'];
+    public const SECTIONS = ['necesidad', 'condiciones', 'cotizacion', 'cierre'];
 
     /**
      * Attributes:

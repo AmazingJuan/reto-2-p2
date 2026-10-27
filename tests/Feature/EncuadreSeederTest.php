@@ -180,7 +180,7 @@ class EncuadreSeederTest extends TestCase
             foreach ($required as $label) {
                 $this->assertTrue($this->question($name, $label)->isRequired(), "{$name}: {$label}");
             }
-            foreach (['ARL de la empresa', 'Documentos o información a tener en cuenta para la cotización'] as $label) {
+            foreach (['Nivel de riesgo de la empresa ante la ARL', 'Documentos o información a tener en cuenta para la cotización'] as $label) {
                 $this->assertFalse($this->question($name, $label)->isRequired(), "{$name}: {$label}");
             }
         }
