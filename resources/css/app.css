@@ -91,6 +91,20 @@
         --focus-ring: 3px solid #fff;
     }
 
+    /*
+     * A horizontal scroller that shows there is more: white covers that move with the content
+     * hide a shadow at each edge until that edge can be scrolled to.
+     */
+    .scroll-x-hint {
+        scrollbar-width: thin;
+        background:
+            linear-gradient(to right, #fff 30%, rgb(255 255 255 / 0)) left / 2.5rem 100% no-repeat local,
+            linear-gradient(to left, #fff 30%, rgb(255 255 255 / 0)) right / 2.5rem 100% no-repeat local,
+            radial-gradient(farthest-side at 0 50%, rgb(16 42 63 / 0.2), transparent) left / 0.875rem 100% no-repeat scroll,
+            radial-gradient(farthest-side at 100% 50%, rgb(16 42 63 / 0.2), transparent) right / 0.875rem 100% no-repeat scroll,
+            #fff;
+    }
+
     .field-noche {
         @apply bg-noche text-white;
         --focus-ring: 3px solid #7fd0f5;
