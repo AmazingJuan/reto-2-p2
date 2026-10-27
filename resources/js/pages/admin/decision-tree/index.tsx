@@ -222,8 +222,13 @@ export default function DecisionTreePage() {
                     </p>
                 ) : (
                     <>
-                        {/* Unit tabs, like the corporate site's mode tabs. */}
-                        <div role="tablist" aria-label="Unidad de negocio" className="flex gap-6 overflow-x-auto border-b-2 border-linea sm:gap-10">
+                        {/* Unit tabs, like the corporate site's mode tabs. The rule is an inset shadow under the
+                            tabs, not a border they overlap: overlapping it made the row overflow and show a scrollbar. */}
+                        <div
+                            role="tablist"
+                            aria-label="Unidad de negocio"
+                            className="flex gap-6 overflow-x-auto overflow-y-hidden shadow-[inset_0_-2px_0_theme(colors.linea)] [scrollbar-width:thin] sm:gap-10"
+                        >
                             {businessUnits.map((t) => {
                                 const active = t.id === tree.id;
                                 return (
@@ -238,7 +243,7 @@ export default function DecisionTreePage() {
                                             setSelectedId(t.id);
                                         }}
                                         className={cn(
-                                            '-mb-0.5 shrink-0 border-b-4 pb-3 text-left font-display text-xl font-bold tracking-snug transition-colors',
+                                            'shrink-0 border-b-4 pb-3 text-left font-display text-xl font-bold tracking-snug transition-colors',
                                             active ? 'border-azul text-azul' : 'border-transparent text-pizarra hover:text-tinta',
                                         )}
                                     >
@@ -305,7 +310,7 @@ export default function DecisionTreePage() {
                                             <Fragment key={question.id}>
                                                 {question.section && question.section !== displayed[index - 1]?.section && (
                                                     <li className="pb-2 pt-4 first:pt-0">
-                                                        <p className="font-display text-xs font-bold uppercase tracking-wide text-azul">
+                                                        <p className="font-display text-sm font-bold text-azul">
                                                             {sectionOf(question.section)?.title}
                                                         </p>
                                                     </li>
