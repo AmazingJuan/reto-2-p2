@@ -12,6 +12,15 @@ const isFiles = (condition: PublicCondition) => condition.interaction_type === '
 
 const otherIndex = (condition: PublicCondition, answer: OptionsAnswer) => answer.selected.find((i) => condition.options[i]?.is_other);
 
+/** Same limit as the server for every answer. */
+export const MAX_ANSWER_LENGTH = 5000;
+
+/** Numbers are kept as plain digits: "15.000.000" or "$15 000 000" is typed, "15000000" is stored. */
+export const onlyDigits = (value: string) => value.replace(/\D/g, '');
+
+/** "15000000" → "15.000.000", as written in Colombia. */
+export const formatNumber = (digits: string) => (digits === '' ? '' : Number(digits).toLocaleString('es-CO', { maximumFractionDigits: 0 }));
+
 /** Nothing entered yet (an optional question left like this is skipped). */
 export function isBlank(condition: PublicCondition, answer: Answer | undefined): boolean {
     const value = answer ?? emptyAnswer(condition);
@@ -44,12 +53,12 @@ export function answerError(condition: PublicCondition, answer: Answer | undefin
             const { min, max } = value as RangeAnswer;
             if (min.trim() === '' || max.trim() === '') return 'Indique ambos valores.';
             if (condition.type === 'number') {
-                const [a, b] = [Number(min), Number(max)];
-                if (Number.isNaN(a) || Number.isNaN(b)) return 'Ingrese números válidos.';
-                return a < b ? null : 'El valor inicial debe ser menor que el final.';
+                const [a, b] = [onlyDigits(min), onlyDigits(max)].map((v) => (v === '' ? NaN : Number(v)));
+                if (Number.isNaN(a) || Number.isNaN(b)) return 'Escriba solo números.';
+                return a <= b ? null : 'El valor inicial no puede ser mayor que el final.';
             }
             if (condition.type === 'date') {
-                return new Date(min) < new Date(max) ? null : 'La fecha inicial debe ser anterior a la final.';
+                return new Date(min) <= new Date(max) ? null : 'La fecha final no puede ser anterior a la inicial.';
             }
             return null;
         }
@@ -116,11 +125,17 @@ export function formatAnswer(condition: PublicCondition, answer: Answer): string
     switch (condition.interaction_type) {
         case 'input':
             if (isFiles(condition)) return (answer as FilesAnswer).map((file) => file.name).join(', ');
-            return condition.type === 'date' ? formatDate(String(answer)) : String(answer).trim();
+            if (condition.type === 'date') return formatDate(String(answer));
+            return condition.type === 'number' ? formatNumber(onlyDigits(String(answer))) : String(answer).trim();
 
         case 'range': {
             const { min, max } = answer as RangeAnswer;
-            const fmt = condition.type === 'date' ? formatDate : (v: string) => v.trim();
+            const fmt =
+                condition.type === 'date'
+                    ? formatDate
+                    : condition.type === 'number'
+                      ? (v: string) => formatNumber(onlyDigits(v))
+                      : (v: string) => v.trim();
             return `Desde ${fmt(min)} hasta ${fmt(max)}`;
         }
 
@@ -141,9 +156,9 @@ export function formatAnswer(condition: PublicCondition, answer: Answer): string
  * optional questions left blank, are ignored. Repeated labels get a suffix so
  * they don't overwrite each other.
  */
-function answeredPath(conditions: Record<string, PublicCondition>, path: number[], answers: Record<number, Answer>) {
+export function answeredPath(conditions: Record<string, PublicCondition>, path: number[], answers: Record<number, Answer>) {
     const keys = new Set<string>();
-    const result: { key: string; condition: PublicCondition; answer: Answer }[] = [];
+    const result: { id: number; key: string; condition: PublicCondition; answer: Answer }[] = [];
 
     for (const id of path) {
         const condition = conditions[id];
@@ -153,7 +168,7 @@ function answeredPath(conditions: Record<string, PublicCondition>, path: number[
         let key = condition.label;
         for (let n = 2; keys.has(key); n++) key = `${condition.label} (${n})`;
         keys.add(key);
-        result.push({ key, condition, answer });
+        result.push({ id, key, condition, answer });
     }
 
     return result;

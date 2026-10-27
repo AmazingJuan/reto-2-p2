@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils';
-import { FileText, X } from 'lucide-react';
-import { emptyAnswer } from './answers';
+import { FileText, Paperclip, X } from 'lucide-react';
+import { useState, type InputHTMLAttributes } from 'react';
+import { emptyAnswer, formatNumber, MAX_ANSWER_LENGTH, onlyDigits } from './answers';
 import { ACCEPT, formatSize } from './documents';
 import type { Answer, FilesAnswer, OptionsAnswer, PublicCondition, RangeAnswer } from './types';
 
@@ -75,7 +76,7 @@ function Control({ anchor, condition, value, onChange, aria, invalid }: ControlP
 
     if (condition.interaction_type === 'input') {
         if (condition.type === 'file') {
-            return <FilesControl anchor={anchor} label={condition.label} files={value as FilesAnswer} onChange={onChange} aria={aria} />;
+            return <FilesControl anchor={anchor} files={value as FilesAnswer} onChange={onChange} aria={aria} invalid={invalid} />;
         }
         if (condition.type === 'text' && condition.multiline) {
             return (
@@ -85,7 +86,20 @@ function Control({ anchor, condition, value, onChange, aria, invalid }: ControlP
                     onChange={(e) => onChange(e.target.value)}
                     placeholder={placeholder}
                     rows={5}
+                    maxLength={MAX_ANSWER_LENGTH}
                     className="control resize-y"
+                    {...aria}
+                />
+            );
+        }
+        if (condition.type === 'number') {
+            return (
+                <NumberInput
+                    id={`${anchor}-input`}
+                    value={value as string}
+                    onChange={onChange}
+                    placeholder={placeholder}
+                    className="control sm:max-w-xs"
                     {...aria}
                 />
             );
@@ -94,10 +108,10 @@ function Control({ anchor, condition, value, onChange, aria, invalid }: ControlP
             <input
                 id={`${anchor}-input`}
                 type={condition.type}
-                inputMode={condition.type === 'number' ? 'decimal' : undefined}
                 value={value as string}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder={placeholder}
+                maxLength={condition.type === 'text' ? MAX_ANSWER_LENGTH : undefined}
                 className={cn('control', condition.type !== 'text' && 'sm:max-w-xs')}
                 {...aria}
             />
@@ -107,17 +121,26 @@ function Control({ anchor, condition, value, onChange, aria, invalid }: ControlP
     if (condition.interaction_type === 'range') {
         const range = value as RangeAnswer;
         return (
-            <div role="group" aria-labelledby={`${anchor}-label`} className="grid grid-cols-1 gap-3 sm:max-w-lg sm:grid-cols-2" {...aria}>
+            <div role="group" aria-labelledby={`${anchor}-label`} className="grid grid-cols-1 gap-3 sm:max-w-lg sm:grid-cols-2">
                 {(['min', 'max'] as const).map((bound) => (
                     <label key={bound} className="grid gap-1">
                         <span className="text-sm text-pizarra">{bound === 'min' ? 'Desde' : 'Hasta'}</span>
-                        <input
-                            type={condition.type}
-                            value={range[bound]}
-                            onChange={(e) => onChange({ ...range, [bound]: e.target.value })}
-                            className="control"
-                            aria-invalid={invalid || undefined}
-                        />
+                        {condition.type === 'number' ? (
+                            <NumberInput
+                                value={range[bound]}
+                                onChange={(digits) => onChange({ ...range, [bound]: digits })}
+                                className="control"
+                                {...aria}
+                            />
+                        ) : (
+                            <input
+                                type={condition.type}
+                                value={range[bound]}
+                                onChange={(e) => onChange({ ...range, [bound]: e.target.value })}
+                                className="control"
+                                {...aria}
+                            />
+                        )}
                     </label>
                 ))}
             </div>
@@ -170,6 +193,7 @@ function Control({ anchor, condition, value, onChange, aria, invalid }: ControlP
                     onChange={(e) => onChange({ ...options, other: e.target.value })}
                     className="control mt-2"
                     placeholder="Especifique"
+                    maxLength={MAX_ANSWER_LENGTH}
                     aria-label={`${condition.label}: especifique`}
                 />
             )}
@@ -177,13 +201,43 @@ function Control({ anchor, condition, value, onChange, aria, invalid }: ControlP
     );
 }
 
-type FilesControlProps = Pick<ControlProps, 'anchor' | 'onChange' | 'aria'> & { label: string; files: FilesAnswer };
+type NumberInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'type'> & {
+    value: string;
+    onChange: (digits: string) => void;
+};
+
+/**
+ * A whole number typed as people write it ("15.000.000", "$ 15 000 000"):
+ * only the digits are kept, and they read grouped once the field is left.
+ * A number input would drop such a value and report the field as empty.
+ */
+function NumberInput({ value, onChange, ...props }: NumberInputProps) {
+    const [editing, setEditing] = useState(false);
+    const digits = onlyDigits(value);
+
+    return (
+        <input
+            {...props}
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            value={editing ? digits : formatNumber(digits)}
+            onFocus={() => setEditing(true)}
+            onBlur={() => setEditing(false)}
+            onChange={(e) => onChange(onlyDigits(e.target.value))}
+        />
+    );
+}
+
+type FilesControlProps = Pick<ControlProps, 'anchor' | 'onChange' | 'aria' | 'invalid'> & { files: FilesAnswer };
 
 /**
  * The documents of the request: each pick adds to the list (choosing again
- * does not drop what was already attached) and every file can be removed.
+ * does not drop what was already attached) and every file can be removed. The
+ * native input stays for keyboards and screen readers but is drawn as a
+ * button, since its own "Ningún archivo seleccionado" contradicts the list.
  */
-function FilesControl({ anchor, label, files, onChange, aria }: FilesControlProps) {
+function FilesControl({ anchor, files, onChange, aria, invalid }: FilesControlProps) {
     const add = (picked: FileList | null) => {
         const isNew = (file: File) => !files.some((f) => f.name === file.name && f.size === file.size);
         onChange([...files, ...Array.from(picked ?? []).filter(isNew)]);
@@ -191,29 +245,48 @@ function FilesControl({ anchor, label, files, onChange, aria }: FilesControlProp
 
     return (
         <div className="grid gap-3">
-            <input
-                id={`${anchor}-input`}
-                type="file"
-                multiple
-                accept={ACCEPT}
-                onChange={(e) => {
-                    add(e.target.files);
-                    e.target.value = ''; // so the same file can be picked again after removing it
-                }}
-                className="block w-full text-base text-pizarra file:mr-4 file:cursor-pointer file:rounded-[10px] file:border-2 file:border-azul file:bg-white file:px-5 file:py-2.5 file:font-display file:font-bold file:text-azul hover:file:bg-nube"
-                {...aria}
-            />
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <input
+                    id={`${anchor}-input`}
+                    type="file"
+                    multiple
+                    accept={ACCEPT}
+                    onChange={(e) => {
+                        add(e.target.files);
+                        e.target.value = ''; // so the same file can be picked again after removing it
+                    }}
+                    className="peer sr-only"
+                    {...aria}
+                />
+                <label
+                    htmlFor={`${anchor}-input`}
+                    className={cn(
+                        'btn btn-outline cursor-pointer peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-2 peer-focus-visible:outline-azul-vivo',
+                        invalid && 'border-error',
+                    )}
+                >
+                    <Paperclip className="h-5 w-5" aria-hidden />
+                    {files.length > 0 ? 'Adjuntar más documentos' : 'Seleccionar documentos'}
+                </label>
+                <span className="text-sm font-semibold text-pizarra" aria-live="polite">
+                    {files.length === 0
+                        ? 'Ningún documento adjunto'
+                        : files.length === 1
+                          ? '1 documento adjunto'
+                          : `${files.length} documentos adjuntos`}
+                </span>
+            </div>
             {files.length > 0 && (
-                <ul className="grid gap-2" aria-label={`${label}: documentos adjuntos`}>
+                <ul className="grid gap-2" aria-label="Documentos adjuntos">
                     {files.map((file, index) => (
-                        <li key={`${file.name}-${file.size}`} className="flex items-center gap-3 rounded-[10px] border-2 border-linea px-4 py-2.5">
+                        <li key={`${file.name}-${file.size}`} className="flex items-center gap-3 rounded-control border-2 border-linea px-4 py-2">
                             <FileText className="h-5 w-5 shrink-0 text-azul" aria-hidden />
                             <span className="min-w-0 flex-1 truncate">{file.name}</span>
-                            <span className="shrink-0 text-sm text-pizarra">{formatSize(file.size)}</span>
+                            <span className="shrink-0 text-sm tabular-nums text-pizarra">{formatSize(file.size)}</span>
                             <button
                                 type="button"
                                 onClick={() => onChange(files.filter((_, i) => i !== index))}
-                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-pizarra hover:bg-nube hover:text-error"
+                                className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-pizarra hover:bg-nube hover:text-error"
                                 aria-label={`Quitar ${file.name}`}
                             >
                                 <X className="h-4 w-4" aria-hidden />
@@ -222,7 +295,9 @@ function FilesControl({ anchor, label, files, onChange, aria }: FilesControlProp
                     ))}
                 </ul>
             )}
-            <p className="text-sm text-pizarra">Los documentos no se guardan en este navegador: si sale de la página, adjúntelos de nuevo.</p>
+            <p className="text-sm text-pizarra">
+                Los documentos no se guardan en este navegador; si sale de la página, deberá adjuntarlos nuevamente.
+            </p>
         </div>
     );
 }
