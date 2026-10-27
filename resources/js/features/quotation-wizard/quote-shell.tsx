@@ -1,8 +1,6 @@
 import { PageHeader, type Crumb } from '@/components/public/page-header';
 import { capitalize } from '@/lib/format';
-import type { PageProps } from '@/types';
-import { Link, usePage } from '@inertiajs/react';
-import { Mail, Phone } from 'lucide-react';
+import { Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 
 export type QuotableUnit = { name: string; display_name: string };
@@ -14,9 +12,6 @@ export const unitSummaries: Record<string, string> = {
     formacion: 'Diplomados, cursos de fundamentos y formación y calificación de auditores internos.',
 };
 
-const quickLink =
-    'inline-flex min-h-11 items-center gap-2 rounded-control border-2 border-azul px-4 py-2 font-display text-base font-bold text-azul no-underline';
-
 type QuoteShellProps = {
     title: string;
     lede?: string;
@@ -25,40 +20,21 @@ type QuoteShellProps = {
     units: QuotableUnit[];
     /** Unit on view; null on the page where it is chosen. */
     active: string | null;
-    /** Hide the tabs (e.g. once the request is sent). */
+    /** Hide the tabs (e.g. while a request is filled in, so they are not a one-tap way out of it). */
     tabs?: boolean;
     children: ReactNode;
 };
 
 /**
  * What every quotation page shares, so choosing a unit and filling its request
- * read as one place: the page header (with call / write first on phones, as on
- * the corporate contact page) and the service explorer's unit tabs, fixed under
- * the site header.
+ * read as one place: the page header and the service explorer's unit tabs,
+ * fixed under the site header. Calling or writing is offered by the channels
+ * panel of each page.
  */
 export function QuoteShell({ title, lede, crumb, crumbs = [], units, active, tabs = true, children }: QuoteShellProps) {
-    const { company } = usePage<PageProps>().props;
-
     return (
         <>
-            <PageHeader compact title={title} crumb={crumb} crumbs={crumbs} lede={lede}>
-                {(company.phone || company.email) && (
-                    <div className="flex gap-3 lg:hidden">
-                        {company.phone && (
-                            <a href={`tel:${company.phone.replace(/[^\d+]/g, '')}`} className={quickLink}>
-                                <Phone className="h-[1.125rem] w-[1.125rem]" aria-hidden />
-                                Llamar
-                            </a>
-                        )}
-                        {company.email && (
-                            <a href={`mailto:${company.email}`} className={quickLink}>
-                                <Mail className="h-[1.125rem] w-[1.125rem]" aria-hidden />
-                                Correo
-                            </a>
-                        )}
-                    </div>
-                )}
-            </PageHeader>
+            <PageHeader compact title={title} crumb={crumb} crumbs={crumbs} lede={lede} />
 
             {tabs && units.length > 0 && (
                 <nav aria-label="Tipo de servicio" className="sticky top-[5.25rem] z-30 border-b border-linea bg-white lg:top-[5.8125rem]">

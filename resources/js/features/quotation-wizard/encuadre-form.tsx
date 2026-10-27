@@ -77,7 +77,7 @@ export function BlockFields({ fields, conditions, answers, onAnswer, errors }: F
             {fields.map(({ id, depth }) => (
                 <div
                     key={id}
-                    className={cn(depth > 0 && 'border-l-4 border-linea pl-4 sm:pl-6')}
+                    className={cn(depth > 0 && 'border-l-2 border-linea pl-4 sm:pl-6')}
                     style={{ marginLeft: depth > 1 ? `${(depth - 1) * 1.5}rem` : undefined }}
                 >
                     <ConditionField

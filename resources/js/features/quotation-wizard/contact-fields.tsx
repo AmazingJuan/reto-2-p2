@@ -11,11 +11,12 @@ type Field = {
     autoComplete: string;
     required: boolean;
     placeholder?: string;
+    hint?: string;
     wide?: boolean;
 };
 
-// The client data at the top of the "formato de encuadre", as usual in an audit request.
-const FIELDS: Field[] = [
+// The client data of the "formato de encuadre": first the organization, then who receives the proposal.
+const ORGANIZATION: Field[] = [
     {
         key: 'company',
         label: 'Razón social',
@@ -43,9 +44,20 @@ const FIELDS: Field[] = [
         placeholder: 'Ej.: Cra. 50 # 10-20, Medellín',
         wide: true,
     },
+];
+
+const PERSON: Field[] = [
     { key: 'name', label: 'Nombre del contacto', type: 'text', autoComplete: 'name', required: true },
     { key: 'role', label: 'Cargo', type: 'text', autoComplete: 'organization-title', required: true, placeholder: 'Ej.: Coordinadora HSEQ' },
-    { key: 'email', label: 'Correo electrónico', type: 'email', autoComplete: 'email', required: true, placeholder: 'nombre@empresa.com' },
+    {
+        key: 'email',
+        label: 'Correo electrónico',
+        type: 'email',
+        autoComplete: 'email',
+        required: true,
+        placeholder: 'nombre@empresa.com',
+        hint: 'A este correo se enviará la propuesta.',
+    },
     { key: 'phone', label: 'Teléfono', type: 'tel', autoComplete: 'tel', required: true, placeholder: 'Ej.: 300 123 4567' },
 ];
 
@@ -55,38 +67,56 @@ type ContactFieldsProps = {
     onChange: (field: keyof ContactData, value: string) => void;
 };
 
-/** The client data of the encuadre: one set of fields for the company and its contact. */
+export const CONTACT_GROUPS = [
+    { title: 'Datos de la organización', fields: ORGANIZATION },
+    { title: 'Persona de contacto', fields: PERSON },
+];
+
+/** The client data of the encuadre, in two groups: the organization and the person who receives the proposal. */
 export function ContactFields({ data, errors, onChange }: ContactFieldsProps) {
     return (
-        <div className="grid grid-cols-1 gap-x-5 gap-y-6 sm:grid-cols-2">
-            {FIELDS.map((field) => {
-                const id = `contact-${field.key}`;
-                const error = errors[field.key];
-                return (
-                    <div key={field.key} className={cn('scroll-mt-28', field.wide && 'sm:col-span-2')}>
-                        <label htmlFor={id} className="label">
-                            {field.label} {!field.required && <span className="label-optional">(opcional)</span>}
-                        </label>
-                        <input
-                            id={id}
-                            type={field.type}
-                            autoComplete={field.autoComplete}
-                            required={field.required}
-                            value={data[field.key]}
-                            onChange={(e) => onChange(field.key, e.target.value)}
-                            placeholder={field.placeholder}
-                            aria-invalid={error ? true : undefined}
-                            aria-describedby={error ? `${id}-error` : undefined}
-                            className="control"
-                        />
-                        {error && (
-                            <p id={`${id}-error`} className="field-error mt-2">
-                                {error}
-                            </p>
-                        )}
+        <div className="grid gap-10">
+            {CONTACT_GROUPS.map((group) => (
+                <fieldset key={group.title} className="min-w-0">
+                    <legend className="mb-5 font-display text-lg font-bold text-tinta">{group.title}</legend>
+                    <div className="grid grid-cols-1 gap-x-5 gap-y-6 sm:grid-cols-2">
+                        {group.fields.map((field) => {
+                            const id = `contact-${field.key}`;
+                            const error = errors[field.key];
+                            return (
+                                <div key={field.key} className={cn('scroll-mt-28', field.wide && 'sm:col-span-2')}>
+                                    <label htmlFor={id} className="label">
+                                        {field.label} {!field.required && <span className="label-optional">(opcional)</span>}
+                                    </label>
+                                    <input
+                                        id={id}
+                                        type={field.type}
+                                        autoComplete={field.autoComplete}
+                                        required={field.required}
+                                        maxLength={field.key === 'nit' || field.key === 'phone' ? 30 : 255}
+                                        value={data[field.key]}
+                                        onChange={(e) => onChange(field.key, e.target.value)}
+                                        placeholder={field.placeholder}
+                                        aria-invalid={error ? true : undefined}
+                                        aria-describedby={[field.hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(' ') || undefined}
+                                        className="control"
+                                    />
+                                    {field.hint && (
+                                        <p id={`${id}-hint`} className="mt-2 text-sm text-pizarra">
+                                            {field.hint}
+                                        </p>
+                                    )}
+                                    {error && (
+                                        <p id={`${id}-error`} className="field-error mt-2">
+                                            {error}
+                                        </p>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
-                );
-            })}
+                </fieldset>
+            ))}
         </div>
     );
 }
@@ -130,13 +160,13 @@ const PHONE = /^[0-9+\s().-]{7,30}$/;
 
 export function validateContact(data: ContactData, privacyAccepted: boolean): ContactErrors {
     const errors: ContactErrors = {};
-    if (!data.company.trim()) errors.company = 'Escriba la razón social de su organización.';
-    if (!data.name.trim()) errors.name = 'Escriba su nombre.';
-    if (!data.role.trim()) errors.role = 'Escriba su cargo.';
-    if (!data.email.trim()) errors.email = 'Escriba su correo electrónico.';
-    else if (!EMAIL.test(data.email.trim())) errors.email = 'Revise el correo; debe tener la forma nombre@empresa.com.';
-    if (!data.phone.trim()) errors.phone = 'Escriba un teléfono de contacto.';
-    else if (!PHONE.test(data.phone.trim())) errors.phone = 'Use solo números, espacios y los signos + ( ) - .';
+    if (!data.company.trim()) errors.company = 'Indique la razón social de la organización.';
+    if (!data.name.trim()) errors.name = 'Indique el nombre del contacto.';
+    if (!data.role.trim()) errors.role = 'Indique el cargo del contacto.';
+    if (!data.email.trim()) errors.email = 'Indique el correo electrónico del contacto.';
+    else if (!EMAIL.test(data.email.trim())) errors.email = 'El correo electrónico debe tener la forma nombre@empresa.com.';
+    if (!data.phone.trim()) errors.phone = 'Indique un teléfono de contacto.';
+    else if (!PHONE.test(data.phone.trim())) errors.phone = 'El teléfono solo puede contener números, espacios y los signos + ( ) - .';
     if (!privacyAccepted) errors.privacy_accepted = 'Debe autorizar el tratamiento de sus datos para enviar la solicitud.';
     return errors;
 }
