@@ -25,8 +25,8 @@ use RuntimeException;
  *
  * Each unit only gets the fields that apply to it: Formación asks for the
  * number of attendees instead of employees and processes, and has no
- * certification nor documents; the venue and logistics only appear when the
- * service is not purely virtual.
+ * certification; the venue and logistics only appear when the service is
+ * not purely virtual.
  *
  * The client data (razón social, actividad económica, dirección, teléfono,
  * quién solicita y a quién va dirigida la propuesta) is asked by the form
@@ -97,15 +97,14 @@ class EncuadreSeeder extends Seeder
                 'necesidad',
                 'Ej.: Diseño, fabricación y montaje de estructuras metálicas en la planta de Itagüí y la sede administrativa de Medellín.',
                 'Procesos, productos o servicios y sedes que cubre el sistema que se va a auditar.',
-                required: false,
             ),
-            $this->processes(required: true),
+            $this->processes(),
             $this->employees(),
             $this->certification(),
             $this->teamProfile('Ej.: auditor líder certificado en ISO 45001 con experiencia en el sector eléctrico.'),
             $this->arl(),
-            ...$this->conditions('Fecha esperada para la prestación del servicio'),
-            $this->documents(),
+            ...$this->conditions('Fecha estimada para la prestación del servicio'),
+            ...$this->documents(),
             ...$this->closing(),
         ];
     }
@@ -118,29 +117,28 @@ class EncuadreSeeder extends Seeder
                 'Descripción del servicio a solicitar',
                 'necesidad',
                 'Ej.: Diseño e implementación del sistema de gestión de seguridad y salud en el trabajo (Decreto 1072 y Resolución 0312), hasta dejarlo listo para la certificación ISO 45001.',
-                'Indique qué necesita (diagnóstico, implementación, mantenimiento, integración de sistemas…), sobre qué normas y qué espera lograr.',
+                'Indique la necesidad (diagnóstico, implementación, mantenimiento, integración de sistemas…), sobre qué normas, temáticas y qué espera lograr.',
             ),
             $this->longText(
                 'Descripción del alcance del sistema de gestión',
                 'necesidad',
                 'Ej.: Prestación de servicios de transporte de carga en las sedes de Bogotá y Barranquilla.',
                 'Procesos, productos o servicios y sedes que debe cubrir el proyecto.',
-                required: false,
             ),
-            $this->processes(required: false),
+            $this->processes(),
             $this->employees(),
             $this->certification(),
             $this->teamProfile('Ej.: consultor con experiencia en el sector minero y en sistemas integrados de gestión.'),
             $this->arl(),
-            ...$this->conditions('Fecha esperada para la prestación del servicio'),
-            $this->documents(),
+            ...$this->conditions('Fecha estimada para la prestación del servicio'),
+            ...$this->documents(),
             ...$this->closing(),
         ];
     }
 
     /**
      * What sizes a training is the number of attendees: no employees,
-     * processes, certification nor documents.
+     * processes nor certification.
      *
      * @return list<array<string, mixed>>
      */
@@ -151,12 +149,13 @@ class EncuadreSeeder extends Seeder
                 'Descripción del servicio a solicitar',
                 'necesidad',
                 'Ej.: Curso de trabajo en alturas nivel avanzado para operarios de mantenimiento, con certificación según la Resolución 4272 de 2021.',
-                'Indique el tema, el objetivo, a quién va dirigida y si requiere certificado o constancia.',
+                'Indique el tema, el objetivo, a quién va dirigida, duración sugerida y si requiere certificado o constancia.',
             ),
             $this->field('Número de asistentes para formación', 'number', 'necesidad', 'Ej.: 20', 'Número aproximado de participantes. Si serán varios grupos, indique el total.'),
             $this->teamProfile('Ej.: entrenador certificado en trabajo en alturas con licencia en SST vigente.'),
             $this->arl(),
-            ...$this->conditions('Fecha esperada para la prestación del servicio'),
+            ...$this->conditions('Fecha estimada para la prestación del servicio'),
+            ...$this->documents(),
             ...$this->closing(),
         ];
     }
@@ -168,7 +167,7 @@ class EncuadreSeeder extends Seeder
     */
 
     /** @return array<string, mixed> */
-    private function processes(bool $required): array
+    private function processes(): array
     {
         return $this->field(
             'Descripción del número de procesos y/o macroprocesos',
@@ -176,7 +175,6 @@ class EncuadreSeeder extends Seeder
             'necesidad',
             'Ej.: 12 procesos agrupados en 4 macroprocesos (estratégicos, misionales, de apoyo y de evaluación).',
             'Según su mapa de procesos; un aproximado es suficiente.',
-            $required,
         );
     }
 
@@ -198,7 +196,7 @@ class EncuadreSeeder extends Seeder
             $this->option('Sí', [
                 $this->field('Sistema de gestión certificado en', 'text', 'necesidad', 'Ej.: ISO 9001:2015 e ISO 45001:2018'),
                 $this->field('Ente certificador y/o acreditador', 'text', 'necesidad', 'Ej.: ICONTEC, Bureau Veritas, SGS, ONAC'),
-                $this->longText('Alcance certificado', 'necesidad', 'Tal como aparece en su certificado.', required: false),
+                $this->longText('Alcance certificado', 'necesidad', 'Tal como aparece en su certificado.'),
                 $this->choice('Tipo de auditoría de tercera parte y/o acreditación', 'necesidad', [
                     'Certificación', 'Seguimiento', 'Renovación', $this->other(),
                 ], 'La próxima que tiene programada o para la que se prepara.'),
@@ -214,15 +212,14 @@ class EncuadreSeeder extends Seeder
             'Perfil del equipo requerido para la prestación del servicio',
             'necesidad',
             $example,
-            'Solo si necesita un perfil o una certificación específica; si no, déjelo en blanco.',
-            required: false,
+            'Si necesita un perfil o una certificación específica, descríbalo; si no, escriba «Sin requisito específico».',
         );
     }
 
     /** @return array<string, mixed> */
     private function arl(): array
     {
-        return $this->field('ARL de la empresa', 'text', 'necesidad', 'Ej.: Positiva, Sura, Colmena', 'Especialmente si el servicio es de seguridad y salud en el trabajo.', required: false);
+        return $this->field('ARL de la empresa', 'text', 'necesidad', 'Ej.: Positiva, Sura, Colmena', 'Describa el nivel de riesgo para la prestación del servicio, especialmente si el servicio es de seguridad y salud en el trabajo.', required: false);
     }
 
     /**
@@ -263,16 +260,30 @@ class EncuadreSeeder extends Seeder
         ];
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * What to take into account and, right after, the files themselves, which
+     * reach the admin's e-mail with the request.
+     *
+     * @return list<array<string, mixed>>
+     */
     private function documents(): array
     {
-        return $this->longText(
-            'Documentos o información a tener en cuenta para la cotización',
-            'cotizacion',
-            'Ej.: mapa de procesos, manual del sistema de gestión, organigrama, PEGA, ciclo de vida de los activos.',
-            'Indique cuáles tiene; se los pediremos por correo al revisar su solicitud.',
-            required: false,
-        );
+        return [
+            $this->longText(
+                'Documentos o información a tener en cuenta para la cotización',
+                'cotizacion',
+                'Ej.: mapa de procesos, manual del sistema de gestión, organigrama, PEGA, ciclo de vida de los activos.',
+                'Indique cuáles tiene; puede adjuntarlos en el campo siguiente o se los pediremos por correo al revisar su solicitud.',
+                required: false,
+            ),
+            $this->field(
+                'Adjuntar documentos',
+                'file',
+                'cotizacion',
+                observation: 'Hasta 5 archivos de máximo 10 MB cada uno: PDF, Word, Excel, PowerPoint, imágenes JPG o PNG, o ZIP.',
+                required: false,
+            ),
+        ];
     }
 
     /**
@@ -285,7 +296,7 @@ class EncuadreSeeder extends Seeder
         return [
             $this->choice('Presupuesto establecido para la prestación del servicio', 'cotizacion', [
                 $this->option('Definido', [
-                    $this->field('Valor del presupuesto establecido', 'number', 'cotizacion', 'Ej.: 15000000', 'En pesos colombianos (COP), antes de IVA.'),
+                    $this->field('Valor del presupuesto establecido', 'number', 'cotizacion', 'Ej.: $15.000.000', 'En pesos colombianos (COP), antes de IVA.'),
                 ]),
                 'Por definir',
                 'No disponible',
@@ -296,7 +307,7 @@ class EncuadreSeeder extends Seeder
                 ]),
                 'No',
             ]),
-            $this->field('Fecha esperada de entrega de la oferta comercial', 'date', 'cierre', observation: 'Haremos lo posible por enviársela antes de esa fecha.'),
+            $this->field('Fecha estimada de entrega de la oferta comercial', 'date', 'cierre', observation: 'Haremos lo posible por enviársela antes de esa fecha.'),
         ];
     }
 
@@ -307,7 +318,7 @@ class EncuadreSeeder extends Seeder
     */
 
     /**
-     * An open field: 'text', 'longtext', 'number' or 'date'.
+     * An open field: 'text', 'longtext', 'number', 'date' or 'file'.
      *
      * @return array<string, mixed>
      */
@@ -379,7 +390,7 @@ class EncuadreSeeder extends Seeder
                 'label' => $spec['label'],
                 'interaction_type' => $isChoice ? 'options' : 'input',
                 'type' => match ($kind) {
-                    'number', 'date' => $kind,
+                    'number', 'date', 'file' => $kind,
                     default => 'text',
                 },
                 'multiline' => $kind === 'longtext',

@@ -17,6 +17,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Quotation Documents Disk
+    |--------------------------------------------------------------------------
+    |
+    | Where the documents attached to a quotation request are kept. Private:
+    | they are only downloaded from the admin. Set it to "s3" once the bucket
+    | is available.
+    |
+    */
+
+    'documents' => env('DOCUMENTS_DISK', 'documents'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |
@@ -46,6 +59,13 @@ return [
                     'private' => 0755,
                 ],
             ],
+        ],
+
+        'documents' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/documents'),
+            'throw' => true,
+            'report' => false,
         ],
 
         'public' => [

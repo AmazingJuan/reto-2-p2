@@ -31,7 +31,8 @@ class DecisionTreeQuestionRequest extends FormRequest
             'placeholder' => ['nullable', 'string', 'max:500'],
             'multiline' => ['boolean'],
             'interaction_type' => ['required', Rule::in(['input', 'options', 'range'])],
-            'type' => ['required', Rule::in(['text', 'number', 'date'])],
+            // A range is of numbers or dates; only an open field can take files.
+            'type' => ['required', Rule::in($this->input('interaction_type') === 'range' ? ['number', 'date'] : ['text', 'number', 'date', 'file'])],
             'multiple' => ['boolean'],
             'section' => ['nullable', Rule::in(Condition::SECTIONS)],
             'required' => ['boolean'],

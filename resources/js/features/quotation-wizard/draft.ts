@@ -47,7 +47,12 @@ export const draft = {
         const saved = read<SavedAnswers>(answersKey(unit));
         return saved && saved.signature === signature ? saved : null;
     },
-    saveAnswers: (unit: string, saved: SavedAnswers) => write(answersKey(unit), saved),
+    /** Attached files can't be kept in the browser: they are left out and attached again. */
+    saveAnswers: (unit: string, saved: SavedAnswers) =>
+        write(answersKey(unit), {
+            ...saved,
+            answers: Object.fromEntries(Object.entries(saved.answers).filter(([, answer]) => !Array.isArray(answer))),
+        }),
     /** Whether a request for this unit was left half done (to offer to continue it). */
     hasAnswers: (unit: string) => Object.keys(read<SavedAnswers>(answersKey(unit))?.answers ?? {}).length > 0,
     clearAnswers: (unit: string) => remove(answersKey(unit)),

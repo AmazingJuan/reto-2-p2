@@ -4,7 +4,7 @@ import type { PageProps } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { answerError, pathAnswers, visibleFields, type VisibleField } from './answers';
+import { answerError, pathAnswers, pathFiles, visibleFields, type VisibleField } from './answers';
 import { fieldAnchor } from './condition-field';
 import { ContactFields, PrivacyConsent, validateContact, type ContactErrors } from './contact-fields';
 import { draft, treeSignature } from './draft';
@@ -58,6 +58,7 @@ export function QuotationWizard({ viewData }: { viewData: QuoteViewData }) {
     const [serverErrors, setServerErrors] = useState<ContactErrors>({});
     const [failure, setFailure] = useState<string[]>([]);
     const [processing, setProcessing] = useState(false);
+    const [uploaded, setUploaded] = useState<number | null>(null); // % sent, while documents go up
     const [announcement, setAnnouncement] = useState('');
 
     const panelRef = useRef<HTMLElement>(null);
@@ -206,15 +207,20 @@ export function QuotationWizard({ viewData }: { viewData: QuoteViewData }) {
             expired = true;
         });
 
+        const path = fields.map((f) => f.id);
+        const documents = pathFiles(conditions, path, answers);
+
         router.post(
             route('quotation.store.proposal'),
-            { contact, businessUnit: viewData.businessUnit, answers: answered, privacy_accepted: privacyAccepted, web },
+            { contact, businessUnit: viewData.businessUnit, answers: answered, documents, privacy_accepted: privacyAccepted, web },
             {
                 preserveState: true,
                 preserveScroll: true,
                 onStart: () => setProcessing(true),
+                onProgress: (progress) => documents.length > 0 && setUploaded(progress?.percentage ?? null),
                 onFinish: () => {
                     stopWatching();
+                    setUploaded(null);
                     if (!expired) return setProcessing(false);
                     if (!isRetry) return router.reload({ onSuccess: () => submit(true), onError: () => setProcessing(false) });
                     setProcessing(false);
@@ -417,7 +423,7 @@ export function QuotationWizard({ viewData }: { viewData: QuoteViewData }) {
                                 disabled={processing}
                                 className="btn btn-primary min-h-[4.5rem] text-base max-sm:order-first sm:col-start-2"
                             >
-                                {processing ? 'Enviando solicitud…' : 'Enviar solicitud'}
+                                {processing ? `Enviando solicitud…${uploaded !== null ? ` ${uploaded} %` : ''}` : 'Enviar solicitud'}
                             </button>
                         )}
                     </nav>

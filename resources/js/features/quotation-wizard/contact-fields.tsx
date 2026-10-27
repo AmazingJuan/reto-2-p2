@@ -44,7 +44,7 @@ const FIELDS: Field[] = [
         wide: true,
     },
     { key: 'name', label: 'Nombre del contacto', type: 'text', autoComplete: 'name', required: true },
-    { key: 'role', label: 'Cargo', type: 'text', autoComplete: 'organization-title', required: false, placeholder: 'Ej.: Coordinadora HSEQ' },
+    { key: 'role', label: 'Cargo', type: 'text', autoComplete: 'organization-title', required: true, placeholder: 'Ej.: Coordinadora HSEQ' },
     { key: 'email', label: 'Correo electrónico', type: 'email', autoComplete: 'email', required: true, placeholder: 'nombre@empresa.com' },
     { key: 'phone', label: 'Teléfono', type: 'tel', autoComplete: 'tel', required: true, placeholder: 'Ej.: 300 123 4567' },
 ];
@@ -132,6 +132,7 @@ export function validateContact(data: ContactData, privacyAccepted: boolean): Co
     const errors: ContactErrors = {};
     if (!data.company.trim()) errors.company = 'Escriba la razón social de su organización.';
     if (!data.name.trim()) errors.name = 'Escriba su nombre.';
+    if (!data.role.trim()) errors.role = 'Escriba su cargo.';
     if (!data.email.trim()) errors.email = 'Escriba su correo electrónico.';
     else if (!EMAIL.test(data.email.trim())) errors.email = 'Revise el correo; debe tener la forma nombre@empresa.com.';
     if (!data.phone.trim()) errors.phone = 'Escriba un teléfono de contacto.';

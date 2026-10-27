@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\QuotationDocument;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -32,7 +33,7 @@ class StoreQuotationProposal extends FormRequest
             'contact.address' => ['nullable', 'string', 'max:255'],
             'contact.email' => ['required', 'email', 'max:255'],
             'contact.phone' => ['required', 'string', 'max:30', 'regex:/^[0-9+\s().-]{7,30}$/'],
-            'contact.role' => ['nullable', 'string', 'max:255'],
+            'contact.role' => ['required', 'string', 'max:255'],
             'privacy_accepted' => ['accepted'],
             // Honeypot, hidden from people (see QuotationController).
             'web' => ['nullable', 'string', 'max:255'],
@@ -55,6 +56,12 @@ class StoreQuotationProposal extends FormRequest
             ],
             // Open questions of the encuadre (descriptions) can be long.
             'answers.*' => ['required', 'string', 'max:5000'],
+
+            // Documents attached in the encuadre's file questions, each with the answer it belongs to.
+            'documents' => ['nullable', 'array', 'max:'.QuotationDocument::MAX_FILES],
+            'documents.*' => ['array:question,file'],
+            'documents.*.question' => ['required', 'string', Rule::in(array_keys((array) $this->input('answers', [])))],
+            'documents.*.file' => ['required', 'file', 'max:'.QuotationDocument::MAX_KILOBYTES, 'extensions:'.implode(',', QuotationDocument::EXTENSIONS)],
         ];
     }
 
@@ -115,6 +122,7 @@ class StoreQuotationProposal extends FormRequest
             'contact.name.max' => 'El nombre del contacto no debe exceder :max caracteres.',
 
             'contact.company.required' => 'Escriba la razón social de su organización.',
+            'contact.role.required' => 'Escriba su cargo.',
 
             'contact.email.required' => 'El email del contacto es requerido.',
             'contact.email.email' => 'El email del contacto debe ser una dirección válida.',
@@ -128,6 +136,14 @@ class StoreQuotationProposal extends FormRequest
             'answers.*.required' => 'Cada respuesta es requerida.',
             'answers.*.string' => 'Cada respuesta debe ser texto.',
             'answers.*.max' => 'Cada respuesta no debe exceder :max caracteres.',
+
+            'documents.max' => 'Adjunte máximo :max documentos.',
+            'documents.*.question.in' => 'Uno de los documentos no corresponde a ninguna pregunta de la solicitud.',
+            'documents.*.file.required' => 'Uno de los documentos no se pudo subir. Inténtelo de nuevo.',
+            'documents.*.file.file' => 'Uno de los documentos no se pudo subir. Inténtelo de nuevo.',
+            'documents.*.file.uploaded' => 'Uno de los documentos no se pudo subir: revise que pese menos de '.(QuotationDocument::MAX_KILOBYTES / 1024).' MB.',
+            'documents.*.file.max' => 'Cada documento debe pesar menos de '.(QuotationDocument::MAX_KILOBYTES / 1024).' MB.',
+            'documents.*.file.extensions' => 'Adjunte documentos PDF, Word, Excel, PowerPoint, imágenes JPG o PNG, o ZIP.',
         ];
     }
 }

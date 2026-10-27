@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreQuotationProposal;
 use App\Models\BusinessUnit;
 use App\Models\Client;
+use App\Models\QuotationDocument;
 use App\Models\QuotationProposalOrder;
 use App\Services\DecisionTreeService;
 use App\Services\MailService;
@@ -68,7 +69,7 @@ class QuotationController extends Controller
         $order = DB::transaction(function () use ($data) {
             $businessUnit = BusinessUnit::query()->where('display_name', $data['businessUnit'])->firstOrFail();
 
-            return QuotationProposalOrder::create([
+            $order = QuotationProposalOrder::create([
                 'quotation_code' => $businessUnit->lockAndAllocateNextQuotationCode(),
                 'client_id' => Client::upsertFromContact($data['contact'])->getId(),
                 // The client no longer picks services: the request is the encuadre (answers).
@@ -76,6 +77,12 @@ class QuotationController extends Controller
                 'business_unit' => $data['businessUnit'],
                 'answers' => $data['answers'],
             ]);
+
+            foreach ($data['documents'] ?? [] as $document) {
+                QuotationDocument::store($order, $document['question'], $document['file']);
+            }
+
+            return $order;
         });
 
         $this->mail->sendQuotationPending($order);

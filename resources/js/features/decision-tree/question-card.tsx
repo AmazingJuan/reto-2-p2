@@ -256,7 +256,8 @@ export function QuestionCard(props: QuestionCardProps) {
 
                     <AnswerKindPicker name={`${uid}-kind`} value={kindOf(q)} onChange={(kind) => props.onChange((d) => withKind(d, kind))} />
 
-                    {q.interaction_type === 'input' && (
+                    {/* A file picker has no text to show inside. */}
+                    {q.interaction_type === 'input' && q.type !== 'file' && (
                         <div>
                             <label htmlFor={`${uid}-placeholder`} className="label">
                                 Ejemplo dentro del campo <span className="label-optional">(opcional)</span>

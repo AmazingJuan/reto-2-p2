@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { AlignLeft, Calendar, CalendarRange, CheckSquare, CircleDot, Hash, MoveHorizontal, Type, type LucideIcon } from 'lucide-react';
+import { AlignLeft, Calendar, CalendarRange, CheckSquare, CircleDot, Hash, MoveHorizontal, Paperclip, Type, type LucideIcon } from 'lucide-react';
 import { answerKinds, type AnswerKind } from './types';
 
 const icons: Record<AnswerKind, LucideIcon> = {
@@ -9,6 +9,7 @@ const icons: Record<AnswerKind, LucideIcon> = {
     'long-text': AlignLeft,
     number: Hash,
     date: Calendar,
+    file: Paperclip,
     'number-range': MoveHorizontal,
     'date-range': CalendarRange,
 };
