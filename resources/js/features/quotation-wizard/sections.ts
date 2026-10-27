@@ -18,10 +18,17 @@ export const SECTIONS = [
         short: 'Cotización',
         hint: 'Insumos técnicos y económicos para estructurar la oferta.',
     },
-    { key: 'validacion', title: 'Validación de requisitos', short: 'Validación', hint: 'Cómo resolver dudas antes de preparar la propuesta.' },
-    { key: 'cierre', title: 'Cierre de la solicitud', short: 'Cierre', hint: 'Plazo en que espera recibir la oferta comercial.' },
+    {
+        key: 'cierre',
+        title: 'Validación y cierre de la solicitud',
+        short: 'Cierre',
+        hint: 'Cómo resolver dudas antes de preparar la propuesta y cuándo espera recibirla.',
+    },
 ] as const;
 
 export type SectionKey = (typeof SECTIONS)[number]['key'];
 
-export const sectionOf = (key: string | null) => SECTIONS.find((s) => s.key === key) ?? null;
+/** "Validación de requisitos" was its own block; questions saved with it belong to the closing one now. */
+export const sectionKey = (key: string | null) => (key === 'validacion' ? 'cierre' : key);
+
+export const sectionOf = (key: string | null) => SECTIONS.find((s) => s.key === sectionKey(key)) ?? null;
