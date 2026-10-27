@@ -7,12 +7,21 @@ import PublicLayout from '@/layouts/public-layout';
 import { capitalize } from '@/lib/format';
 import type { PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { Clock } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 // The steps every request goes through, shown ahead (locked) so the client knows what comes.
 const PREVIEW: Screen[] = [
+    ...SECTIONS.map((s) => ({
+        id: s.key,
+        group: s.key,
+        title: s.title,
+        short: s.short,
+        hint: s.hint,
+        part: 1,
+        parts: 1,
+    })),
     { id: 'datos', group: 'datos', title: 'Datos del cliente', short: 'Datos', hint: '', part: 1, parts: 1 },
-    ...SECTIONS.map((s) => ({ id: s.key, group: s.key, title: s.title, short: s.short, hint: s.hint, part: 1, parts: 1 })),
     { id: 'envio', group: 'envio', title: 'Envío de la solicitud', short: 'Envío', hint: '', part: 1, parts: 1 },
 ];
 
@@ -25,13 +34,15 @@ export default function SelectBusinessUnit() {
     const { businessUnits } = usePage<PageProps<{ viewData: { businessUnits: QuotableUnit[] } }>>().props.viewData;
     // Requests left half done in this browser.
     const [started] = useState(() => new Set(businessUnits.filter((u) => draft.hasAnswers(u.name)).map((u) => u.name)));
+    // Coming back here starts a new request: a unit no longer shows the confirmation of the last one.
+    useEffect(() => businessUnits.forEach((u) => draft.clearSent(u.name)), [businessUnits]);
 
     return (
         <PublicLayout title="Solicitar cotización" showCta={false}>
             <QuoteShell
                 title="Solicitar cotización"
                 crumb="Solicitar cotización"
-                lede="Elija el tipo de servicio y complete el formato de encuadre: sus datos, qué necesita y en qué condiciones."
+                lede="Elija el tipo de servicio y complete el formato de encuadre. Con esta información preparamos una propuesta a la medida."
                 units={businessUnits}
                 active={null}
             >
@@ -46,7 +57,14 @@ export default function SelectBusinessUnit() {
                             Elija el tipo de servicio
                         </h2>
                         <p className="mt-2 font-semibold text-pizarra">
-                            Cada uno tiene su propio formato de encuadre, con las preguntas que aplican a ese servicio.
+                            Cada servicio tiene su propio formato de encuadre, con las preguntas que aplican a ese servicio.
+                        </p>
+                        <p className="mt-4 flex max-w-measure gap-3 text-pizarra">
+                            <Clock className="mt-0.5 h-5 w-5 shrink-0 text-azul" aria-hidden />
+                            <span>
+                                Diligenciar la solicitud toma aproximadamente 15 minutos y puede retomarse posteriormente en este navegador. Se
+                                recomienda tener a mano la información de la organización y, si aplica, el certificado de su sistema de gestión.
+                            </span>
                         </p>
 
                         {businessUnits.length === 0 ? (

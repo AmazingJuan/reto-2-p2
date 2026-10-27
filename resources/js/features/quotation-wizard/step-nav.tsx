@@ -33,35 +33,44 @@ export function StepList({ steps, current, reached, complete, onGo }: StepListPr
         <nav aria-label="Pasos de su solicitud">
             {/* Phones: one line and one segment per block, so the form starts right away. */}
             <div className="lg:hidden">
-                <p className="flex items-baseline justify-between gap-4 font-display font-bold text-tinta">
+                <p className="flex items-baseline justify-between gap-4 font-display font-bold text-tinta" aria-hidden>
                     <span>{entries[activeIndex]?.short}</span>
                     <span className="font-sans text-sm font-semibold text-pizarra">
                         Paso {activeIndex + 1} de {entries.length}
                     </span>
                 </p>
-                <ol className="mt-2 flex gap-1.5">
-                    {entries.map((entry, index) => (
-                        <li key={entry.group} className="flex-1">
-                            <button
-                                type="button"
-                                onClick={() => onGo(entry.start)}
-                                disabled={entry.start > reached || index === activeIndex}
-                                aria-current={index === activeIndex ? 'step' : undefined}
-                                className="flex h-6 w-full items-center disabled:cursor-default"
-                            >
-                                <span
-                                    className={cn(
-                                        'h-1.5 w-full rounded-full',
-                                        index <= activeIndex ? 'bg-azul' : complete.has(entry.group) ? 'bg-azul-vivo' : 'bg-linea',
-                                    )}
-                                />
-                                <span className="sr-only">
-                                    {index + 1}. {entry.title}
-                                    {complete.has(entry.group) && ' (completo)'}
-                                </span>
-                            </button>
-                        </li>
-                    ))}
+                {/* Done blocks are solid, the current one is taller, blocks left half done are light. */}
+                <ol className="flex gap-1.5">
+                    {entries.map((entry, index) => {
+                        const active = index === activeIndex;
+                        const locked = entry.start > reached;
+                        const done = !active && complete.has(entry.group);
+                        return (
+                            <li key={entry.group} className="flex-1">
+                                <button
+                                    type="button"
+                                    onClick={() => onGo(entry.start)}
+                                    disabled={locked || active}
+                                    aria-current={active ? 'step' : undefined}
+                                    className="flex h-11 w-full items-center disabled:cursor-default"
+                                >
+                                    <span
+                                        className={cn(
+                                            'w-full rounded-full transition-colors',
+                                            active ? 'h-2.5 bg-azul' : 'h-1.5',
+                                            !active && (done ? 'bg-azul' : locked ? 'bg-linea' : 'bg-cielo'),
+                                        )}
+                                    />
+                                    <span className="sr-only">
+                                        {index + 1}. {entry.title}
+                                        {done && ' (completo)'}
+                                        {!active && !done && !locked && ' (pendiente)'}
+                                        {locked && ' (se habilita al completar los pasos anteriores)'}
+                                    </span>
+                                </button>
+                            </li>
+                        );
+                    })}
                 </ol>
             </div>
 
@@ -78,6 +87,7 @@ export function StepList({ steps, current, reached, complete, onGo }: StepListPr
                                 onClick={() => onGo(entry.start)}
                                 disabled={locked || active}
                                 aria-current={active ? 'step' : undefined}
+                                title={locked ? 'Se habilita al completar los pasos anteriores' : undefined}
                                 className={cn(
                                     'flex min-h-12 w-full items-center gap-3 rounded-control border-2 py-2 pl-2 pr-4 text-left font-display font-bold transition-colors duration-150',
                                     active && 'border-azul bg-azul text-white',
@@ -96,6 +106,7 @@ export function StepList({ steps, current, reached, complete, onGo }: StepListPr
                                 </span>
                                 {entry.title}
                                 {done && <span className="sr-only">(completo)</span>}
+                                {locked && <span className="sr-only">(se habilita al completar los pasos anteriores)</span>}
                             </button>
                         </li>
                     );
