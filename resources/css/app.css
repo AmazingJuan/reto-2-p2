@@ -167,9 +167,9 @@
         @apply border-error text-error hover:bg-error hover:text-white;
     }
 
-    /* Form controls (UiField). */
+    /* Form controls (UiField). The border is gris-marca, not linea: a field's edge needs 3:1 against white to be found. */
     .control {
-        @apply block min-h-[3.25rem] w-full rounded-control border-2 border-linea bg-white px-4 py-3 text-base text-tinta transition-colors placeholder:text-pizarra/70 hover:border-pizarra focus:border-azul focus:ring-0 disabled:cursor-not-allowed disabled:bg-nube disabled:text-pizarra aria-[invalid=true]:border-error;
+        @apply block min-h-[3.25rem] w-full rounded-control border-2 border-gris-marca bg-white px-4 py-3 text-base text-tinta transition-colors placeholder:text-pizarra/85 hover:border-pizarra focus:border-azul focus:ring-0 disabled:cursor-not-allowed disabled:bg-nube disabled:text-pizarra aria-[invalid=true]:border-error;
     }
 
     .control:focus-visible {
@@ -206,7 +206,7 @@
 
     /* Choice boxes, as in the contact form's "¿Qué necesita?". */
     .choice {
-        @apply flex min-h-[3.25rem] w-full cursor-pointer items-center gap-3 rounded-control border-2 border-linea bg-white px-4 py-3 text-left font-semibold text-tinta transition-colors hover:border-pizarra;
+        @apply flex min-h-[3.25rem] w-full cursor-pointer items-center gap-3 rounded-control border-2 border-gris-marca bg-white px-4 py-3 text-left font-semibold text-tinta transition-colors hover:border-pizarra;
     }
 
     .choice[aria-pressed='true'],
