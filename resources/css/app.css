@@ -91,6 +91,15 @@
         --focus-ring: 3px solid #fff;
     }
 
+    /* Scrolls without drawing a bar (e.g. the admin sidebar on a short screen). */
+    .scrollbar-none {
+        scrollbar-width: none;
+    }
+
+    .scrollbar-none::-webkit-scrollbar {
+        display: none;
+    }
+
     /*
      * A horizontal scroller that shows there is more: white covers that move with the content
      * hide a shadow at each edge until that edge can be scrolled to.
