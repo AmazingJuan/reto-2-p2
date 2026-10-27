@@ -49,7 +49,7 @@ export default function Index() {
                     </Link>
                 </AdminPageHeader>
 
-                <AdminTableToolbar search={filters.search} onSearch={(search) => visit({ search })} searchPlaceholder="Nombre del servicio o ID…">
+                <AdminTableToolbar search={filters.search} onSearch={(search) => visit({ search })} searchPlaceholder="Servicio o ID…">
                     <FilterSelect
                         id="business-unit-filter"
                         label="Unidad de negocio"

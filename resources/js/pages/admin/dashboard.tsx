@@ -11,10 +11,10 @@ export default function Dashboard() {
             <div className="mx-auto w-full max-w-7xl space-y-10">
                 <header>
                     <h1 className="font-display text-[clamp(1.75rem,1.35rem+1.2vw,2.5rem)] font-extrabold tracking-tight text-azul">
-                        {firstName ? `Hola, ${firstName}` : 'Bienvenido'}
+                        {firstName ? `Bienvenido/a, ${firstName}` : 'Bienvenido/a'}
                     </h1>
                     <p className="mt-2 max-w-2xl text-pizarra">
-                        Gestiona las solicitudes de cotización, el catálogo que ve el cliente y la configuración del sistema.
+                        Gestione las solicitudes de cotización, el catálogo que ve el cliente y la configuración del sistema.
                     </p>
                 </header>
 

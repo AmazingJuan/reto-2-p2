@@ -13,9 +13,10 @@ export function DetailList({ title, items, className }: { title: string; items: 
                 {items
                     .filter((item) => !item.hidden)
                     .map((item) => (
-                        <div key={item.label} className="grid grid-cols-1 gap-1 py-3 first:pt-0 last:pb-0 sm:grid-cols-[11rem_1fr] sm:gap-4">
-                            <dt className="text-sm font-medium text-pizarra">{item.label}</dt>
-                            <dd className="min-w-0 break-words text-sm text-tinta">{item.value}</dd>
+                        // Label beside the value when the card has room for both, above it in a narrow card.
+                        <div key={item.label} className="flex flex-wrap gap-x-4 gap-y-1 py-3 first:pt-0 last:pb-0">
+                            <dt className="w-44 shrink-0 text-sm font-medium text-pizarra">{item.label}</dt>
+                            <dd className="min-w-[min(100%,12rem)] flex-1 break-words text-sm text-tinta">{item.value}</dd>
                         </div>
                     ))}
             </dl>

@@ -35,7 +35,7 @@ export default function Index() {
                     </Link>
                 </AdminPageHeader>
 
-                <AdminTableToolbar search={filters.search} onSearch={(search) => visit({ search })} searchPlaceholder="Nombre, abreviado o ID…" />
+                <AdminTableToolbar search={filters.search} onSearch={(search) => visit({ search })} searchPlaceholder="Nombre o abreviado…" />
 
                 <DataTable
                     columns={[
@@ -46,7 +46,7 @@ export default function Index() {
                         { label: 'Acciones', align: 'center' },
                     ]}
                     isEmpty={businessUnits.data.length === 0}
-                    emptyMessage={filters.search ? 'No hay resultados para tu búsqueda.' : 'No hay unidades de negocio registradas.'}
+                    emptyMessage={filters.search ? 'No hay resultados para su búsqueda.' : 'No hay unidades de negocio registradas.'}
                 >
                     {businessUnits.data.map((unit) => (
                         <tr key={unit.id} className="hover:bg-nube/70">

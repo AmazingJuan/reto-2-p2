@@ -53,7 +53,12 @@ function Summary({ question, number, refer, arrivals }: Pick<QuestionCardProps, 
 
     return (
         <>
-            <span className={cn('block font-display text-lg font-bold leading-snug', question.label.trim() ? 'text-tinta' : 'italic text-pizarra')}>
+            <span
+                className={cn(
+                    'block font-display text-base font-bold leading-snug sm:text-lg',
+                    question.label.trim() ? 'text-tinta' : 'italic text-pizarra',
+                )}
+            >
                 {question.label.trim() || 'Nueva pregunta'}
             </span>
             <span className="mt-1 block text-sm text-pizarra">
@@ -146,8 +151,9 @@ export function QuestionCard(props: QuestionCardProps) {
                     )}
                 </div>
 
+                {/* Stacked on a phone, so the question keeps the width of the card. */}
                 {!editing && (
-                    <div className="flex shrink-0 items-center">
+                    <div className="-my-1 flex shrink-0 flex-col items-center sm:my-0 sm:flex-row">
                         {!isBranch && (
                             <>
                                 <button

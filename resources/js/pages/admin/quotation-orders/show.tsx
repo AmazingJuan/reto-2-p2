@@ -23,10 +23,11 @@ function DocumentLinks({ order, documents }: { order: QuotationOrder; documents:
                 <li key={document.id} className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <a
                         href={route('dashboard.quotation-orders.documents.download', [order.id, document.id])}
-                        className="inline-flex items-center gap-2 font-medium text-azul-hondo hover:underline"
+                        className="inline-flex min-w-0 items-start gap-2 font-medium text-azul-hondo hover:underline"
                     >
-                        <Download className="h-4 w-4 shrink-0" aria-hidden />
-                        <span className="break-all">{document.original_name}</span>
+                        <Download className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                        {/* Wraps between words, and inside one only when it does not fit. */}
+                        <span className="[overflow-wrap:anywhere]">{document.original_name}</span>
                     </a>
                     <span className="text-pizarra">{formatSize(document.size)}</span>
                 </li>
@@ -202,13 +203,6 @@ export default function Show() {
                                       ]
                                     : [{ label: 'Cliente', value: <span className="text-pizarra">Sin datos de contacto.</span> }]
                             }
-                        />
-
-                        <DetailList
-                            title="Referencia"
-                            items={[
-                                { label: 'ID interno', value: <span className="font-display text-xs font-semibold text-pizarra">{order.id}</span> },
-                            ]}
                         />
                     </div>
                 </div>

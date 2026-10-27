@@ -227,7 +227,7 @@ export default function DecisionTreePage() {
                         <div
                             role="tablist"
                             aria-label="Unidad de negocio"
-                            className="flex gap-6 overflow-x-auto overflow-y-hidden shadow-[inset_0_-2px_0_theme(colors.linea)] [scrollbar-width:thin] sm:gap-10"
+                            className="flex gap-5 overflow-x-auto overflow-y-hidden shadow-[inset_0_-2px_0_theme(colors.linea)] [scrollbar-width:thin] sm:gap-10"
                         >
                             {businessUnits.map((t) => {
                                 const active = t.id === tree.id;
@@ -243,7 +243,8 @@ export default function DecisionTreePage() {
                                             setSelectedId(t.id);
                                         }}
                                         className={cn(
-                                            'shrink-0 border-b-4 pb-3 text-left font-display text-xl font-bold tracking-snug transition-colors',
+                                            // Sized to fit the three units on a phone without hiding one past the edge.
+                                            'shrink-0 border-b-4 pb-3 text-left font-display text-base font-bold tracking-snug transition-colors sm:text-xl',
                                             active ? 'border-azul text-azul' : 'border-transparent text-pizarra hover:text-tinta',
                                         )}
                                     >
