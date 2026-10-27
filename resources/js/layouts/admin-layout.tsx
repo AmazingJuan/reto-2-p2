@@ -85,13 +85,13 @@ function Sidebar({ currentPath, onNavigate }: { currentPath: string; onNavigate:
         <div className="flex h-full flex-col">
             <Link href={route('dashboard')} onClick={onNavigate} className="block px-6 pb-6 pt-7">
                 <BrandLogo inverse />
-                <span className="mt-3 block font-display text-sm font-semibold text-niebla">Panel de cotizaciones</span>
+                <span className="mt-3 block font-display text-sm font-semibold text-white/90">Panel de cotizaciones</span>
             </Link>
 
             <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-2" aria-label="Administración">
                 {adminNavigation.map((group) => (
                     <div key={group.label}>
-                        <p className="px-3 pb-1.5 text-xs font-semibold text-bruma">{group.label}</p>
+                        <p className="px-3 pb-1.5 text-xs font-semibold text-white/90">{group.label}</p>
                         <ul className="space-y-0.5">
                             {group.items.map(({ routeName, label, icon: Icon }) => {
                                 const active = isActive(currentPath, routeName);
@@ -103,10 +103,10 @@ function Sidebar({ currentPath, onNavigate }: { currentPath: string; onNavigate:
                                             aria-current={active ? 'page' : undefined}
                                             className={cn(
                                                 'flex items-center gap-3 rounded-control px-3 py-2 font-display text-sm font-semibold transition-colors',
-                                                active ? 'bg-white/10 text-white' : 'text-linea hover:bg-white/5 hover:text-white',
+                                                active ? 'bg-white text-azul' : 'text-white hover:bg-white/10',
                                             )}
                                         >
-                                            <Icon className={cn('h-4 w-4 shrink-0', active ? 'text-cielo' : 'text-bruma')} aria-hidden />
+                                            <Icon className={cn('h-4 w-4 shrink-0', active ? 'text-azul' : 'text-white/90')} aria-hidden />
                                             {label}
                                         </Link>
                                     </li>
@@ -117,26 +117,26 @@ function Sidebar({ currentPath, onNavigate }: { currentPath: string; onNavigate:
                 ))}
             </nav>
 
-            <div className="space-y-1 border-t border-white/10 p-3">
+            <div className="space-y-1 border-t border-white/25 p-3">
                 <a
                     href={route('home')}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 rounded-control px-3 py-2 font-display text-sm font-semibold text-niebla transition-colors hover:bg-white/5 hover:text-white"
+                    className="flex items-center gap-3 rounded-control px-3 py-2 font-display text-sm font-semibold text-white transition-colors hover:bg-white/10"
                 >
-                    <ExternalLink className="h-4 w-4 text-bruma" aria-hidden />
+                    <ExternalLink className="h-4 w-4 text-white/90" aria-hidden />
                     Ver sitio público
                 </a>
                 <Link
                     href={route('logout')}
                     method="post"
                     as="button"
-                    className="flex w-full items-center gap-3 rounded-control px-3 py-2 text-left font-display text-sm font-semibold text-niebla transition-colors hover:bg-white/5 hover:text-white"
+                    className="flex w-full items-center gap-3 rounded-control px-3 py-2 text-left font-display text-sm font-semibold text-white transition-colors hover:bg-white/10"
                 >
-                    <LogOut className="h-4 w-4 text-bruma" aria-hidden />
+                    <LogOut className="h-4 w-4 text-white/90" aria-hidden />
                     <span className="min-w-0 flex-1">
                         Cerrar sesión
-                        {auth.user && <span className="block truncate font-sans text-xs font-normal text-bruma">{auth.user.email}</span>}
+                        {auth.user && <span className="block truncate font-sans text-xs font-normal text-white/90">{auth.user.email}</span>}
                     </span>
                 </Link>
             </div>
@@ -173,20 +173,20 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
                 Saltar al contenido
             </a>
 
-            {/* Desktop sidebar */}
-            <aside className="field-noche fixed inset-y-0 left-0 z-30 hidden w-64 lg:block">
+            {/* Desktop sidebar, in the brand blue of the public site's panels. */}
+            <aside className="field-azul fixed inset-y-0 left-0 z-30 hidden w-64 lg:block">
                 <Sidebar currentPath={currentPath} onNavigate={() => undefined} />
             </aside>
 
             {/* Mobile drawer */}
             {sidebarOpen && (
                 <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label="Menú">
-                    <button type="button" className="absolute inset-0 bg-noche/50" aria-label="Cerrar menú" onClick={() => setSidebarOpen(false)} />
-                    <aside className="animate-slide-in-left relative h-full w-72 max-w-[85vw] bg-noche shadow-xl">
+                    <button type="button" className="absolute inset-0 bg-tinta/50" aria-label="Cerrar menú" onClick={() => setSidebarOpen(false)} />
+                    <aside className="field-azul animate-slide-in-left relative h-full w-72 max-w-[85vw] shadow-xl">
                         <button
                             type="button"
                             onClick={() => setSidebarOpen(false)}
-                            className="absolute right-3 top-5 rounded-control p-1.5 text-gris-marca hover:bg-white/10 hover:text-white"
+                            className="absolute right-3 top-5 rounded-control p-1.5 text-white hover:bg-white/10"
                             aria-label="Cerrar menú"
                         >
                             <X className="h-5 w-5" aria-hidden />
@@ -207,7 +207,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
                     >
                         <Menu className="h-5 w-5" aria-hidden />
                     </button>
-                    <Link href={route('dashboard')} className="text-sm font-semibold text-tinta">
+                    <Link href={route('dashboard')} className="font-display text-sm font-bold text-azul">
                         Panel de cotizaciones
                     </Link>
                 </header>
