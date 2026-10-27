@@ -82,16 +82,17 @@ function Sidebar({ currentPath, onNavigate }: { currentPath: string; onNavigate:
     const { auth } = usePage<PageProps>().props;
 
     return (
-        <div className="flex h-full flex-col">
-            <Link href={route('dashboard')} onClick={onNavigate} className="block px-6 pb-6 pt-7">
+        // The whole column scrolls as one piece (with no visible bar) only when the screen is too short for it.
+        <div className="flex min-h-full flex-col">
+            <Link href={route('dashboard')} onClick={onNavigate} className="block px-6 pb-4 pt-4">
                 <BrandLogo inverse />
-                <span className="mt-3 block font-display text-sm font-semibold text-white/90">Panel de cotizaciones</span>
+                <span className="mt-1.5 block font-display text-sm font-semibold text-white/90">Panel de cotizaciones</span>
             </Link>
 
-            <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-2" aria-label="Administración">
+            <nav className="flex-1 space-y-3 px-3 pb-3 pt-1" aria-label="Administración">
                 {adminNavigation.map((group) => (
                     <div key={group.label}>
-                        <p className="px-3 pb-1.5 text-xs font-semibold text-white/90">{group.label}</p>
+                        <p className="px-3 pb-1 text-xs font-semibold text-white/90">{group.label}</p>
                         <ul className="space-y-0.5">
                             {group.items.map(({ routeName, label, icon: Icon }) => {
                                 const active = isActive(currentPath, routeName);
@@ -102,7 +103,7 @@ function Sidebar({ currentPath, onNavigate }: { currentPath: string; onNavigate:
                                             onClick={onNavigate}
                                             aria-current={active ? 'page' : undefined}
                                             className={cn(
-                                                'flex items-center gap-3 rounded-control px-3 py-2 font-display text-sm font-semibold transition-colors',
+                                                'flex items-center gap-3 rounded-control px-3 py-1.5 font-display text-sm font-semibold transition-colors',
                                                 active ? 'bg-white text-azul' : 'text-white hover:bg-white/10',
                                             )}
                                         >
@@ -117,12 +118,12 @@ function Sidebar({ currentPath, onNavigate }: { currentPath: string; onNavigate:
                 ))}
             </nav>
 
-            <div className="space-y-1 border-t border-white/25 p-3">
+            <div className="space-y-0.5 border-t border-white/25 px-3 py-2">
                 <a
                     href={route('home')}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 rounded-control px-3 py-2 font-display text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                    className="flex items-center gap-3 rounded-control px-3 py-1.5 font-display text-sm font-semibold text-white transition-colors hover:bg-white/10"
                 >
                     <ExternalLink className="h-4 w-4 text-white/90" aria-hidden />
                     Ver sitio público
@@ -131,7 +132,7 @@ function Sidebar({ currentPath, onNavigate }: { currentPath: string; onNavigate:
                     href={route('logout')}
                     method="post"
                     as="button"
-                    className="flex w-full items-center gap-3 rounded-control px-3 py-2 text-left font-display text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                    className="flex w-full items-center gap-3 rounded-control px-3 py-1.5 text-left font-display text-sm font-semibold text-white transition-colors hover:bg-white/10"
                 >
                     <LogOut className="h-4 w-4 text-white/90" aria-hidden />
                     <span className="min-w-0 flex-1">
@@ -174,7 +175,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
             </a>
 
             {/* Desktop sidebar, in the brand blue of the public site's panels. */}
-            <aside className="field-azul fixed inset-y-0 left-0 z-30 hidden w-64 lg:block">
+            <aside className="field-azul scrollbar-none fixed inset-y-0 left-0 z-30 hidden w-64 overflow-y-auto overscroll-contain lg:block">
                 <Sidebar currentPath={currentPath} onNavigate={() => undefined} />
             </aside>
 
@@ -182,7 +183,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
             {sidebarOpen && (
                 <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label="Menú">
                     <button type="button" className="absolute inset-0 bg-tinta/50" aria-label="Cerrar menú" onClick={() => setSidebarOpen(false)} />
-                    <aside className="field-azul animate-slide-in-left relative h-full w-72 max-w-[85vw] shadow-xl">
+                    <aside className="field-azul scrollbar-none animate-slide-in-left relative h-full w-72 max-w-[85vw] overflow-y-auto overscroll-contain shadow-xl">
                         <button
                             type="button"
                             onClick={() => setSidebarOpen(false)}
