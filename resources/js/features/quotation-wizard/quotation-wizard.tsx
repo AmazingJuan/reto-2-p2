@@ -3,7 +3,7 @@ import { scrollIntoViewSoftly } from '@/lib/scroll';
 import { cn } from '@/lib/utils';
 import type { PageProps } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
-import { ChevronLeft, ChevronRight, Printer, Send } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CircleCheck, Printer, Send } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { answeredPath, answerError, formatAnswer, pathAnswers, pathFiles, visibleFields, type VisibleField } from './answers';
 import { fieldAnchor } from './condition-field';
@@ -184,6 +184,7 @@ export function QuotationWizard({ viewData }: { viewData: QuoteViewData }) {
     const review: (ReviewGroup & { start: number })[] = [
         {
             title: 'Datos del cliente',
+            short: true,
             start: contactStep,
             items: CONTACT_GROUPS.flatMap((g) => g.fields)
                 .filter((f) => contact[f.key].trim() !== '')
@@ -276,7 +277,7 @@ export function QuotationWizard({ viewData }: { viewData: QuoteViewData }) {
         setServerErrors({});
         setServerFieldErrors({});
         setFailure([]);
-        sentReview.current = review.map(({ title, items }) => ({ title, items }));
+        sentReview.current = review.map(({ title, short, items }) => ({ title, short, items }));
 
         // A request left open (or kept as a draft) longer than the session gets "Page expired"
         // (419). Instead of Laravel's page, renew the session in the background and send again
@@ -365,64 +366,115 @@ export function QuotationWizard({ viewData }: { viewData: QuoteViewData }) {
 
     if (sent) {
         return (
-            <section className="frame pb-[clamp(4rem,2.4rem+6.5vw,9rem)] pt-8 lg:pt-12" aria-label="Solicitud enviada">
-                <div className="grid max-w-[46rem] gap-10">
-                    <Notice ref={doneRef} tone="ok" title="Solicitud enviada">
-                        <p>
+            <section className="frame pb-[clamp(4rem,2.4rem+6.5vw,9rem)] pt-4 lg:pt-6" aria-label="Solicitud enviada">
+                <div className="grid items-start gap-10 lg:grid-cols-12 lg:gap-12">
+                    {/* What was received and what happens next, with the actions under it: on a phone the
+                        summary goes between them (the wrapper dissolves into the grid), on a desk beside them. */}
+                    <div className="contents lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:grid lg:gap-8">
+                        <div
+                            ref={doneRef}
+                            tabIndex={-1}
+                            className="order-1 rounded-control bg-azul px-[clamp(1.5rem,1rem+2vw,2.5rem)] py-[clamp(1.75rem,1.2rem+2vw,2.75rem)] text-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-[3px] focus-visible:outline-tinta print:border print:border-linea print:bg-white print:text-tinta"
+                        >
+                            <p className="flex items-center gap-2.5 font-display font-bold print:text-azul">
+                                <CircleCheck className="h-6 w-6 shrink-0" aria-hidden />
+                                Solicitud enviada
+                            </p>
                             {sent.code && (
-                                <>
-                                    El número de su solicitud es <strong className="whitespace-nowrap">{sent.code}</strong>.{' '}
-                                </>
+                                <p className="mt-6">
+                                    <span className="block text-sm text-white/85 print:text-pizarra">Número de solicitud</span>
+                                    <span className="mt-1 block font-display text-[clamp(1.75rem,1.4rem+1.4vw,2.5rem)] font-extrabold tabular-nums leading-tight tracking-snug">
+                                        {sent.code}
+                                    </span>
+                                </p>
                             )}
-                            Se envió una confirmación al correo <strong className="[overflow-wrap:anywhere]">{sent.email}</strong>, al cual también se
-                            remitirá la propuesta.
-                            {company.phone && <> Para solicitudes urgentes, comuníquese al {company.phone}.</>}
-                        </p>
-                    </Notice>
+                            <p className="mt-5 text-white/85 print:text-pizarra">
+                                La confirmación y la propuesta llegarán a{' '}
+                                <strong className="font-semibold text-white [overflow-wrap:anywhere] print:text-tinta">{sent.email}</strong>.
+                            </p>
+
+                            <div className="mt-8 border-t border-white/25 pt-6 print:hidden">
+                                <h2 className="font-display font-bold">Qué sigue</h2>
+                                <ol className="mt-4 grid gap-4">
+                                    {[
+                                        'Revise su correo: allí está la confirmación con el número de su solicitud.',
+                                        'Nuestro equipo revisa el encuadre y prepara la propuesta.',
+                                        'Le enviaremos la propuesta a ese correo lo más pronto posible, con un enlace seguro para descargarla.',
+                                    ].map((text, i) => (
+                                        <li key={text} className="grid grid-cols-[1.75rem_1fr] gap-3 text-white/90">
+                                            <span
+                                                className="grid h-7 w-7 place-items-center rounded-full border border-white/70 font-display text-sm font-bold text-white"
+                                                aria-hidden
+                                            >
+                                                {i + 1}
+                                            </span>
+                                            <span className="pt-0.5">{text}</span>
+                                        </li>
+                                    ))}
+                                </ol>
+                                {company.phone && (
+                                    <p className="mt-6 text-sm text-white/85">
+                                        ¿Es urgente? Comuníquese al{' '}
+                                        <a
+                                            href={`tel:${company.phone.replace(/\s+/g, '')}`}
+                                            className="font-semibold text-white underline underline-offset-[0.22em]"
+                                        >
+                                            {company.phone}
+                                        </a>
+                                        .
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="order-3 grid gap-4 print:hidden">
+                            <div className="flex flex-wrap items-center gap-x-7 gap-y-4">
+                                <Link href={route('quotation.select.business_unit')} className="btn btn-outline">
+                                    Solicitar otra cotización
+                                </Link>
+                                <a href={corporate.home} className="link">
+                                    Volver al sitio de Training Corporation
+                                </a>
+                            </div>
+                            <p className="text-sm text-pizarra" aria-live="polite">
+                                {contactCleared ? (
+                                    'Los datos de contacto fueron eliminados de este navegador.'
+                                ) : (
+                                    <>
+                                        Los datos de contacto se conservan en este navegador para futuras solicitudes.{' '}
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                draft.clearContact();
+                                                setContactCleared(true);
+                                            }}
+                                            className="link"
+                                        >
+                                            Eliminarlos de este navegador
+                                        </button>
+                                    </>
+                                )}
+                            </p>
+                        </div>
+                    </div>
 
                     {sent.review.length > 0 && (
-                        <section aria-labelledby="resumen-enviado">
-                            <div className="flex flex-wrap items-center justify-between gap-4">
+                        <section
+                            aria-labelledby="resumen-enviado"
+                            className="order-2 rounded-control border border-linea bg-white lg:order-none lg:col-span-7 lg:row-start-1 print:border-0"
+                        >
+                            <header className="flex flex-wrap items-center justify-between gap-4 border-b border-linea bg-nube/60 px-[clamp(1.25rem,0.8rem+1.8vw,2.25rem)] py-5 print:bg-white print:px-0">
                                 <h2 id="resumen-enviado" className="subheading text-azul">
                                     Resumen de la solicitud
                                 </h2>
-                                <button type="button" onClick={() => window.print()} className="btn btn-outline print:hidden">
-                                    <Printer className="h-5 w-5" aria-hidden />
+                                <button type="button" onClick={() => window.print()} className="btn btn-outline btn-sm print:hidden">
+                                    <Printer aria-hidden />
                                     Imprimir o guardar en PDF
                                 </button>
-                            </div>
-                            <Review groups={sent.review} className="mt-6" />
+                            </header>
+                            <Review groups={sent.review} className="px-[clamp(1.25rem,0.8rem+1.8vw,2.25rem)] pb-8 pt-7 print:px-0" />
                         </section>
                     )}
-
-                    <div className="flex flex-wrap items-center gap-x-7 gap-y-4 print:hidden">
-                        <Link href={route('quotation.select.business_unit')} className="btn btn-outline">
-                            Solicitar otra cotización
-                        </Link>
-                        <a href={corporate.home} className="link">
-                            Volver al sitio de Training Corporation
-                        </a>
-                    </div>
-
-                    <p className="text-sm text-pizarra print:hidden" aria-live="polite">
-                        {contactCleared ? (
-                            'Los datos de contacto fueron eliminados de este navegador.'
-                        ) : (
-                            <>
-                                Los datos de contacto se conservan en este navegador para futuras solicitudes.{' '}
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        draft.clearContact();
-                                        setContactCleared(true);
-                                    }}
-                                    className="link"
-                                >
-                                    Eliminarlos de este navegador
-                                </button>
-                            </>
-                        )}
-                    </p>
                 </div>
             </section>
         );
@@ -644,10 +696,10 @@ function Review({
     className?: string;
 }) {
     return (
-        <div className={cn('grid gap-8', className)}>
+        <div className={cn('grid gap-10', className)}>
             {groups.map((group) => (
                 <section key={group.title} aria-label={group.title} className="break-inside-avoid-page">
-                    <div className="flex items-baseline justify-between gap-4 border-b-2 border-linea pb-2">
+                    <div className="flex items-baseline justify-between gap-4 border-b-2 border-azul/25 pb-2.5">
                         <h3 className="font-display text-lg font-bold text-tinta">{group.title}</h3>
                         {onChange && group.start !== undefined && (
                             <button type="button" onClick={() => onChange(group.start ?? 0)} className="link shrink-0 font-semibold">
@@ -655,14 +707,26 @@ function Review({
                             </button>
                         )}
                     </div>
-                    <dl className="divide-y divide-linea">
-                        {group.items.map(({ question, answer }) => (
-                            <div key={question} className="grid gap-1 py-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] sm:gap-6">
-                                <dt className="text-sm font-bold text-pizarra">{question}</dt>
-                                <dd className="whitespace-pre-line [overflow-wrap:anywhere]">{answer}</dd>
-                            </div>
-                        ))}
-                    </dl>
+                    {group.short ? (
+                        // Short values (the client's data) read as a card, two by two.
+                        <dl className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,16rem),1fr))] gap-x-8 gap-y-5 pt-5">
+                            {group.items.map(({ question, answer }) => (
+                                <div key={question}>
+                                    <dt className="text-[0.9375rem] text-pizarra">{question}</dt>
+                                    <dd className="mt-0.5 font-semibold text-tinta [overflow-wrap:anywhere]">{answer}</dd>
+                                </div>
+                            ))}
+                        </dl>
+                    ) : (
+                        <dl className="divide-y divide-linea">
+                            {group.items.map(({ question, answer }) => (
+                                <div key={question} className="grid gap-1 py-3.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-8">
+                                    <dt className="text-[0.9375rem] text-pizarra">{question}</dt>
+                                    <dd className="whitespace-pre-line font-semibold text-tinta [overflow-wrap:anywhere]">{answer}</dd>
+                                </div>
+                            ))}
+                        </dl>
+                    )}
                 </section>
             ))}
         </div>

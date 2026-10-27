@@ -124,7 +124,7 @@ export function ChannelsPanel({ className }: { className?: string }) {
     return (
         <aside aria-labelledby="canales" className={cn('field-azul p-6 lg:p-8', className)}>
             <h2 id="canales" className="font-display text-xl font-bold leading-tight">
-                Prefiere hablar directamente
+                ¿Prefiere hablar directamente?
             </h2>
             <ul className="mt-5 grid gap-5">
                 {company.phone && (

@@ -104,7 +104,7 @@ function Control({ anchor, condition, value, onChange, aria, invalid }: ControlP
                 />
             );
         }
-        return (
+        const input = (
             <input
                 id={`${anchor}-input`}
                 type={condition.type}
@@ -115,6 +115,14 @@ function Control({ anchor, condition, value, onChange, aria, invalid }: ControlP
                 className={cn('control', condition.type !== 'text' && 'sm:max-w-xs')}
                 {...aria}
             />
+        );
+        return condition.type === 'date' ? (
+            <div className="grid gap-1.5">
+                {input}
+                <DateInWords value={value as string} />
+            </div>
+        ) : (
+            input
         );
     }
 
@@ -133,13 +141,16 @@ function Control({ anchor, condition, value, onChange, aria, invalid }: ControlP
                                 {...aria}
                             />
                         ) : (
-                            <input
-                                type={condition.type}
-                                value={range[bound]}
-                                onChange={(e) => onChange({ ...range, [bound]: e.target.value })}
-                                className="control"
-                                {...aria}
-                            />
+                            <>
+                                <input
+                                    type={condition.type}
+                                    value={range[bound]}
+                                    onChange={(e) => onChange({ ...range, [bound]: e.target.value })}
+                                    className="control"
+                                    {...aria}
+                                />
+                                {condition.type === 'date' && <DateInWords value={range[bound]} />}
+                            </>
                         )}
                     </label>
                 ))}
@@ -198,6 +209,21 @@ function Control({ anchor, condition, value, onChange, aria, invalid }: ControlP
                 />
             )}
         </div>
+    );
+}
+
+/**
+ * The chosen date written out ("viernes, 20 de noviembre de 2026"): the browser draws the
+ * field in its own format (mm/dd/yyyy in an English one), which can be read the wrong way.
+ */
+function DateInWords({ value }: { value: string }) {
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00:00`) : null;
+    return (
+        <p className="min-h-5 text-sm font-semibold text-azul" aria-live="polite">
+            {date && !Number.isNaN(date.getTime())
+                ? date.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+                : null}
+        </p>
     );
 }
 

@@ -27,7 +27,7 @@ export function PageHeader({ title, lede, crumbs = [], crumb, aside, compact = f
         <header className={cn(compact ? 'pb-7 pt-5 sm:pt-6' : 'pb-[clamp(2.75rem,2rem+3vw,5rem)] pt-[clamp(1.5rem,1rem+2vw,3rem)]')}>
             <div className={cn('frame grid items-center gap-10', aside && 'lg:grid-cols-12')}>
                 <div className={cn(aside && 'lg:col-span-7')}>
-                    <nav aria-label="Ruta de navegación">
+                    <nav aria-label="Ruta de navegación" className="print:hidden">
                         <ol className="flex flex-wrap items-center gap-1 text-sm font-semibold">
                             {trail.map((item) => (
                                 <li key={item.href} className="inline-flex items-center gap-1">

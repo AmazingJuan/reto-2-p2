@@ -12,7 +12,7 @@ export function SiteFooter() {
     const hasContact = Boolean(company.address || company.phone || company.email);
 
     return (
-        <footer className="field-noche text-base">
+        <footer className="field-noche text-base print:hidden">
             {hasContact && (
                 <div className="frame grid gap-12 py-[clamp(4rem,2.4rem+6.5vw,7rem)] md:grid-cols-[7fr_5fr]">
                     {company.address && (

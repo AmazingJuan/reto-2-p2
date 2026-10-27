@@ -18,7 +18,7 @@ export default function QuotationPage() {
     return (
         <PublicLayout title={`Cotizar ${unit.toLowerCase()}`} showCta={false}>
             <QuoteShell
-                title={`Cotización de ${unit.toLowerCase()}`}
+                title={sent ? `Recibimos su solicitud de ${unit.toLowerCase()}` : `Cotización de ${unit.toLowerCase()}`}
                 crumb={unit}
                 crumbs={[{ label: 'Solicitar cotización', href: route('quotation.select.business_unit') }]}
                 lede={

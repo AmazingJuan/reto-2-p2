@@ -13,7 +13,7 @@ const answersKey = (unit: string) => `tc-encuadre:${unit}`;
 const sentKey = (unit: string) => `tc-encuadre:enviada:${unit}`;
 
 /** One group of the summary of a request: a block of the encuadre or the contact data. */
-export type ReviewGroup = { title: string; items: { question: string; answer: string }[] };
+export type ReviewGroup = { title: string; short?: boolean; items: { question: string; answer: string }[] };
 
 /** A request just sent, kept for this tab so a reload still shows its confirmation instead of an empty form. */
 export type SentRequest = { code: string | null; email: string; review: ReviewGroup[] };

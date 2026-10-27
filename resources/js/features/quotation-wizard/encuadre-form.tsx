@@ -1,8 +1,8 @@
 import { cn } from '@/lib/utils';
-import type { ReactNode, Ref } from 'react';
+import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react';
 import type { VisibleField } from './answers';
 import { ConditionField } from './condition-field';
-import { sectionOf } from './sections';
+import { sectionKey, sectionOf } from './sections';
 import type { Answer, PublicCondition } from './types';
 
 export type EncuadreBlock = { key: string; title: string; short: string; hint: string; fields: VisibleField[] };
@@ -11,7 +11,7 @@ export type EncuadreBlock = { key: string; title: string; short: string; hint: s
 export function encuadreBlocks(conditions: Record<string, PublicCondition>, fields: VisibleField[]): EncuadreBlock[] {
     const blocks: EncuadreBlock[] = [];
     for (const field of fields) {
-        const key = conditions[field.id].section ?? 'otras';
+        const key = sectionKey(conditions[field.id].section) ?? 'otras';
         const last = blocks[blocks.length - 1];
         if (last?.key === key) {
             last.fields.push(field);
@@ -70,23 +70,46 @@ type FieldsProps = {
     errors: Record<number, string>;
 };
 
-/** The fields of one block; the ones opened by an answer go indented right under it. */
+/** The fields of one block; the ones opened by an answer go indented right under it, and unfold instead of popping in. */
 export function BlockFields({ fields, conditions, answers, onAnswer, errors }: FieldsProps & { fields: VisibleField[] }) {
+    const shown = useRef<Set<number> | null>(null);
+    const [opening, setOpening] = useState<Set<number>>(new Set());
+
+    // Fields that appear on the same screen were opened by an answer (not by moving to another screen).
+    useEffect(() => {
+        const ids = new Set(fields.map((f) => f.id));
+        if (shown.current?.has(fields[0]?.id)) {
+            const opened = fields.filter((f) => f.depth > 0 && !shown.current?.has(f.id)).map((f) => f.id);
+            if (opened.length > 0) setOpening((current) => new Set([...current, ...opened]));
+        }
+        shown.current = ids;
+    }, [fields]);
+
     return (
         <>
             {fields.map(({ id, depth }) => (
                 <div
                     key={id}
-                    className={cn(depth > 0 && 'border-l-2 border-linea pl-4 sm:pl-6')}
+                    className={cn(depth > 0 && 'border-l-2 border-linea pl-4 sm:pl-6', opening.has(id) && 'unfold')}
                     style={{ marginLeft: depth > 1 ? `${(depth - 1) * 1.5}rem` : undefined }}
+                    onAnimationEnd={(event) => {
+                        if (event.target !== event.currentTarget) return;
+                        setOpening((current) => {
+                            const next = new Set(current);
+                            next.delete(id);
+                            return next;
+                        });
+                    }}
                 >
-                    <ConditionField
-                        id={id}
-                        condition={conditions[id]}
-                        answer={answers[id]}
-                        onChange={(answer) => onAnswer(id, answer)}
-                        error={errors[id] ?? null}
-                    />
+                    <div className={cn(opening.has(id) && 'min-h-0 overflow-hidden')}>
+                        <ConditionField
+                            id={id}
+                            condition={conditions[id]}
+                            answer={answers[id]}
+                            onChange={(answer) => onAnswer(id, answer)}
+                            error={errors[id] ?? null}
+                        />
+                    </div>
                 </div>
             ))}
         </>
